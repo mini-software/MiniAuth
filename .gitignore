@@ -1,0 +1,6 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/src/MiniAuth.Web/miniauth.db
+/src/MiniAuth.Web/miniauthsalt.cer
