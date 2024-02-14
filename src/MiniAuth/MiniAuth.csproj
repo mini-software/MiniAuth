@@ -3,26 +3,41 @@
 	<PropertyGroup>
 		<AssemblyName>MiniAuth</AssemblyName>
 		<Title>MiniAuth</Title>
-		<Description>Lightweight .NET report website adding to your project just by one line code</Description>
-		<Authors>WeiLin, mini-software</Authors>
+		<Version>0.0.1</Version>
+		<Description>Lightweight .NET login website adding to your project just by one line code</Description>
+		<Authors>Wei Lin, mini-software</Authors>
 		<PackageTags>MiniAuth</PackageTags>
 		<TargetFrameworks>net5.0</TargetFrameworks>
+		<Copyright>Wei Lin, 2024 onwards</Copyright>
+		<NeutralLanguage>en</NeutralLanguage>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/mini-software/MiniAuth</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/mini-software/MiniAuth</RepositoryUrl>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<!--<PackageIcon>icon.png</PackageIcon>-->
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<IncludeSymbols>true</IncludeSymbols>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<AssemblyOriginatorKeyFile>minisoftware.snk</AssemblyOriginatorKeyFile>
+		<SignAssembly>True</SignAssembly>
 	</PropertyGroup>
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
-
+	<ItemGroup>
+		<None Update="icon.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="minisoftware.snk">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
 	<ItemGroup>
 		<EmbeddedResource Include="wwwroot/**/*" Exclude="**/*/*.map;**/*/*.json;**/*/*.md" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="JWTManager.cs~RF107bd20c.TMP" />
-	  <None Remove="wwwroot\vue.min.js" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <PackageReference Include="JWT" Version="10.1.1" />
-	  <PackageReference Include="System.Data.SQLite.Core" Version="1.0.118" />
+		<PackageReference Include="JWT" Version="10.1.1" />
+		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.118" />
 	</ItemGroup>
 </Project>
