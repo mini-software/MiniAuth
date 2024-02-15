@@ -30,6 +30,7 @@
 - SPA、SSR、API、MVC、Razor Page等都能輕易使用
 - 輕量，無需做複雜依賴設定
 - 不對現有系統做侵入式修改
+- 不依賴 SQL Server 等數據庫
 
 
 ### 安裝

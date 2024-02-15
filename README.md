@@ -30,6 +30,7 @@
 * Support SPA, SSR, API, MVC, Razor Pages, etc.
 * Lightweight, no need for complex dependency setup
 * Makes non-intrusive modifications to existing systems
+* Without SQL Server etc. DBMS dependency 
 
 
 ### Installation

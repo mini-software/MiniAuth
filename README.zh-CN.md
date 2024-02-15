@@ -30,6 +30,7 @@
 - SPA、SSR、API、MVC、Razor Page等都能轻易使用
 - 轻量，无需做复杂依赖设定
 - 不对现有系统做侵入式修改
+- 不依赖 SQL Server 等数据库
 
 
 ### 安装

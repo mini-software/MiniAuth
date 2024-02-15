@@ -2,17 +2,22 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace MiniAuth
 {
@@ -20,15 +25,28 @@ namespace MiniAuth
     {
         private const string EmbeddedFileNamespace = "MiniAuth.wwwroot";
         private readonly RequestDelegate _next;
+        private readonly IEnumerable<EndpointDataSource> _endpointSources;
         private readonly StaticFileMiddleware _staticFileMiddleware;
-        private readonly MiniAuthOptions _options = new MiniAuthOptions();
-        private readonly IJWTManager _jwtManager = new JWTManager("miniauth", "miniauth", "miniauth.pfx");
-        private readonly IAccountManager _accountManer = new AccountManager("miniauth.db");
+        private readonly MiniAuthOptions _options;
+        private readonly IJWTManager _jwtManager;
+        private readonly IAccountManager _accountManer;
         public MiniAuthMiddleware(RequestDelegate next,
             ILoggerFactory loggerFactory,
-            IWebHostEnvironment hostingEnv)
+            IWebHostEnvironment hostingEnv,
+            IJWTManager jwtManager = null,
+            MiniAuthOptions options = null,
+            IAccountManager accountManager =null,
+            IEnumerable<EndpointDataSource> endpointSources = null
+        )
         {
             this._next = next;
+            this._endpointSources = endpointSources;
+            if (jwtManager == null)
+                _jwtManager = new JWTManager("miniauth", "miniauth", "miniauth.pfx");
+            if (options == null)
+                _options = new MiniAuthOptions();
+            if (accountManager == null)
+                _accountManer = new AccountManager("miniauth.db");
             this._staticFileMiddleware = CreateStaticFileMiddleware(next, loggerFactory, hostingEnv); ;
         }
 
@@ -95,6 +113,23 @@ namespace MiniAuth
                 // TODO: remove
                 if (context.Request.Path.StartsWithSegments($"/{_options.RoutePrefix}", out PathString subPath))
                 {
+                    if (subPath == "/getAllEnPoints")
+                    {
+                        var urlList = new List<Dictionary<string,object>>();
+                        foreach (var item in _endpointSources.SelectMany(source => source.Endpoints))
+                        {
+                            var rE = item as RouteEndpoint;
+                            var methods = item?.Metadata?.GetMetadata<HttpMethodMetadata>()
+                                ?.HttpMethods;
+                            var route = rE?.RoutePattern.RawText;
+  
+                            urlList.Add(new Dictionary<string, object>{
+                                { "methods",methods}, { "route",route} 
+                            });
+                        }
+                        await ResponseWriteAsync(context, JsonConvert.SerializeObject(urlList));
+                        return;
+                    }
                     await _staticFileMiddleware.Invoke(context);
                     return;
                 }
@@ -109,6 +144,7 @@ namespace MiniAuth
                 try
                 {
                     var json = _jwtManager.DecodeToken(token);
+                    //TODO:check time
                     await _next(context);
                     return;
                 }
