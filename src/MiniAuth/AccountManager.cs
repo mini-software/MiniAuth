@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using System.Data;
 using System.Data.SQLite;
 namespace MiniAuth
 {
@@ -11,51 +12,38 @@ namespace MiniAuth
 
     public class AccountManager : IAccountManager
     {
-        private string connectionString;
+        private readonly IMiniAuthDB _db;
 
-        public AccountManager(string databasePath)
+        public AccountManager(IMiniAuthDB db)
         {
-            connectionString = $"Data Source={databasePath};Version=3;";
-            if (!System.IO.File.Exists(databasePath))
-            {
-                SQLiteConnection.CreateFile(databasePath);
-                using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-                {
-                    connection.Open();
-                    string sql = @"CREATE TABLE IF NOT EXISTS Accounts (
-Id INTEGER PRIMARY KEY AUTOINCREMENT,
-Username TEXT NOT NULL UNIQUE,
-Password TEXT NOT NULL
-);";
-                    SQLiteCommand command = new SQLiteCommand(sql, connection);
-                    command.ExecuteNonQuery();
-                    CreateAccount("miniauth", "miniauth");
-                }
-            }
+            this._db = db;
         }
 
         public void CreateAccount(string username, string password)
         {
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            using (var connection = _db.GetConnection())
             {
-                connection.Open();
                 string sql = "INSERT INTO Accounts (Username, Password) VALUES (@username, @password);";
-                SQLiteCommand command = new SQLiteCommand(sql, connection);
-                command.Parameters.AddWithValue("@username", username);
-                command.Parameters.AddWithValue("@password", HashGenerator.GetHashPassword(password));
+                var command = connection.CreateCommand();
+                command.CommandText = sql;
+                command.AddParameters(new Dictionary<string, object>
+                {
+                    { "@username", username },
+                    { "@password", HashGenerator.GetHashPassword(password) }
+                });
                 command.ExecuteNonQuery();
             }
         }
 
         public bool ValidateAccount(string username, string password)
         {
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            using (var connection = _db.GetConnection())
             {
-                connection.Open();
                 string sql = "SELECT * FROM Accounts WHERE Username = @username;";
-                SQLiteCommand command = new SQLiteCommand(sql, connection);
-                command.Parameters.AddWithValue("@username", username);
-                SQLiteDataReader reader = command.ExecuteReader();
+                var command = connection.CreateCommand();
+                command.CommandText = sql;
+                command.Parameters.Add(new SQLiteParameter("@username", username));
+                var reader = command.ExecuteReader();
                 if (reader.Read())
                     return reader["Password"].ToString() == HashGenerator.GetHashPassword(password);
                 return false;
@@ -64,14 +52,17 @@ Password TEXT NOT NULL
 
         public void UpdateAccount(int id, string newUsername, string newPassword)
         {
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            using (var connection = _db.GetConnection())
             {
-                connection.Open();
                 string sql = "UPDATE Accounts SET Username = @newUsername, Password = @newPassword WHERE Id = @id;";
-                SQLiteCommand command = new SQLiteCommand(sql, connection);
-                command.Parameters.AddWithValue("@id", id);
-                command.Parameters.AddWithValue("@newUsername", newUsername);
-                command.Parameters.AddWithValue("@newPassword", HashGenerator.GetHashPassword(newPassword));
+                var command = connection.CreateCommand();
+                command.CommandText = sql;
+                command.AddParameters(new Dictionary<string, object>
+                {
+                    { "@id", id },
+                    { "@newUsername", newUsername },
+                    { "@newPassword", HashGenerator.GetHashPassword(newPassword) }
+                });
                 command.ExecuteNonQuery();
             }
         }
