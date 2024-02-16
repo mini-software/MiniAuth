@@ -45,7 +45,6 @@ namespace MiniAuth
         {
             this._logger = logger;
             this._next = next;
-            this._endpointSources = endpointSources;
             if (db==null)
                 this._db = new MiniAuthDB<SQLiteConnection>("Data Source=miniauth.db;Version=3;");
             if (jwtManager == null)
@@ -54,6 +53,7 @@ namespace MiniAuth
                 _options = new MiniAuthOptions();
             if (accountManager == null)
                 _accountManer = new AccountManager(this._db);
+            this._endpointSources = endpointSources;
             this._staticFileMiddleware = CreateStaticFileMiddleware(next, loggerFactory, hostingEnv); ;
         }
 
@@ -99,36 +99,35 @@ namespace MiniAuth
                         return;
                     }
                 }
+            }
 
+            if (context.Request.Path.Equals($"/{_options.RoutePrefix}/logout", StringComparison.OrdinalIgnoreCase))
+            {
+                if (context.Request.Method == "GET")
+                {
+                    context.Response.Cookies.Delete("X-MiniAuth-Token");
+                    context.Response.Redirect($"/{_options.RoutePrefix}/login");  
+                    return;
+                }
+            }
+
+
+            // check if the request is for the login page
+            var token = context.Request.Headers["X-MiniAuth-Token"].FirstOrDefault() ?? context.Request.Cookies["X-MiniAuth-Token"];
+            if (token == null)
+            {
+                context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
+                return;
             }
 
             if (context.Request.Path.StartsWithSegments($"/{_options.RoutePrefix}", out PathString subPath))
             {
                 if (subPath == "/getAllEnPoints")
                 {
-                    var urlList = new List<Dictionary<string, object>>();
-                    foreach (var item in _endpointSources.SelectMany(source => source.Endpoints))
-                    {
-                        var rE = item as RouteEndpoint;
-                        var methods = item?.Metadata?.GetMetadata<HttpMethodMetadata>()
-                            ?.HttpMethods;
-                        var route = rE?.RoutePattern.RawText;
-
-                        urlList.Add(new Dictionary<string, object>{
-                            { "methods",methods}, { "route",route}
-                        });
-                    }
-                    await ResponseWriteAsync(context, JsonConvert.SerializeObject(urlList));
+                    await GetAllEnPointsApi(context);
                     return;
                 }
                 await _staticFileMiddleware.Invoke(context);
-                return;
-            }
-
-            var token = context.Request.Headers["X-MiniAuth-Token"].FirstOrDefault() ?? context.Request.Cookies["X-MiniAuth-Token"];
-            if (token == null)
-            {
-                context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
                 return;
             }
 
@@ -138,19 +137,19 @@ namespace MiniAuth
             }
             catch (TokenNotYetValidException)
             {
-                _logger.LogInformation("Token is not valid yet");
+                _logger.LogDebug("Token is not valid yet");
                 context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
                 return;
             }
             catch (TokenExpiredException)
             {
-                _logger.LogInformation("Token is expired");
+                _logger.LogDebug("Token is expired");
                 context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
                 return;
             }
             catch (SignatureVerificationException)
             {
-                _logger.LogInformation("Token signature is not valid");
+                _logger.LogDebug("Token signature is not valid");
                 context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
                 return;
             }
@@ -159,6 +158,26 @@ namespace MiniAuth
             await _next(context);
             return;
         }
+
+        private async Task GetAllEnPointsApi(HttpContext context)
+        {
+            var urlList = new List<Dictionary<string, object>>();
+            foreach (var item in _endpointSources.SelectMany(source => source.Endpoints))
+            {
+                var routeEndpoint = item as RouteEndpoint;
+                if (routeEndpoint == null)
+                    continue;
+                var methods = item.Metadata?.GetMetadata<HttpMethodMetadata>()
+                    ?.HttpMethods;
+                var route = routeEndpoint?.RoutePattern.RawText;
+
+                urlList.Add(new Dictionary<string, object>{
+                            { "methods",methods}, { "route",route}
+                        });
+            }
+            await ResponseWriteAsync(context, JsonConvert.SerializeObject(urlList));
+        }
+
         private async Task RespondWithLoginHtml(HttpResponse response)
         {
             response.StatusCode = StatusCodes.Status200OK;
