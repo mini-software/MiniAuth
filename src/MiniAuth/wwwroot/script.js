@@ -3,7 +3,9 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
 
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
-    const returnUrl = document.getElementById('returnUrl').value || '/';
+    // get url returnUrl from query string
+    const url = new URL(window.location.href);
+    const returnUrl = url.searchParams.get('returnUrl') || '/';
 
     const xhr = new XMLHttpRequest();
     xhr.open('POST', 'login');

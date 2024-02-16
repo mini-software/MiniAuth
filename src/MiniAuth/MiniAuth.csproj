@@ -35,6 +35,9 @@
 	<ItemGroup>
 		<EmbeddedResource Include="wwwroot/**/*" Exclude="**/*/*.map;**/*/*.json;**/*/*.md" />
 	</ItemGroup>
+	<ItemGroup>
+	  <None Remove="wwwroot\index.html" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="JWT" Version="10.1.1" />

@@ -31,16 +31,25 @@ namespace MiniAuth
                 {
                     SQLiteConnection.CreateFile(connectionString);
                     string sql = @"CREATE TABLE Accounts (
-Id INTEGER PRIMARY KEY AUTOINCREMENT,
-Username TEXT NOT NULL UNIQUE,
-Password TEXT NOT NULL
-);";
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    Username TEXT NOT NULL UNIQUE,
+    Password TEXT NOT NULL,
+    Roles TEXT NOT NULL
+);
+
+CREATE TABLE RouteRoles (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    Route TEXT NOT NULL UNIQUE,
+    Roles TEXT,
+    Enable TEXT
+);
+";
                     using (var connection = _GetConnection())
                     {
                         var command = connection.CreateCommand();
                         command.CommandText = sql;
                         command.ExecuteNonQuery();
-                        new AccountManager(this).CreateAccount("miniauth", "miniauth");
+                        new AccountManager(this).CreateAccount("miniauth", "miniauth","admin");
                     }
 
                 }

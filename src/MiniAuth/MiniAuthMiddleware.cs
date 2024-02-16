@@ -111,23 +111,38 @@ namespace MiniAuth
                 }
             }
 
+            // default js, css static file
+            var token = context.Request.Headers["X-MiniAuth-Token"].FirstOrDefault() ?? context.Request.Cookies["X-MiniAuth-Token"];
+            {
+                if (context.Request.Path.StartsWithSegments($"/{_options.RoutePrefix}", out PathString subPath))
+                {
+                    if (subPath.Value.StartsWith("/api"))
+                    {
+                        if (token == null)
+                        {
+                            context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
+                            return;
+                        }
+                        if (subPath == "/api/getAllEnPoints")
+                        {
+                            await GetAllEnPointsApi(context);
+                            return;
+                        }
+                    }
+                    if (subPath.Value.EndsWith("html") && token == null)
+                    {
+                        context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
+                        return;
+                    }
+                    await _staticFileMiddleware.Invoke(context);
+                    return;
+                }
+            }
 
             // check if the request is for the login page
-            var token = context.Request.Headers["X-MiniAuth-Token"].FirstOrDefault() ?? context.Request.Cookies["X-MiniAuth-Token"];
             if (token == null)
             {
                 context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
-                return;
-            }
-
-            if (context.Request.Path.StartsWithSegments($"/{_options.RoutePrefix}", out PathString subPath))
-            {
-                if (subPath == "/getAllEnPoints")
-                {
-                    await GetAllEnPointsApi(context);
-                    return;
-                }
-                await _staticFileMiddleware.Invoke(context);
                 return;
             }
 
