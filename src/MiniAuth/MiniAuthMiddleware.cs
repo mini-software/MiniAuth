@@ -13,7 +13,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Data.SQLite;
 using System.IO;
 using System.Linq;
@@ -147,7 +146,7 @@ namespace MiniAuth
                 var checkRouteAuth = false;
                 if (_options.AuthAllRoutes)
                 {
-                    if (routePermission!=null && routePermission.Enable == 0)
+                    if (routePermission != null && routePermission.Enable == 0)
                         checkRouteAuth = false;
                     else
                         checkRouteAuth = true;
