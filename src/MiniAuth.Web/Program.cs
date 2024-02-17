@@ -34,21 +34,8 @@ namespace MiniAuth.Web
     [Route("[controller]")]
     public class Demo2Controller : ControllerBase
     {
-        public Demo2Controller()
-        {
-            var t = this;
-        }
         [HttpGet("Api1")]
-        public IEnumerable<dynamic> Api1()
-        {
-            return Enumerable.Range(1, 5).Select(index => new
-            {
-                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                //Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-.ToArray();
-        }
+        public ActionResult Api1() => Content("Api1");
         public ActionResult Api2() => Content("Api2");
     }
 }

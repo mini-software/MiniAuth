@@ -7,8 +7,11 @@ using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MiniAuth.Configs;
+using MiniAuth.Managers;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.SQLite;
@@ -18,6 +21,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using static MiniAuth.Managers.RolePermissionManager;
 
 namespace MiniAuth
 {
@@ -30,31 +34,38 @@ namespace MiniAuth
         private readonly StaticFileMiddleware _staticFileMiddleware;
         private readonly MiniAuthOptions _options;
         private readonly IJWTManager _jwtManager;
-        private readonly IAccountManager _accountManer;
+        private readonly IUserManager _userManer;
+        private readonly IRolePermissionManager _permissionManager;
         private readonly ILogger<MiniAuthMiddleware> _logger;
+        private readonly ConcurrentDictionary<string, PermissionDto> _routePermissionCache = new ConcurrentDictionary<string, PermissionDto>();
         public MiniAuthMiddleware(RequestDelegate next,
             ILoggerFactory loggerFactory,
             IWebHostEnvironment hostingEnv,
             ILogger<MiniAuthMiddleware> logger,
             IJWTManager jwtManager = null,
             MiniAuthOptions options = null,
-            IAccountManager accountManager = null,
+            IRolePermissionManager permissionManager = null,
+            IUserManager userManager = null,
             IEnumerable<EndpointDataSource> endpointSources = null,
-            IMiniAuthDB db =null
+            IMiniAuthDB db = null
         )
         {
             this._logger = logger;
             this._next = next;
-            if (db==null)
+            if (db == null)
                 this._db = new MiniAuthDB<SQLiteConnection>("Data Source=miniauth.db;Version=3;");
             if (jwtManager == null)
                 _jwtManager = new JWTManager("miniauth", "miniauth", "miniauth.pfx");
             if (options == null)
                 _options = new MiniAuthOptions();
-            if (accountManager == null)
-                _accountManer = new AccountManager(this._db);
+            if (userManager == null)
+                _userManer = new UserManager(this._db);
+            if (permissionManager == null)
+                _permissionManager = new RolePermissionManager(this._db);
             this._endpointSources = endpointSources;
             this._staticFileMiddleware = CreateStaticFileMiddleware(next, loggerFactory, hostingEnv); ;
+            // first time load route cache
+            _routePermissionCache = new ConcurrentDictionary<string, PermissionDto>(_permissionManager.GetPermissions().ToDictionary(p => p.Route.ToLowerInvariant()));
         }
 
         private StaticFileMiddleware CreateStaticFileMiddleware(RequestDelegate next, ILoggerFactory loggerFactory, IWebHostEnvironment hostingEnv)
@@ -83,13 +94,15 @@ namespace MiniAuth
                     var body = await reader.ReadToEndAsync();
                     var bodyJson = JsonDocument.Parse(body);
                     var root = bodyJson.RootElement;
-                    var account = root.GetProperty("username").GetString();
+                    var userName = root.GetProperty("username").GetString();
                     var password = root.GetProperty("password").GetString();
-                    if (_accountManer.ValidateAccount(account, password))
+                    if (_userManer.ValidateUser(userName, password))
                     {
-                        var newToken = _jwtManager.GetToken(account, account, _options.ExpirationMinuteTime);
+                        var roles = _userManer.GetUserRoles(userName);
+                        var newToken = _jwtManager.GetToken(userName, userName, _options.ExpirationMinuteTime, roles);
                         context.Response.Headers.Add("X-MiniAuth-Token", newToken);
                         context.Response.Cookies.Append("X-MiniAuth-Token", newToken);
+
                         await ResponseWriteAsync(context, $"{{\"X-MiniAuth-Token\":\"{newToken}\"}}").ConfigureAwait(false);
                         return;
                     }
@@ -106,69 +119,130 @@ namespace MiniAuth
                 if (context.Request.Method == "GET")
                 {
                     context.Response.Cookies.Delete("X-MiniAuth-Token");
-                    context.Response.Redirect($"/{_options.RoutePrefix}/login");  
+                    context.Response.Redirect($"/{_options.RoutePrefix}/login");
                     return;
                 }
             }
-
-            // default js, css static file
-            var token = context.Request.Headers["X-MiniAuth-Token"].FirstOrDefault() ?? context.Request.Cookies["X-MiniAuth-Token"];
+            // js or css doesn't need auth
             {
                 if (context.Request.Path.StartsWithSegments($"/{_options.RoutePrefix}", out PathString subPath))
                 {
-                    if (subPath.Value.StartsWith("/api"))
+                    if (subPath.Value.EndsWith("js") || subPath.Value.EndsWith("css"))
                     {
-                        if (token == null)
-                        {
-                            context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
-                            return;
-                        }
-                        if (subPath == "/api/getAllEnPoints")
-                        {
-                            await GetAllEnPointsApi(context);
-                            return;
-                        }
+                        await _staticFileMiddleware.Invoke(context);
+                        return;
                     }
-                    if (subPath.Value.EndsWith("html") && token == null)
+                }
+            }
+
+
+
+            var token = context.Request.Headers["X-MiniAuth-Token"].FirstOrDefault() ?? context.Request.Cookies["X-MiniAuth-Token"];
+
+            // check route auth
+            {
+                PermissionDto routePermission = null;
+                if (_routePermissionCache.ContainsKey(context.Request.Path.Value.ToLowerInvariant()))
+                    routePermission = _routePermissionCache[context.Request.Path.Value.ToLowerInvariant()];
+                var checkRouteAuth = false;
+                if (_options.AuthAllRoutes)
+                {
+                    if (routePermission!=null && routePermission.Enable == 0)
+                        checkRouteAuth = false;
+                    else
+                        checkRouteAuth = true;
+                }
+                else
+                {
+                    if (routePermission != null && routePermission.Enable == 1)
+                        checkRouteAuth = true;
+                    else
+                        checkRouteAuth = false;
+                }
+
+                if (checkRouteAuth)
+                {
+                    if (token == null)
                     {
                         context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
                         return;
                     }
-                    await _staticFileMiddleware.Invoke(context);
-                    return;
+                    try
+                    {
+                        var json = _jwtManager.DecodeToken(token);
+                        var sub = JsonDocument.Parse(json).RootElement.GetProperty("sub").GetString();
+                        if (sub == null)
+                            throw new Exception("sub can't null");
+                        var usersPermission = _userManer.GetUserRoleAndPermissions(sub);
+
+                        // if user doesn't have permission to access this route
+                        //if it's null, permission is basic
+                        if (routePermission == null)
+                        {
+                            // only admin role can access /miniauth now
+                            // TODO: dynamic route permission feature
+                            if (context.Request.Path.StartsWithSegments($"/{_options.RoutePrefix}"))
+                            {
+                                if (!usersPermission.Any(_ => _.RoleId == 1))
+                                {
+                                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                                    await ResponseWriteAsync(context, "insufficient rights to a resource");
+                                    return;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (routePermission.Enable == 1 && usersPermission.Any(_ => _.PermissionId == routePermission.Id))
+                            {
+                                // pass
+                            }
+                            else
+                            {
+                                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                                await ResponseWriteAsync(context, "insufficient rights to a resource");
+                                return;
+                            }
+                        }
+                    }
+                    catch (TokenNotYetValidException)
+                    {
+                        _logger.LogDebug("Token is not valid yet");
+                        context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
+                        return;
+                    }
+                    catch (TokenExpiredException)
+                    {
+                        _logger.LogDebug("Token is expired");
+                        context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
+                        return;
+                    }
+                    catch (SignatureVerificationException)
+                    {
+                        _logger.LogDebug("Token signature is not valid");
+                        context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
+                        return;
+                    }
+
+
+                    if (context.Request.Path.StartsWithSegments($"/{_options.RoutePrefix}", out PathString subPath))
+                    {
+                        if (subPath.Value.StartsWith("/api"))
+                        {
+                            if (subPath == "/api/getAllEnPoints")
+                            {
+                                await GetAllEnPointsApi(context);
+                                return;
+                            }
+                        }
+                        if (subPath.Value.EndsWith("html") && token == null)
+                        {
+                            context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
+                            return;
+                        }
+                    }
                 }
             }
-
-            // check if the request is for the login page
-            if (token == null)
-            {
-                context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
-                return;
-            }
-
-            try
-            {
-                var json = _jwtManager.DecodeToken(token);
-            }
-            catch (TokenNotYetValidException)
-            {
-                _logger.LogDebug("Token is not valid yet");
-                context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
-                return;
-            }
-            catch (TokenExpiredException)
-            {
-                _logger.LogDebug("Token is expired");
-                context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
-                return;
-            }
-            catch (SignatureVerificationException)
-            {
-                _logger.LogDebug("Token signature is not valid");
-                context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
-                return;
-            }
-
 
             await _next(context);
             return;
@@ -197,7 +271,7 @@ namespace MiniAuth
         {
             response.StatusCode = StatusCodes.Status200OK;
             response.ContentType = "text/html";
-            using (var stream = _options.IndexStream())
+            using (var stream = _options.LoginHtmlStream())
             {
                 var htmlBuilder = new StringBuilder(new StreamReader(stream).ReadToEnd());
                 await response.WriteAsync(htmlBuilder.ToString(), Encoding.UTF8);

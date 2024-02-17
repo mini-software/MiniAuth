@@ -1,17 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
-using System.Security.Cryptography;
-using System.IO;
-using JWT;
-using JWT.Serializers;
+﻿using JWT;
 using JWT.Algorithms;
-namespace MiniAuth
+using JWT.Serializers;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+namespace MiniAuth.Managers
 {
     public interface IJWTManager
     {
         string DecodeToken(string token);
-        string GetToken(string sub, string name, int expMins);
+        string GetToken(string sub, string name, int expMins, IEnumerable<string> roles);
     }
 
     public class JWTManager : IJWTManager
@@ -37,12 +37,17 @@ namespace MiniAuth
             _certificate = new X509Certificate2(cerPath, password);
         }
 
-        public string GetToken(string sub, string name, int expMins)
+        public string GetToken(string sub, string name, int expMins, IEnumerable<string> roles)
         {
+            //TODO:token id
+            var id = Guid.NewGuid().ToString();
             var payload = new Dictionary<string, object>
             {
                 { "sub", sub },
                 { "name", name },
+                { "iss", "miniauth"},
+                { "roles", roles},
+                { "jti", id},
                 { "exp", DateTimeOffset.UtcNow.AddMinutes(expMins).ToUnixTimeSeconds() },
                 { "iat", DateTimeOffset.UtcNow.ToUnixTimeSeconds() },
             };

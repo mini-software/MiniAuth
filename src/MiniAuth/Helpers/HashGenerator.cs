@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Security.Cryptography;
-namespace MiniAuth
+namespace MiniAuth.Helpers
 {
-    public class HashGenerator
+    internal class HashGenerator
     {
         private const string SaltFilePath = "miniauthsalt.cer";
         public static string GetHashPassword(string password)
