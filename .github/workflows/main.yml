@@ -1,0 +1,25 @@
+name: Main Build
+
+on:
+  pull_request:
+  push:
+    branches:
+    - main
+    paths:
+    - '*'
+    - '!/releases/*' # Don't run workflow when files are only in the /docs directory
+    - '!*.md' # Don't run workflow when files are markdown
+
+jobs:
+  vm-job:
+    name: Ubuntu
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v1
+    - name: .NET Build
+      run: dotnet build Build.csproj -c Release /p:CI=true
+    - name: .NET Test
+      run: dotnet test Build.csproj -c Release --no-build --logger trx  --results-directory ./test-results/ /p:CI=true
+      env:
+        EnableTestLogging: true

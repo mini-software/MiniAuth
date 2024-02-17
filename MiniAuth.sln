@@ -1,0 +1,68 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34330.188
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MiniAuth", "src\MiniAuth\MiniAuth.csproj", "{88B49A17-3C7A-406A-B257-F244A92302F8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MiniAuth.Web", "tests\MiniAuth.Web\MiniAuth.Web.csproj", "{6EA661B7-B70C-4E47-8433-421D9E9E017F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Readme", "Readme", "{0896AF4C-F6A2-4CBE-95AA-1A11B623599B}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+		README.zh-CN.md = README.zh-CN.md
+		README.zh-Hant.md = README.zh-Hant.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Releases", "Releases", "{0FF62372-13BC-4520-8749-AAE3E5BE3B0D}"
+	ProjectSection(SolutionItems) = preProject
+		releases\README.md = releases\README.md
+		releases\README.zh-CN.md = releases\README.zh-CN.md
+		releases\README.zh-Hant.md = releases\README.zh-Hant.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{119A6AF1-E780-4B91-A26A-EA6647E1C1D4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F97A714F-28E9-40E4-AA78-2238B8E4A05D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MiniAuth.Tests.AspNetCore", "tests\MiniAuth.Tests.AspNetCore\MiniAuth.Tests.AspNetCore.csproj", "{F49D7CE6-7FB0-4A2F-B20A-4D11F99F8BCF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{A09BB832-5386-4D43-BA9A-3F78DD06E19E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{D14A76BB-35FE-4E58-8243-582552DC531E}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\main.yml = .github\workflows\main.yml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{88B49A17-3C7A-406A-B257-F244A92302F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88B49A17-3C7A-406A-B257-F244A92302F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88B49A17-3C7A-406A-B257-F244A92302F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88B49A17-3C7A-406A-B257-F244A92302F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6EA661B7-B70C-4E47-8433-421D9E9E017F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EA661B7-B70C-4E47-8433-421D9E9E017F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EA661B7-B70C-4E47-8433-421D9E9E017F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EA661B7-B70C-4E47-8433-421D9E9E017F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F49D7CE6-7FB0-4A2F-B20A-4D11F99F8BCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F49D7CE6-7FB0-4A2F-B20A-4D11F99F8BCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F49D7CE6-7FB0-4A2F-B20A-4D11F99F8BCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F49D7CE6-7FB0-4A2F-B20A-4D11F99F8BCF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{88B49A17-3C7A-406A-B257-F244A92302F8} = {F97A714F-28E9-40E4-AA78-2238B8E4A05D}
+		{6EA661B7-B70C-4E47-8433-421D9E9E017F} = {119A6AF1-E780-4B91-A26A-EA6647E1C1D4}
+		{F49D7CE6-7FB0-4A2F-B20A-4D11F99F8BCF} = {119A6AF1-E780-4B91-A26A-EA6647E1C1D4}
+		{D14A76BB-35FE-4E58-8243-582552DC531E} = {A09BB832-5386-4D43-BA9A-3F78DD06E19E}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {823332EF-B62C-41B2-9730-7D7E555A9D1C}
+	EndGlobalSection
+EndGlobal
