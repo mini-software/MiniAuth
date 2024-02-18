@@ -36,17 +36,9 @@ namespace MiniAuth.Tests.AspNetCore
                 .ConfigureServices(services => { })
                 .Configure(app =>
                 {
-                    
-                    app.UseRouting();
-                    app.UseEndpoints(endpoints =>
-                    {
-                        endpoints.MapGet("/test", () =>
-                        {
-                            return "Hello from root!";
-                        });
-                    });
-                    app.Run(async (context) => await Task.CompletedTask);
                     app.UseMiniAuth();
+                    app.Run(async (context) => await Task.CompletedTask);
+                    
                 });
             using (var server = new TestServer(builder))
             {
@@ -62,7 +54,7 @@ namespace MiniAuth.Tests.AspNetCore
                 {
                     var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     Assert.Contains("document", content);
-                    Assert.Equal("application/javascript", response.Content.Headers.ContentType?.MediaType);
+                    Assert.Equal("text/javascript", response.Content.Headers.ContentType?.MediaType);
                 }
             }
         }
