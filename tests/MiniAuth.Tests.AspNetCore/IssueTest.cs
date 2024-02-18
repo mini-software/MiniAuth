@@ -17,7 +17,7 @@ using Xunit.Abstractions;
 
 namespace MiniAuth.Tests.AspNetCore
 {
-    [Collection("BasicTest")]
+    [Collection("IssueTest")]
     public partial class IssueTest : IClassFixture<WebApplicationFactory<Program>>
     {
         public ITestOutputHelper Output { get; }

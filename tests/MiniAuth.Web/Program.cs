@@ -10,6 +10,7 @@ namespace MiniAuth.Web
             var service = builder.Services;
             service.AddControllers();
             var app = builder.Build();
+            app.UseStaticFiles();
             app.UseMiniAuth();
             app.MapControllers();
             app.MapGet("/", () => "Hello MiniAuth!");

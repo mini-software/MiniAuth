@@ -22,15 +22,16 @@
 
 ### Introduction
 
-"One line code" to add a login User management system to existing project.
+Login RBAC System in ONE Line of Code for your existing project
 
 
 ### Features
 
-* Support SPA, SSR, API, MVC, Razor Pages, etc.
-* Lightweight, no need for complex dependency setup
-* Makes non-intrusive modifications to existing systems
-* Without SQL Server etc. DBMS dependency 
+* Easy: support SPA, SSR, API, MVC, Razor Page 
+* Dynamic: Runtime dynamic routing permission settings
+* Progressive: Configurable functionality based on business requirements
+* Compatible: Non-intrusive modifications to existing systems, able to work with other permission frameworks
+* Supports multiple databases
 
 
 ### Installation
@@ -43,7 +44,7 @@ Install the package from [NuGet](https://www.nuget.org/packages/MiniAuth)
 Add the following code in Startup and run the project:
 
 ```csharp
-app.UseMiniAuth();    // using MiniAuth; //namespace
+app.UseMiniAuth();    // using MiniAuth; 
 ```
 
 The default admin User is "miniauth" with the password "miniauth". You will need to change password when first login.
@@ -58,8 +59,32 @@ Please see [Release Notes](releases)
 
 * The default JWT is RS256 + X509. When running for the first time, new credentials will be generated locally in `miniauth.pfx` and `miniauthsalt.cer`.
 
+### API
 
-### Limitations and Warnings
+#### Login
 
-* Currently does not support distributed systems.
+If there is no cookie environment, you can call the api endpoint`Post /MiniAuth/login`and pass the json body
 
+```json
+{  
+ "username":"username",  
+ "password":"password"  
+}
+```
+
+You can obtain the JWT Value with the Key `X-MiniAuth-Token` in the Headers or Response Body.
+
+#### Logout
+
+If there is no cookie environment, you can call the api endpoint `Get /MiniAuth/login`
+
+### Settings
+
+#### Custom Login css and js
+
+Add `wwwroot\MiniAuth\custom.css` or `wwwroot\MiniAuth\custom.js` and call `app.UseStaticFiles();`
+
+### Distributed Systems
+
+- Change the database source to MySQL, PostgreSQL, etc.
+- Ensure that `miniauth.pfx` and `miniauthsalt.cer` are the same on each machine, otherwise authentication will fail.

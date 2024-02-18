@@ -75,7 +75,17 @@ app.UseMiniAuth();    // using MiniAuth;
 #### 登出
 如没有 cookie 环境，可以 call api 接口 `Get /MiniAuth/login` 
 
+
+
+### 设定
+
+#### 自定义 Login css 跟 js
+
+新增 `wwwroot\MiniAuth\custom.css` 或 `wwwroot\MiniAuth\custom.js`
+
+
+
 ### 分布式系统
 
-- 数据库来源请换成 MySQL、PostgreSQL。
+- 数据库来源请换成 MySQL、PostgreSQL 等数据库。
 - 请确认每个机器上的 `miniauth.pfx`, `miniauthsalt.cer`都是同一个，否则会导致验证失败。
