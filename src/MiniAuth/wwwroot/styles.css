@@ -50,3 +50,13 @@ body {
     margin-top: 16px;
     color: red;
 }
+
+.language-switcher {
+    margin-top: 10px;
+}
+
+    .language-switcher select {
+        width: 100%;
+        padding: 5px;
+        border-radius: 5px;
+    }

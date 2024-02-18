@@ -22,16 +22,17 @@
 
 ### 简介
 
-「一行代码」为现有项目添加登录账号管理系统，开箱即用。
+「一行代码」为「现有新旧项目」添加登录账号管理系统。
 
+开箱即用，渐进式添加功能，避免需要打掉重写或是严重耦合情况。
 
 ### 特点
 
-- SPA、SSR、API、MVC、Razor Page等都能轻易使用
-- 轻量，无需做复杂依赖设定
-- 不对现有系统做侵入式修改
-- 不依赖 SQL Server 等数据库
-
+- 简单 : SPA、SSR、API、MVC、Razor Page 都能使用
+- 动态 : 运行时动态路由权限设置
+- 渐进式 : 可按照业务需求配置功能
+- 兼容 : 不对现有系统做侵入式修改，能搭配其他权限框架使用
+- 支持多数据库
 
 ### 安装
 
@@ -43,7 +44,7 @@
 在 Startup 添加以下代码并运行项目即可
 
 ```csharp
-app.UseMiniAuth();    // using MiniAuth; //namespace
+app.UseMiniAuth();    // using MiniAuth; 
 ```
 
 预设admin管理账号为 miniauth 密码为 miniauth，第一次登入后会要求修改密码
@@ -56,8 +57,25 @@ app.UseMiniAuth();    // using MiniAuth; //namespace
 
 - 预设 JWT 的处理方式为 RS256 + X509，第一次运行时会生成新的凭证在本地 `miniauth.pfx`, `miniauthsalt.cer` 请妥善管理
 
+### API
 
-### 局限与警告
+#### 登入
 
-- 目前不支持分布式系统
+如没有 cookie 环境，可以 call api 接口 `Post /MiniAuth/login` 
+传入 json body
 
+```json
+{
+	"username":"username",
+	"password":"password"
+}
+```
+可以在 Headers 或是 Response Body 获取Key 为 X-MiniAuth-Token 的 JWT Value。
+
+#### 登出
+如没有 cookie 环境，可以 call api 接口 `Get /MiniAuth/login` 
+
+### 分布式系统
+
+- 数据库来源请换成 MySQL、PostgreSQL。
+- 请确认每个机器上的 `miniauth.pfx`, `miniauthsalt.cer`都是同一个，否则会导致验证失败。

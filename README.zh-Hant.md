@@ -57,6 +57,7 @@ app.UseMiniAuth();    // using MiniAuth; //namespace
 - 預設 JWT 的處理方式為 RS256 + X509，第一次運行時會生成新的憑證在本地 `miniauth.pfx`, `miniauthsalt.cer` 請妥善管理
 
 
-### 侷限與警告
+### 分布式系统
 
-- 目前不支持分布式系統
+- 数据库来源请换成 MySQL、PostgreSQL。
+- 请确认每个机器上的 `miniauth.pfx`, `miniauthsalt.cer`都是同一个，否则会导致验证失败。

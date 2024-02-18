@@ -22,7 +22,7 @@
 
 ### Introduction
 
-"One line code" to add a login account management system to existing project.
+"One line code" to add a login User management system to existing project.
 
 
 ### Features
@@ -46,7 +46,7 @@ Add the following code in Startup and run the project:
 app.UseMiniAuth();    // using MiniAuth; //namespace
 ```
 
-The default admin account is "miniauth" with the password "miniauth". You will need to change password when first login.
+The default admin User is "miniauth" with the password "miniauth". You will need to change password when first login.
 
 
 ### Changelog
