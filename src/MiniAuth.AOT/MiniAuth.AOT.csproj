@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\MiniAuth\MiniAuth.csproj" />
+    <ProjectReference Include="..\MiniAuth\MiniAuth.csproj" />
   </ItemGroup>
 
 </Project>
