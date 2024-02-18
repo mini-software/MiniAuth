@@ -34,6 +34,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\main.yml = .github\workflows\main.yml
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{4957A4E0-CC6C-4959-94E6-04A7A59939F8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiniAuth.AOT", "MiniAuth.AOT\MiniAuth.AOT.csproj", "{1AB589D7-A158-4933-A82E-7B3E939CA26B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,15 +56,20 @@ Global
 		{F49D7CE6-7FB0-4A2F-B20A-4D11F99F8BCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F49D7CE6-7FB0-4A2F-B20A-4D11F99F8BCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F49D7CE6-7FB0-4A2F-B20A-4D11F99F8BCF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1AB589D7-A158-4933-A82E-7B3E939CA26B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1AB589D7-A158-4933-A82E-7B3E939CA26B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1AB589D7-A158-4933-A82E-7B3E939CA26B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1AB589D7-A158-4933-A82E-7B3E939CA26B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{88B49A17-3C7A-406A-B257-F244A92302F8} = {F97A714F-28E9-40E4-AA78-2238B8E4A05D}
-		{6EA661B7-B70C-4E47-8433-421D9E9E017F} = {119A6AF1-E780-4B91-A26A-EA6647E1C1D4}
+		{6EA661B7-B70C-4E47-8433-421D9E9E017F} = {4957A4E0-CC6C-4959-94E6-04A7A59939F8}
 		{F49D7CE6-7FB0-4A2F-B20A-4D11F99F8BCF} = {119A6AF1-E780-4B91-A26A-EA6647E1C1D4}
 		{D14A76BB-35FE-4E58-8243-582552DC531E} = {A09BB832-5386-4D43-BA9A-3F78DD06E19E}
+		{1AB589D7-A158-4933-A82E-7B3E939CA26B} = {F97A714F-28E9-40E4-AA78-2238B8E4A05D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {823332EF-B62C-41B2-9730-7D7E555A9D1C}
