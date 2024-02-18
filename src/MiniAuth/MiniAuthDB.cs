@@ -31,7 +31,7 @@ namespace MiniAuth
             {
                 if (!System.IO.File.Exists("miniauth.db"))
                 {
-                    SQLiteConnection.CreateFile(connectionString);
+                    SQLiteConnection.CreateFile("miniauth.db");
                     string sql = @"
 DROP TABLE IF EXISTS users;
 CREATE TABLE users (  
