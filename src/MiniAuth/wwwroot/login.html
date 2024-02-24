@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Page</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="custom.css">
+    <link rel="stylesheet" href="login.css">
 </head>
 <body>
     <div class="login-container">
@@ -15,10 +14,14 @@
             <input type="password" id="password" placeholder="Password" required>
             <input type="hidden" id="returnUrl" value="">
             <button type="submit">Login</button>
+            <div class="remember">
+                
+                <input type="checkbox" id="remember" name="remember">
+                <label id="remember" for="remember">Remember me</label>
+            </div>
         </form>
         <div id="message"></div>
     </div>
-    <script src="script.js"></script>
-    <script src="custom.js"></script>
+    <script src="login.js"></script>
 </body>
 </html>

@@ -14,4 +14,15 @@
 		<Content Include="MiniAuth\*.*" CopyToOutputDirectory="PreserveNewest" />
 		<Content Include="MiniAuth\Basic\*.*" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Remove="wwwroot\index.html" />
+	  <Content Remove="wwwroot\login.css" />
+	  <Content Remove="wwwroot\login.html" />
+	  <Content Remove="wwwroot\login.js" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="wwwroot\MiniAuth\" />
+	</ItemGroup>
 </Project>

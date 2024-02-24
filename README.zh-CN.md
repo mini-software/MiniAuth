@@ -79,9 +79,9 @@ app.UseMiniAuth();    // using MiniAuth;
 
 ### 设定
 
-#### 自定义 Login css 跟 js
+#### 自定义 Login - js, css
 
-新增 `wwwroot\MiniAuth\custom.css` 或 `wwwroot\MiniAuth\custom.js`
+添加 `app.UseStaticFiles()` 在UseMiniAuth之前，并新增  `wwwroot\MiniAuth\login.css`,  `wwwroot\MiniAuth\login.js`
 
 
 

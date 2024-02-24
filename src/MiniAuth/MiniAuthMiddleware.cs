@@ -80,11 +80,11 @@ namespace MiniAuth
         public async Task Invoke(HttpContext context)
         {
             _ = context ?? throw new ArgumentNullException(nameof(context));
-            if (context.Request.Path.Equals($"/{_options.RoutePrefix}/login"))
+            if (context.Request.Path.Equals($"/{_options.RoutePrefix}/login.html"))
             {
                 if (context.Request.Method == "GET")
                 {
-                    await RespondWithLoginHtml(context.Response);
+                    await _staticFileMiddleware.Invoke(context);
                     return;
                 }
                 if (context.Request.Method == "POST")
@@ -118,7 +118,7 @@ namespace MiniAuth
                 if (context.Request.Method == "GET")
                 {
                     context.Response.Cookies.Delete("X-MiniAuth-Token");
-                    context.Response.Redirect($"/{_options.RoutePrefix}/login");
+                    context.Response.Redirect($"/{_options.RoutePrefix}/login.html");
                     return;
                 }
             }
@@ -126,7 +126,7 @@ namespace MiniAuth
             {
                 if (context.Request.Path.StartsWithSegments($"/{_options.RoutePrefix}", out PathString subPath))
                 {
-                    if (subPath.Value.EndsWith("js") || subPath.Value.EndsWith("css"))
+                    if (subPath.Value.EndsWith("js") || subPath.Value.EndsWith("css") )
                     {
                         await _staticFileMiddleware.Invoke(context);
                         return;
@@ -163,7 +163,7 @@ namespace MiniAuth
                 {
                     if (token == null)
                     {
-                        context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
+                        context.Response.Redirect($"/{_options.RoutePrefix}/login.html?returnUrl=" + context.Request.Path);
                         return;
                     }
                     try
@@ -207,19 +207,19 @@ namespace MiniAuth
                     catch (TokenNotYetValidException)
                     {
                         _logger.LogDebug("Token is not valid yet");
-                        context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
+                        context.Response.Redirect($"/{_options.RoutePrefix}/login.html?returnUrl=" + context.Request.Path);
                         return;
                     }
                     catch (TokenExpiredException)
                     {
                         _logger.LogDebug("Token is expired");
-                        context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
+                        context.Response.Redirect($"/{_options.RoutePrefix}/login.html?returnUrl=" + context.Request.Path);
                         return;
                     }
                     catch (SignatureVerificationException)
                     {
                         _logger.LogDebug("Token signature is not valid");
-                        context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
+                        context.Response.Redirect($"/{_options.RoutePrefix}/login.html?returnUrl=" + context.Request.Path);
                         return;
                     }
 
@@ -231,9 +231,9 @@ namespace MiniAuth
                             await GetAllEnPointsApi(context);
                             return;
                         }
-                        if (subPath.Value.ToLowerInvariant().EndsWith(".html") && token == null)
+                        if (subPath.Value.ToLowerInvariant().EndsWith(".html"))
                         {
-                            context.Response.Redirect($"/{_options.RoutePrefix}/login?returnUrl=" + context.Request.Path);
+                            await _staticFileMiddleware.Invoke(context);
                             return;
                         }
                     }

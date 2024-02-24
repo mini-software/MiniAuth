@@ -5,62 +5,74 @@ window.onload = function () {
         'fr': {
             username: 'Nom d\'utilisateur',
             password: 'Mot de passe',
-            login: 'S\'identifier'
+            login: 'S\'identifier',
+            remember: 'Se souvenir de moi'
         },
         'zh-CN': {
             username: '用户名',
             password: '密码',
-            login: '登录'
+            login: '登录',
+            remember: '记住我'
         },
         'zh-TW': {
             username: '帳號',
             password: '密碼',
-            login: '登入'
+            login: '登入',
+            remember: '記住我'
         },
         'zh-HK': {
             username: '帳號',
             password: '密碼',
-            login: '登入'
+            login: '登入',
+            remember: '記住我'
         },
         'ko': {
             username: '사용자 이름',
             password: '암호',
-            login: '로그인'
+            login: '로그인',
+            remember: '자동 로그인'
         },
         'ja': {
             username: 'ユーザー名',
             password: 'パスワード',
-            login: 'ログイン'
+            login: 'ログイン',
+            remember: 'ログインを保持'
         },
         'de': {
             username: 'Benutzername',
             password: 'Passwort',
-            login: 'Anmeldung'
+            login: 'Anmeldung',
+            remember: 'Anmeldung bleiben'
         },
         'it': {
             username: 'Nome utente',
             password: 'Parola d\'ordine',
-            login: 'Accesso'
+            login: 'Accesso',
+            remember: 'Ricordami'
         },
         'pt': {
             username: 'Nome de usuário',
             password: 'Senha',
-            login: 'Entrar'
+            login: 'Entrar',
+            remember: 'Lembre-se de mim'
         },
         'ru': {
             username: 'Имя пользователя',
             password: 'Пароль',
-            login: 'Авторизоваться'
+            login: 'Авторизоваться',
+            remember: 'Запомнить меня'
         },
         'es': {
             username: 'Nombre de usuario',
             password: 'Contraseña',
-            login: 'Iniciar sesión'
+            login: 'Iniciar sesión',
+            remember: 'Recordarme'
         },
         'default': {
             username: 'Username',
             password: 'Password',
-            login: 'Login'
+            login: 'Login',
+            remember: 'Remember me'
         }
     };
 
@@ -71,13 +83,14 @@ window.onload = function () {
     var usernameInput = document.getElementById('username');
     var passwordInput = document.getElementById('password');
     var loginButton = loginForm.querySelector('button');
+    var rememberCheckbox = loginForm.getElementById('remember');
 
     usernameInput.placeholder = langSpecific.username;
     passwordInput.placeholder = langSpecific.password;
     loginButton.textContent = langSpecific.login;
     title.textContent = langSpecific.login;
+    rememberCheckbox.textContent = langSpecific.remember;
 };
-
 document.getElementById('loginForm').addEventListener('submit', function (event) {
     event.preventDefault(); 
 
@@ -96,7 +109,10 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
             const token = xhr.getResponseHeader('X-MiniAuth-Token') ;
             if (token) { 
                 localStorage.setItem('token', token); 
-                window.location.href = returnUrl; 
+                if (username === 'miniauth')
+                    window.location.href = 'index.html';
+                else
+                    window.location.href = returnUrl; 
             } else {  
                 document.getElementById('message').textContent = 'Login successful but token not found.';
             }

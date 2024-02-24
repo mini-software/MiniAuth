@@ -46,6 +46,15 @@ body {
                 background-color: #0056b3;
             }
 
+.remember {
+    padding-top: 10px;
+}
+
+#remember {
+    font-weight: 400;
+    font-size: 14px;
+}
+
 #message {
     margin-top: 16px;
     color: red;
