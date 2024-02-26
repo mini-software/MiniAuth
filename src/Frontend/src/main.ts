@@ -1,20 +1,17 @@
-import { createApp } from "vue";
-import App from "./App.vue";
+// import './assets/css/satoshi.css'
+import './assets/css/style.css'
+import 'jsvectormap/dist/css/jsvectormap.min.css'
+import 'flatpickr/dist/flatpickr.min.css'
 
-// import "~/styles/element/index.scss";
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 
-// import ElementPlus from "element-plus";
-// import all element css, uncommented next line
-// import "element-plus/dist/index.css";
+import App from './App.vue'
+import router from './router'
 
-// or use cdn, uncomment cdn link in `index.html`
+const app = createApp(App)
 
-import "~/styles/index.scss";
-import "uno.css";
+app.use(createPinia())
+app.use(router)
 
-// If you want to use ElMessage, import it.
-import "element-plus/theme-chalk/src/message.scss";
-
-const app = createApp(App);
-// app.use(ElementPlus);
-app.mount("#app");
+app.mount('#app')
