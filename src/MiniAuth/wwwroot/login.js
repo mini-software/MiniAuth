@@ -83,7 +83,7 @@ window.onload = function () {
     var usernameInput = document.getElementById('username');
     var passwordInput = document.getElementById('password');
     var loginButton = loginForm.querySelector('button');
-    var rememberCheckbox = loginForm.getElementById('remember');
+    var rememberCheckbox = document.getElementById('remember');
 
     usernameInput.placeholder = langSpecific.username;
     passwordInput.placeholder = langSpecific.password;

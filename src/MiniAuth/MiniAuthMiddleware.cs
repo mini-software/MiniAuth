@@ -87,6 +87,9 @@ namespace MiniAuth
                     await _staticFileMiddleware.Invoke(context);
                     return;
                 }
+            }
+            if (context.Request.Path.Equals($"/{_options.RoutePrefix}/login"))
+            {
                 if (context.Request.Method == "POST")
                 {
                     var reader = new StreamReader(context.Request.Body);
