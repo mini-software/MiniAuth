@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Routes from '@/views/Routes.vue'
-import SettingsView from '@/views/Pages/SettingsView.vue'
+import SettingsView from '@/views/SettingsView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 
 const routes = [
@@ -21,7 +21,7 @@ const routes = [
     }
   },
   {
-    path: '/pages/settings',
+    path: '/settings',
     name: 'settings',
     component: SettingsView,
     meta: {

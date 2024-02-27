@@ -260,8 +260,8 @@ namespace MiniAuth
                 var route = routeEndpoint?.RoutePattern.RawText;
 
                 urlList.Add(new Dictionary<string, object>{
-                            { "methods",methods}, { "route",route}
-                        });
+                    { "methods",methods}, { "route",route}, { "status","On"}, { "type","system"}
+                });
             }
             await ResponseWriteAsync(context, JsonConvert.SerializeObject(urlList));
         }
