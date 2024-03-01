@@ -6,7 +6,7 @@ namespace MiniAuth.Configs
 {
     public class MiniAuthOptions
     {
-        public string RoutePrefix { get; set; } = "MiniAuth";
+        internal string RoutePrefix { get; set; } = "MiniAuth"; //TODO: public option
         public bool AuthAllRoutes { get; set; } = true;
         public int ExpirationMinuteTime { get; set; } = 24 * 60;
         public Func<Stream> LoginHtmlStream { get; set; } = () => typeof(MiniAuthOptions).GetTypeInfo().Assembly

@@ -59,6 +59,7 @@ CREATE TABLE permissions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,  
     name TEXT NOT NULL UNIQUE,  
     route TEXT NOT NULL UNIQUE ,
+    isAjax INTEGER NOT NULL DEFAULT 0,
     enable INTEGER NOT NULL DEFAULT 1
 );
 DROP TABLE IF EXISTS role_permissions;
@@ -76,8 +77,8 @@ INSERT INTO roles (name) VALUES ('admin');
 INSERT INTO roles (name) VALUES ('user');
 
 -- Insert permissions
-INSERT INTO permissions (name, route) VALUES ('Access Homepage', '/');
-INSERT INTO permissions (name, route) VALUES ('Access Settings', '/miniauth/management');
+INSERT INTO permissions (name, route,isAjax) VALUES ('Access Homepage', '/',0);
+INSERT INTO permissions (name, route,isAjax) VALUES ('Access Settings', '/miniauth/api/getAllEnPoints',1);
 
 -- Assign roles to users
 INSERT INTO users_roles (user_id, role_id) VALUES (1, 1); 

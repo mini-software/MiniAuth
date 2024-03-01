@@ -108,7 +108,7 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
         if (xhr.status === 200) { 
             const token = xhr.getResponseHeader('X-MiniAuth-Token') ;
             if (token) { 
-                localStorage.setItem('token', token); 
+                localStorage.setItem('X-MiniAuth-Token', token); 
                 if (username === 'miniauth')
                     window.location.href = 'index.html';
                 else

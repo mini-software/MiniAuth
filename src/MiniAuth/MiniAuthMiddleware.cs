@@ -36,7 +36,9 @@ namespace MiniAuth
         private readonly IUserManager _userManer;
         private readonly IRolePermissionManager _permissionManager;
         private readonly ILogger<MiniAuthMiddleware> _logger;
-        private readonly ConcurrentDictionary<string, PermissionDto> _routePermissionCache = new ConcurrentDictionary<string, PermissionDto>();
+        private readonly ConcurrentDictionary<string, RolePermissionEntity> _routePermissionCache = new ConcurrentDictionary<string, RolePermissionEntity>();
+        private RolePermissionEntity routePermission;
+
         public MiniAuthMiddleware(RequestDelegate next,
             ILoggerFactory loggerFactory,
             IWebHostEnvironment hostingEnv,
@@ -64,7 +66,7 @@ namespace MiniAuth
             this._endpointSources = endpointSources;
             this._staticFileMiddleware = CreateStaticFileMiddleware(next, loggerFactory, hostingEnv); ;
             // first time load route cache
-            _routePermissionCache = new ConcurrentDictionary<string, PermissionDto>(_permissionManager.GetPermissions().ToDictionary(p => p.Route.ToLowerInvariant()));
+            _routePermissionCache = new ConcurrentDictionary<string, RolePermissionEntity>(_permissionManager.GetPermissions().ToDictionary(p => p.Route.ToLowerInvariant()));
         }
 
         private StaticFileMiddleware CreateStaticFileMiddleware(RequestDelegate next, ILoggerFactory loggerFactory, IWebHostEnvironment hostingEnv)
@@ -80,6 +82,17 @@ namespace MiniAuth
         public async Task Invoke(HttpContext context)
         {
             _ = context ?? throw new ArgumentNullException(nameof(context));
+            routePermission = null;
+            if (_routePermissionCache.ContainsKey(context.Request.Path.Value.ToLowerInvariant()))
+                routePermission = _routePermissionCache[context.Request.Path.Value.ToLowerInvariant()];
+            var isMiniAuthPath = context.Request.Path.StartsWithSegments($"/{_options.RoutePrefix}");
+            var endpoint = context.GetEndpoint();
+            if(routePermission==null && endpoint == null && !isMiniAuthPath) // if routePermission is null, it's not a controled route
+            {
+                await _next(context);
+                return;
+            }
+
             if (context.Request.Path.Equals($"/{_options.RoutePrefix}/login.html"))
             {
                 if (context.Request.Method == "GET")
@@ -125,11 +138,13 @@ namespace MiniAuth
                     return;
                 }
             }
+
             // js or css doesn't need auth
             {
+                
                 if (context.Request.Path.StartsWithSegments($"/{_options.RoutePrefix}", out PathString subPath))
                 {
-                    if (subPath.Value.EndsWith("js") || subPath.Value.EndsWith("css") )
+                    if (subPath.Value.EndsWith("js") || subPath.Value.EndsWith("css"))
                     {
                         await _staticFileMiddleware.Invoke(context);
                         return;
@@ -143,9 +158,8 @@ namespace MiniAuth
 
             // check route auth
             {
-                PermissionDto routePermission = null;
-                if (_routePermissionCache.ContainsKey(context.Request.Path.Value.ToLowerInvariant()))
-                    routePermission = _routePermissionCache[context.Request.Path.Value.ToLowerInvariant()];
+                //RolePermissionEntity routePermission = null;
+
                 var checkRouteAuth = false;
                 if (_options.AuthAllRoutes)
                 {
@@ -166,7 +180,7 @@ namespace MiniAuth
                 {
                     if (token == null)
                     {
-                        context.Response.Redirect($"/{_options.RoutePrefix}/login.html?returnUrl=" + context.Request.Path);
+                        DeniedPermission(context);
                         return;
                     }
                     try
@@ -183,7 +197,7 @@ namespace MiniAuth
                         {
                             // only admin role can access /miniauth now
                             // TODO: dynamic route permission feature
-                            if (context.Request.Path.StartsWithSegments($"/{_options.RoutePrefix}"))
+                            if (isMiniAuthPath)
                             {
                                 if (!usersPermission.Any(_ => _.RoleId == 1))
                                 {
@@ -210,19 +224,19 @@ namespace MiniAuth
                     catch (TokenNotYetValidException)
                     {
                         _logger.LogDebug("Token is not valid yet");
-                        context.Response.Redirect($"/{_options.RoutePrefix}/login.html?returnUrl=" + context.Request.Path);
+                        DeniedPermission(context);
                         return;
                     }
                     catch (TokenExpiredException)
                     {
                         _logger.LogDebug("Token is expired");
-                        context.Response.Redirect($"/{_options.RoutePrefix}/login.html?returnUrl=" + context.Request.Path);
+                        DeniedPermission(context);
                         return;
                     }
                     catch (SignatureVerificationException)
                     {
                         _logger.LogDebug("Token signature is not valid");
-                        context.Response.Redirect($"/{_options.RoutePrefix}/login.html?returnUrl=" + context.Request.Path);
+                        DeniedPermission(context);
                         return;
                     }
 
@@ -245,6 +259,27 @@ namespace MiniAuth
 
             await _next(context);
             return;
+        }
+
+        private void DeniedPermission(HttpContext context, int status = StatusCodes.Status401Unauthorized)
+        {
+            if(routePermission == null)
+                context.Response.Redirect($"/{_options.RoutePrefix}/login.html?returnUrl=" + context.Request.Path);
+
+            if (routePermission.IsAjax)
+            {
+                if (status == StatusCodes.Status401Unauthorized)
+                {
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    context.Response.ContentType = "application/json";
+                    context.Response.ContentLength = Encoding.UTF8.GetByteCount("Unauthorized");
+                    context.Response.WriteAsync("Unauthorized");
+                }
+            }
+            else
+            {
+                context.Response.Redirect($"/{_options.RoutePrefix}/login.html?returnUrl=" + context.Request.Path);
+            }
         }
 
         private async Task GetAllEnPointsApi(HttpContext context)
