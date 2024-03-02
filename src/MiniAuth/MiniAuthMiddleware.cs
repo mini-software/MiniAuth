@@ -24,7 +24,7 @@ using static MiniAuth.Managers.RolePermissionManager;
 
 namespace MiniAuth
 {
-    public class MiniAuthMiddleware
+    public partial class MiniAuthMiddleware
     {
         private const string EmbeddedFileNamespace = "MiniAuth.wwwroot";
         private readonly RequestDelegate _next;
@@ -180,7 +180,7 @@ namespace MiniAuth
                 {
                     if (token == null)
                     {
-                        DeniedPermission(context);
+                        DeniedPermission(context, new ResponseVo { code = 401, message = "Unauthorized" });
                         return;
                     }
                     try
@@ -224,19 +224,19 @@ namespace MiniAuth
                     catch (TokenNotYetValidException)
                     {
                         _logger.LogDebug("Token is not valid yet");
-                        DeniedPermission(context);
+                        DeniedPermission(context, new ResponseVo { code = 401, message = "Token is not valid yet" });
                         return;
                     }
                     catch (TokenExpiredException)
                     {
                         _logger.LogDebug("Token is expired");
-                        DeniedPermission(context);
+                        DeniedPermission(context, new ResponseVo { code = 401, message = "Token is expired" });
                         return;
                     }
                     catch (SignatureVerificationException)
                     {
                         _logger.LogDebug("Token signature is not valid");
-                        DeniedPermission(context);
+                        DeniedPermission(context, new ResponseVo { code = 400, message = "Token signature is not valid" });
                         return;
                     }
 
@@ -260,20 +260,20 @@ namespace MiniAuth
             await _next(context);
             return;
         }
-
-        private void DeniedPermission(HttpContext context, int status = StatusCodes.Status401Unauthorized)
+        private void DeniedPermission(HttpContext context, ResponseVo messageInfo, int status = StatusCodes.Status401Unauthorized)
         {
             if(routePermission == null)
                 context.Response.Redirect($"/{_options.RoutePrefix}/login.html?returnUrl=" + context.Request.Path);
 
             if (routePermission.IsAjax)
             {
+                var message = messageInfo != null ? JsonConvert.SerializeObject(messageInfo) : "Unauthorized";
                 if (status == StatusCodes.Status401Unauthorized)
                 {
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    context.Response.StatusCode = status;
                     context.Response.ContentType = "application/json";
-                    context.Response.ContentLength = Encoding.UTF8.GetByteCount("Unauthorized");
-                    context.Response.WriteAsync("Unauthorized");
+                    context.Response.ContentLength = Encoding.UTF8.GetByteCount(message);
+                    context.Response.WriteAsync(message);
                 }
             }
             else
@@ -298,7 +298,7 @@ namespace MiniAuth
                     { "methods",methods}, { "route",route}, { "status","On"}, { "type","system"}
                 });
             }
-            await ResponseWriteAsync(context, JsonConvert.SerializeObject(urlList));
+            await ResponseWriteAsync(context, urlList.ToJson());
         }
 
         private async Task RespondWithLoginHtml(HttpResponse response)
