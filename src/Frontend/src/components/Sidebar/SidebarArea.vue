@@ -42,8 +42,8 @@ const menuGroups = ref([
                     fill=""
                   />
                 </svg>`,
-        label: 'Routes',
-        route: '/'
+        label: 'Endpoints',
+        route: '/endpoints'
       },
       {
         icon: `<svg

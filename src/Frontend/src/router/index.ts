@@ -1,17 +1,26 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Routes from '@/views/Routes.vue'
+import EndpointsView from '@/views/EndpointsView.vue'
+import HomeView from '@/views/HomeView.vue'
 import SettingsView from '@/views/SettingsView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 
 const routes = [
   {
     path: '/',
-    name: 'Routes',
-    component: Routes,
+    name: 'Home',
+    component: HomeView,
     meta: {
-      title: 'Routes'
+      title: 'Home'
     }
   },
+  {
+    path: '/endpoints',
+    name: 'Endpoints',
+    component: EndpointsView,
+    meta: {
+      title: 'Endpoints'
+    }
+  },  
   {
     path: '/profile',
     name: 'profile',
