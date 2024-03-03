@@ -90,8 +90,7 @@ import service from '@/axios/service.ts';
 const pageTitle = ref('EndPoints')
 const endpoints = ref([])
 const fetchData = async () => {
-    const data = await service.get('api/getAllEnPoints')
-    endpoints.value = data
+    endpoints.value = await service.get('api/getAllEnPoints')
 }
 
 onMounted(async () => {
@@ -109,6 +108,7 @@ const setMethod = (methods, method, index) => {
     methods.push(method)
   }
 }
+
 const setStatus = (item, status) => {
     item.status = status
 }
