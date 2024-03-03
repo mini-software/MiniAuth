@@ -19,6 +19,7 @@
     "axios": "^1.6.7",
     "flatpickr": "^4.6.13",
     "jsvectormap": "^1.5.3",
+    "mitt": "3.0.0",
     "pinia": "^2.1.7",
     "vue": "^3.3.11",
     "vue-router": "^4.2.5"
