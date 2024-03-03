@@ -1,14 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import EndpointsView from '@/views/EndpointsView.vue'
-import HomeView from '@/views/HomeView.vue'
-import SettingsView from '@/views/SettingsView.vue'
-import ProfileView from '@/views/ProfileView.vue'
 
 const routes = [
   {
     path: '/',
     name: 'Home',
-    component: HomeView,
+    component: () => import('@/views/HomeView.vue'),
     meta: {
       title: 'Home'
     }
@@ -16,7 +12,7 @@ const routes = [
   {
     path: '/endpoints',
     name: 'Endpoints',
-    component: EndpointsView,
+    component: () => import('@/views/EndpointsView.vue'),
     meta: {
       title: 'Endpoints'
     }
@@ -24,7 +20,7 @@ const routes = [
   {
     path: '/profile',
     name: 'profile',
-    component: ProfileView,
+    component: () => import('@/views/ProfileView.vue'),
     meta: {
       title: 'Profile'
     }
@@ -32,7 +28,7 @@ const routes = [
   {
     path: '/settings',
     name: 'settings',
-    component: SettingsView,
+    component: () => import('@/views/SettingsView.vue'),
     meta: {
       title: 'Settings'
     }
