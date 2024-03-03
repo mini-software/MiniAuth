@@ -6,6 +6,9 @@ const pathResolve = (dir) => {
 };
 export default defineConfig({
   base: '/miniauth/', 
+  build: {  
+    outDir: '../MiniAuth/wwwroot/',
+  },  
   plugins: [
     vue(),
   ],
