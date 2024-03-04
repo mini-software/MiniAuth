@@ -106,13 +106,10 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
 
     xhr.onload = function () {
         if (xhr.status === 200) { 
-            const token = xhr.getResponseHeader('X-MiniAuth-Token') ;
+            const token = JSON.parse(xhr.responseText)['X-MiniAuth-Token'];
             if (token) { 
                 localStorage.setItem('X-MiniAuth-Token', token); 
-                if (username === 'miniauth')
-                    window.location.href = 'index.html';
-                else
-                    window.location.href = returnUrl; 
+                window.location.href = returnUrl; 
             } else {  
                 document.getElementById('message').textContent = 'Login successful but token not found.';
             }

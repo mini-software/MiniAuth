@@ -44,7 +44,12 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  document.title = `MiniAuth ${to.meta.title} `
+  if (!localStorage.getItem('X-MiniAuth-Token')) {
+    console.log('redirect to login.html page');
+    window.location.href = '/miniauth/login.html';
+    return;
+  }
+
   next()
 })
 

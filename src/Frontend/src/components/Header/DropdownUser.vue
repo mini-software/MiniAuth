@@ -8,6 +8,10 @@ const dropdownOpen = ref(false)
 onClickOutside(target, () => {
   dropdownOpen.value = false
 })
+const logOutClick = () => {
+  localStorage.removeItem('X-MiniAuth-Token');
+  window.location.href = '/miniauth/login.html';
+}
 </script>
 
 <template>
@@ -101,7 +105,7 @@ onClickOutside(target, () => {
           </router-link>
         </li>
       </ul>
-      <button
+      <button @click="logOutClick"
         class="flex items-center gap-3.5 py-4 px-6 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
       >
         <svg
