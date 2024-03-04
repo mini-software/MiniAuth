@@ -28,7 +28,7 @@
       item.methods?.find((e) => e === option) ||
       item.methods?.length === 0 ||
       item.methods === null,
-    'bg-black text-white': 1 == 1
+    'bg-black ': 1 == 1
   }" @click="setMethod(item.methods, option, index)">
               {{ option }}
             </button>
@@ -36,13 +36,13 @@
           <td class="py-4 px-4">
             <button class="inline-flex rounded-full bg-opacity-10 py-1 px-3 text-sm font-medium" :class="{
     'bg-success text-success': item.status === 'On',
-    'bg-black text-white': 1 == 1
+    'bg-black ': 1 == 1
   }" @click="setStatus(item, 'On')">
               On
             </button>
             <button class="inline-flex rounded-full bg-opacity-10 py-1 px-3 text-sm font-medium" :class="{
     'bg-success text-success': item.status === 'Off',
-    'bg-black text-white': 1 == 1
+    'bg-black ': 1 == 1
   }" @click="setStatus(item, 'Off')">
               Off
             </button>
