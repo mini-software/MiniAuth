@@ -1,36 +1,36 @@
 ﻿using System.Collections.Generic;
 namespace MiniAuth.Managers
 {
-    public interface IRolePermissionManager
+    public interface IRoleEndpointManager
     {
-        List<RolePermissionManager.RolePermissionEntity> GetPermissions();
+        List<RoleEndpointManager.RoleEndpointEntity> GetEndpoints();
     }
 
-    public class RolePermissionManager : IRolePermissionManager
+    public class RoleEndpointManager : IRoleEndpointManager
     {
         private readonly IMiniAuthDB _db;
 
-        public RolePermissionManager(IMiniAuthDB db)
+        public RoleEndpointManager(IMiniAuthDB db)
         {
             _db = db;
         }
 
-        public List<RolePermissionEntity> GetPermissions()
+        public List<RoleEndpointEntity> GetEndpoints()
         {
-            var permissions = new List<RolePermissionEntity>();
+            var endpoints = new List<RoleEndpointEntity>();
             using (var connection = _db.GetConnection())
             {
                 using (var command = connection.CreateCommand())
                 {
                     command.CommandText = @"  
                     SELECT p.id,p.name,p.route,p.enable,p.isajax, rp.role_id  
-                    FROM permissions p  
-                    LEFT JOIN role_permissions rp ON rp.permission_id = p.id  ";
+                    FROM endpoints p  
+                    LEFT JOIN role_endpoints rp ON rp.endpoint_id = p.id  ";
                     using (var reader = command.ExecuteReader())
                     {
                         while (reader.Read())
                         {
-                            var permission = new RolePermissionEntity
+                            var endpoint = new RoleEndpointEntity
                             {
                                 Id = reader.GetInt32(0),
                                 Name = reader.GetString(1),
@@ -39,15 +39,15 @@ namespace MiniAuth.Managers
                                 IsAjax = reader.GetBoolean(4),
                                 RoleId = reader.GetInt32(5)
                             };
-                            permissions.Add(permission);
+                            endpoints.Add(endpoint);
                         }
                     }
                 }
             }
-            return permissions;
+            return endpoints;
         }
 
-        public class RolePermissionEntity
+        public class RoleEndpointEntity
         {
             public int Id { get; set; }
             public string Name { get; set; }

@@ -54,19 +54,19 @@ CREATE TABLE users_roles (
     FOREIGN KEY(user_id) REFERENCES users(id),  
     FOREIGN KEY(role_id) REFERENCES roles(id)  
 );
-DROP TABLE IF EXISTS permissions;
-CREATE TABLE permissions (  
+DROP TABLE IF EXISTS endpoints;
+CREATE TABLE endpoints (  
     id INTEGER PRIMARY KEY AUTOINCREMENT,  
     name TEXT NOT NULL UNIQUE,  
     route TEXT NOT NULL UNIQUE ,
     isAjax INTEGER NOT NULL DEFAULT 0,
     enable INTEGER NOT NULL DEFAULT 1
 );
-DROP TABLE IF EXISTS role_permissions;
-CREATE TABLE role_permissions (  
+DROP TABLE IF EXISTS role_endpoints;
+CREATE TABLE role_endpoints (  
     role_id INTEGER NOT NULL REFERENCES roles(id) ON DELETE CASCADE,  
-    permission_id INTEGER NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,  
-    PRIMARY KEY (role_id, permission_id)  
+    endpoint_id INTEGER NOT NULL REFERENCES endpoints(id) ON DELETE CASCADE,  
+    PRIMARY KEY (role_id, endpoint_id)  
 );
 
 -- Insert users
@@ -76,16 +76,16 @@ INSERT INTO users (username,password) VALUES ('miniauth','4d338c92-d9f3-4b66-b54
 INSERT INTO roles (name) VALUES ('admin');
 INSERT INTO roles (name) VALUES ('user');
 
--- Insert permissions
-INSERT INTO permissions (name, route,isAjax) VALUES ('Access Homepage', '/',0);
-INSERT INTO permissions (name, route,isAjax) VALUES ('Access Settings', '/miniauth/api/getAllEnPoints',1);
+-- Insert endpoints
+INSERT INTO endpoints (name, route,isAjax) VALUES ('Access Homepage', '/',0);
+INSERT INTO endpoints (name, route,isAjax) VALUES ('Access Settings', '/miniauth/api/getAllEnPoints',1);
 
 -- Assign roles to users
 INSERT INTO users_roles (user_id, role_id) VALUES (1, 1); 
 
--- Assign permissions to roles
-INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 1); 
-INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 2); 
+-- Assign endpoints to roles
+INSERT INTO role_endpoints (role_id, endpoint_id) VALUES (1, 1); 
+INSERT INTO role_endpoints (role_id, endpoint_id) VALUES (1, 2); 
 ";
                     using (var connection = _GetConnection())
                     {

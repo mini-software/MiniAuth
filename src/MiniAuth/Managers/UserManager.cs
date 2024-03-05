@@ -6,7 +6,7 @@ namespace MiniAuth.Managers
     public interface IUserManager
     {
         void CreateUser(string username, string password, string roles);
-        List<UserManager.UserPermissionDto> GetUserRoleAndPermissions(string username);
+        List<UserManager.UserEndpointDto> GetUserRoleAndEndpoints(string username);
         List<string> GetUserRoles(string username);
         void UpdatePassword(string username, string newPassword);
         bool ValidateUser(string username, string password);
@@ -37,13 +37,13 @@ namespace MiniAuth.Managers
                 command.ExecuteNonQuery();
             }
         }
-        public class UserPermissionDto
+        public class UserEndpointDto
         {
             public string RoleName { get; set; }
             public int? RoleId { get; set; }
-            public int? PermissionId { get; set; }
+            public int? EndpointId { get; set; }
             public string Route { get; set; }
-            public string PermissionName { get; set; }
+            public string EndpointName { get; set; }
         }
         public List<string> GetUserRoles(string username)
         {
@@ -72,20 +72,20 @@ namespace MiniAuth.Managers
                 return result;
             }
         }
-        public List<UserPermissionDto> GetUserRoleAndPermissions(string username)
+        public List<UserEndpointDto> GetUserRoleAndEndpoints(string username)
         {
-            var userPermissions = new List<UserPermissionDto>(); ;
+            var userEndpoints = new List<UserEndpointDto>(); ;
             using (var connection = this._db.GetConnection())
             {
                 using (var command = connection.CreateCommand())
                 {
                     command.CommandText = @"  
-                    SELECT r.name AS role_name, r.id AS role_id, p.id AS permission_id, p.route, p.name AS permission_name  
+                    SELECT r.name AS role_name, r.id AS role_id, p.id AS endpoint_id, p.route, p.name AS endpoint_name  
                     FROM users u  
                     LEFT JOIN users_roles ur ON u.id = ur.user_id  
                     LEFT JOIN roles r ON ur.role_id = r.id  
-                    LEFT JOIN role_permissions rp ON rp.role_id = r.id  
-                    LEFT JOIN permissions p ON rp.permission_id = p.id  
+                    LEFT JOIN role_endpoints rp ON rp.role_id = r.id  
+                    LEFT JOIN endpoints p ON rp.endpoint_id = p.id  
                     WHERE u.username = @username";
 
                     command.AddParameters(new Dictionary<string, object>() { { "@username", username } });
@@ -99,19 +99,19 @@ namespace MiniAuth.Managers
 
 
 
-                            var userPermission = new UserPermissionDto
+                            var userEndpoint = new UserEndpointDto
                             {
                                 RoleName = reader["role_name"] == DBNull.Value ? null : reader["role_name"].ToString(),
                                 RoleId = reader["role_id"]==DBNull.Value?null: Convert.ToInt32(reader["role_id"]),
-                                PermissionId = reader["permission_id"] == DBNull.Value ? null : Convert.ToInt32(reader["permission_id"]),
+                                EndpointId = reader["endpoint_id"] == DBNull.Value ? null : Convert.ToInt32(reader["endpoint_id"]),
                                 Route = reader["route"] == DBNull.Value ? null : reader["route"].ToString(),
-                                PermissionName = reader["permission_name"] == DBNull.Value ? null : reader["permission_name"].ToString()
+                                EndpointName = reader["endpoint_name"] == DBNull.Value ? null : reader["endpoint_name"].ToString()
                             };
-                            userPermissions.Add(userPermission);
+                            userEndpoints.Add(userEndpoint);
                         }
                     }
                 }
-                return userPermissions;
+                return userEndpoints;
             }
         }
         public bool ValidateUser(string username, string password)

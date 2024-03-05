@@ -20,7 +20,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using static MiniAuth.Managers.RolePermissionManager;
+using static MiniAuth.Managers.RoleEndpointManager;
 
 namespace MiniAuth
 {
@@ -34,10 +34,10 @@ namespace MiniAuth
         private readonly MiniAuthOptions _options;
         private readonly IJWTManager _jwtManager;
         private readonly IUserManager _userManer;
-        private readonly IRolePermissionManager _permissionManager;
+        private readonly IRoleEndpointManager _endpointManager;
         private readonly ILogger<MiniAuthMiddleware> _logger;
-        private readonly ConcurrentDictionary<string, RolePermissionEntity> _routePermissionCache = new ConcurrentDictionary<string, RolePermissionEntity>();
-        private RolePermissionEntity routePermission;
+        private readonly ConcurrentDictionary<string, RoleEndpointEntity> _routeEndpointCache = new ConcurrentDictionary<string, RoleEndpointEntity>();
+        private RoleEndpointEntity routeEndpoint;
 
         public MiniAuthMiddleware(RequestDelegate next,
             ILoggerFactory loggerFactory,
@@ -45,7 +45,7 @@ namespace MiniAuth
             ILogger<MiniAuthMiddleware> logger,
             IJWTManager jwtManager = null,
             MiniAuthOptions options = null,
-            IRolePermissionManager permissionManager = null,
+            IRoleEndpointManager endpointManager = null,
             IUserManager userManager = null,
             IEnumerable<EndpointDataSource> endpointSources = null,
             IMiniAuthDB db = null
@@ -61,12 +61,12 @@ namespace MiniAuth
                 _options = new MiniAuthOptions();
             if (userManager == null)
                 _userManer = new UserManager(this._db);
-            if (permissionManager == null)
-                _permissionManager = new RolePermissionManager(this._db);
+            if (endpointManager == null)
+                _endpointManager = new RoleEndpointManager(this._db);
             this._endpointSources = endpointSources;
             this._staticFileMiddleware = CreateStaticFileMiddleware(next, loggerFactory, hostingEnv); ;
             // first time load route cache
-            _routePermissionCache = new ConcurrentDictionary<string, RolePermissionEntity>(_permissionManager.GetPermissions().ToDictionary(p => p.Route.ToLowerInvariant()));
+            _routeEndpointCache = new ConcurrentDictionary<string, RoleEndpointEntity>(_endpointManager.GetEndpoints().ToDictionary(p => p.Route.ToLowerInvariant()));
         }
 
         private StaticFileMiddleware CreateStaticFileMiddleware(RequestDelegate next, ILoggerFactory loggerFactory, IWebHostEnvironment hostingEnv)
@@ -82,12 +82,12 @@ namespace MiniAuth
         public async Task Invoke(HttpContext context)
         {
             _ = context ?? throw new ArgumentNullException(nameof(context));
-            routePermission = null;
-            if (_routePermissionCache.ContainsKey(context.Request.Path.Value.ToLowerInvariant()))
-                routePermission = _routePermissionCache[context.Request.Path.Value.ToLowerInvariant()];
+            routeEndpoint = null;
+            if (_routeEndpointCache.ContainsKey(context.Request.Path.Value.ToLowerInvariant()))
+                routeEndpoint = _routeEndpointCache[context.Request.Path.Value.ToLowerInvariant()];
             var isMiniAuthPath = context.Request.Path.StartsWithSegments($"/{_options.RoutePrefix}");
             var endpoint = context.GetEndpoint();
-            if(routePermission==null && endpoint == null && !isMiniAuthPath) // if routePermission is null, it's not a controled route
+            if(routeEndpoint==null && endpoint == null && !isMiniAuthPath) // if routeEndpoint is null, it's not a controled route
             {
                 await _next(context);
                 return;
@@ -158,19 +158,19 @@ namespace MiniAuth
 
             // check route auth
             {
-                //RolePermissionEntity routePermission = null;
+                //RoleEndpointEntity routeEndpoint = null;
 
                 var checkRouteAuth = false;
                 if (_options.AuthAllRoutes)
                 {
-                    if (routePermission != null && routePermission.Enable == 0)
+                    if (routeEndpoint != null && routeEndpoint.Enable == 0)
                         checkRouteAuth = false;
                     else
                         checkRouteAuth = true;
                 }
                 else
                 {
-                    if (routePermission != null && routePermission.Enable == 1)
+                    if (routeEndpoint != null && routeEndpoint.Enable == 1)
                         checkRouteAuth = true;
                     else
                         checkRouteAuth = false;
@@ -180,7 +180,7 @@ namespace MiniAuth
                 {
                     if (token == null)
                     {
-                        DeniedPermission(context, new ResponseVo { code = 401, message = "Unauthorized" });
+                        DeniedEndpoint(context, new ResponseVo { code = 401, message = "Unauthorized" });
                         return;
                     }
                     try
@@ -189,17 +189,17 @@ namespace MiniAuth
                         var sub = JsonDocument.Parse(json).RootElement.GetProperty("sub").GetString();
                         if (sub == null)
                             throw new Exception("sub can't null");
-                        var usersPermission = _userManer.GetUserRoleAndPermissions(sub);
+                        var usersEndpoint = _userManer.GetUserRoleAndEndpoints(sub);
 
-                        // if user doesn't have permission to access this route
-                        //if it's null, permission is basic
-                        if (routePermission == null)
+                        // if user doesn't have endpoint to access this route
+                        //if it's null, endpoint is basic
+                        if (routeEndpoint == null)
                         {
                             // only admin role can access /miniauth now
-                            // TODO: dynamic route permission feature
+                            // TODO: dynamic route endpoint feature
                             if (isMiniAuthPath)
                             {
-                                if (!usersPermission.Any(_ => _.RoleId == 1))
+                                if (!usersEndpoint.Any(_ => _.RoleId == 1))
                                 {
                                     context.Response.StatusCode = StatusCodes.Status403Forbidden;
                                     await ResponseWriteAsync(context, "insufficient rights to a resource");
@@ -209,7 +209,7 @@ namespace MiniAuth
                         }
                         else
                         {
-                            if (routePermission.Enable == 1 && usersPermission.Any(_ => _.PermissionId == routePermission.Id))
+                            if (routeEndpoint.Enable == 1 && usersEndpoint.Any(_ => _.EndpointId == routeEndpoint.Id))
                             {
                                 // pass
                             }
@@ -224,19 +224,19 @@ namespace MiniAuth
                     catch (TokenNotYetValidException)
                     {
                         _logger.LogDebug("Token is not valid yet");
-                        DeniedPermission(context, new ResponseVo { code = 401, message = "Token is not valid yet" });
+                        DeniedEndpoint(context, new ResponseVo { code = 401, message = "Token is not valid yet" });
                         return;
                     }
                     catch (TokenExpiredException)
                     {
                         _logger.LogDebug("Token is expired");
-                        DeniedPermission(context, new ResponseVo { code = 401, message = "Token is expired" });
+                        DeniedEndpoint(context, new ResponseVo { code = 401, message = "Token is expired" });
                         return;
                     }
                     catch (SignatureVerificationException)
                     {
                         _logger.LogDebug("Token signature is not valid");
-                        DeniedPermission(context, new ResponseVo { code = 400, message = "Token signature is not valid" });
+                        DeniedEndpoint(context, new ResponseVo { code = 400, message = "Token signature is not valid" });
                         return;
                     }
 
@@ -260,12 +260,12 @@ namespace MiniAuth
             await _next(context);
             return;
         }
-        private void DeniedPermission(HttpContext context, ResponseVo messageInfo, int status = StatusCodes.Status401Unauthorized)
+        private void DeniedEndpoint(HttpContext context, ResponseVo messageInfo, int status = StatusCodes.Status401Unauthorized)
         {
-            if(routePermission == null)
+            if(routeEndpoint == null)
                 context.Response.Redirect($"/{_options.RoutePrefix}/login.html?returnUrl=" + context.Request.Path);
 
-            if (routePermission.IsAjax)
+            if (routeEndpoint.IsAjax)
             {
                 var message = messageInfo != null ? JsonConvert.SerializeObject(messageInfo) : "Unauthorized";
                 if (status == StatusCodes.Status401Unauthorized)
