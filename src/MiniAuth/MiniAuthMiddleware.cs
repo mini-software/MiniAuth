@@ -65,7 +65,7 @@ namespace MiniAuth
                 _endpointManager = new RoleEndpointManager(this._db);
             this._endpointSources = endpointSources;
             this._staticFileMiddleware = CreateStaticFileMiddleware(next, loggerFactory, hostingEnv); ;
-            // first time load route cache
+            
             _routeEndpointCache = new ConcurrentDictionary<string, RoleEndpointEntity>(_endpointManager.GetEndpoints().ToDictionary(p => p.Route.ToLowerInvariant()));
         }
 
@@ -263,7 +263,10 @@ namespace MiniAuth
         private void DeniedEndpoint(HttpContext context, ResponseVo messageInfo, int status = StatusCodes.Status401Unauthorized)
         {
             if(routeEndpoint == null)
+            {
                 context.Response.Redirect($"/{_options.RoutePrefix}/login.html?returnUrl=" + context.Request.Path);
+                return;
+            }
 
             if (routeEndpoint.IsAjax)
             {
@@ -287,30 +290,23 @@ namespace MiniAuth
             var urlList = new List<Dictionary<string, object>>();
             foreach (var item in _endpointSources.SelectMany(source => source.Endpoints))
             {
+                //get endpoint namespace class name and method name
                 var routeEndpoint = item as RouteEndpoint;
                 if (routeEndpoint == null)
                     continue;
                 var methods = item.Metadata?.GetMetadata<HttpMethodMetadata>()
                     ?.HttpMethods;
                 var route = routeEndpoint?.RoutePattern.RawText;
+                var isAjax = item.Metadata?.GetMetadata<Microsoft.AspNetCore.Mvc.ApiControllerAttribute>()!=null;
 
                 urlList.Add(new Dictionary<string, object>{
+                    { "id",item.DisplayName},{ "isAjax",isAjax},
                     { "methods",methods}, { "route",route}, { "status","On"}, { "type","system"}
                 });
             }
             await ResponseWriteAsync(context, urlList.ToJson());
         }
 
-        private async Task RespondWithLoginHtml(HttpResponse response)
-        {
-            response.StatusCode = StatusCodes.Status200OK;
-            response.ContentType = "text/html";
-            using (var stream = _options.LoginHtmlStream())
-            {
-                var htmlBuilder = new StringBuilder(new StreamReader(stream).ReadToEnd());
-                await response.WriteAsync(htmlBuilder.ToString(), Encoding.UTF8);
-            }
-        }
         private static async Task ResponseWriteAsync(HttpContext context, string result, string contentType = "application/json")
         {
             context.Response.StatusCode = StatusCodes.Status200OK;

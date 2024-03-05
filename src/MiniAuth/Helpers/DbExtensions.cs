@@ -14,6 +14,19 @@ namespace MiniAuth.Helpers
             command.AddParameters(parameters);
             return command.ExecuteNonQuery();
         }
+
+
+        public static T ExecuteScalar<T>(this DbConnection connection, string sql, IDictionary<string, object> parameters = null)
+        {
+            if (connection == null) throw new ArgumentNullException(nameof(connection));
+            if (parameters == null) parameters = new Dictionary<string, object>();
+            var command = connection.CreateCommand();
+            command.CommandText = sql;
+            command.AddParameters(parameters);
+            return (T)command.ExecuteScalar();
+        }
+
+
         public static void AddParameters(this DbCommand command, IDictionary<string, object> parameters = null)
         {
             if (command == null) throw new ArgumentNullException(nameof(command));

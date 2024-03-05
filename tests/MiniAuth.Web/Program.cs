@@ -23,30 +23,36 @@ namespace MiniAuth.Web
             app.UseStaticFiles();
             app.UseMiniAuth();
             app.MapControllers();
-            app.MapGet("/", () => "Hello MiniAuth!");
+            app.MapGet("/miniapi/get", () => "Hello MiniAuth!");
             app.Run();
         }
+    }
+    
+    public class HomeController : Controller
+    {
+        [Route("/")]
+        public ActionResult Home() => Content("This's homepage");
+        [Route("/About")]
+        public ActionResult About() => Content("This's About");
     }
 
     [ApiController]
     [Route("[controller]/[action]")]
-    public class DemoController : ControllerBase
+    public class ProductsController : ControllerBase
     {
-        [HttpGet]
-        public IEnumerable<dynamic> Api1()
-        {
-            return new[] { new { id = 1 } };
-        }
-        [HttpPost]
-        public ActionResult Api2() => Content("Api2");
+        public IEnumerable<dynamic> GetAll() => new[] { new { id = "1", name = "apple" }, new { id = "2", name = "orange" }, };
+
+        public dynamic Get(string id) => new { id="1",name="apple"};
     }
 
+    // create restful api for productstock controller
     [ApiController]
-    [Route("[controller]")]
-    public class Demo2Controller : ControllerBase
+    [Route("[controller]/[action]")]
+    public class ProductStockController : ControllerBase
     {
-        [HttpGet("Api1")]
-        public ActionResult Api1() => Content("Api1");
-        public ActionResult Api2() => Content("Api2");
+        public IEnumerable<dynamic> GetAll() => new[] { new { id = "1", name = "apple", stock = 100 }, new { id = "2", name = "orange", stock = 200 }, };
+
+        public dynamic Get(string id) => new { id = "1", name = "apple", stock = 100 };
     }
+
 }

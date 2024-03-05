@@ -28,9 +28,9 @@ Login RBAC System in ONE Line of Code for your existing project
 ### Features
 
 * Easy: support SPA, SSR, API, MVC, Razor Page 
-* Dynamic: Runtime dynamic routing permission settings
+* Dynamic: Runtime dynamic routing Endpoints settings
 * Progressive: Configurable functionality based on business requirements
-* Compatible: Non-intrusive modifications to existing systems, able to work with other permission frameworks
+* Compatible: Non-intrusive modifications to existing systems, able to work with other Endpoints frameworks
 * Supports multiple databases
 
 
