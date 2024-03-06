@@ -56,35 +56,39 @@ CREATE TABLE users_roles (
 );
 DROP TABLE IF EXISTS endpoints;
 CREATE TABLE endpoints (  
-    id INTEGER PRIMARY KEY AUTOINCREMENT,  
-    name TEXT NOT NULL UNIQUE,  
-    route TEXT NOT NULL UNIQUE ,
-    isAjax INTEGER NOT NULL DEFAULT 0,
-    enable INTEGER NOT NULL DEFAULT 1
+    id string PRIMARY KEY,  
+    name TEXT NOT NULL,  
+    route TEXT NOT NULL,
+    methods TEXT,
+    enable INTEGER NOT NULL,
+    redirectToLoginPage INTEGER NOT NULL
 );
 DROP TABLE IF EXISTS role_endpoints;
 CREATE TABLE role_endpoints (  
-    role_id INTEGER NOT NULL REFERENCES roles(id) ON DELETE CASCADE,  
-    endpoint_id INTEGER NOT NULL REFERENCES endpoints(id) ON DELETE CASCADE,  
+    role_id INTEGER NOT NULL,  
+    endpoint_id string NOT NULL,  
     PRIMARY KEY (role_id, endpoint_id)  
 );
 
 -- Insert users
-INSERT INTO users (username,password) VALUES ('miniauth','4d338c92-d9f3-4b66-b542-1f2931439870');
+INSERT INTO users (username,password) VALUES ('miniauth','');
+INSERT INTO users (username,password) VALUES ('user1','');
 
 -- Insert roles
 INSERT INTO roles (name) VALUES ('admin');
 INSERT INTO roles (name) VALUES ('user');
 
-
 -- Assign roles to users
 INSERT INTO users_roles (user_id, role_id) VALUES (1, 1); 
-
+INSERT INTO users_roles (user_id, role_id) VALUES (2, 2); 
 ";
                     using (var connection = _GetConnection())
                     {
                         connection.ExecuteNonQuery(sql);
                         new UserManager(this).UpdatePassword("miniauth", "miniauth");
+                        #region DEBUG
+                        new UserManager(this).UpdatePassword("user1", "user1");
+                        #endregion
                     }
                 }
             }

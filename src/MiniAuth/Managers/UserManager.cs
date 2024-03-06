@@ -41,7 +41,7 @@ namespace MiniAuth.Managers
         {
             public string RoleName { get; set; }
             public int? RoleId { get; set; }
-            public int? EndpointId { get; set; }
+            public string? EndpointId { get; set; }
             public string Route { get; set; }
             public string EndpointName { get; set; }
         }
@@ -94,16 +94,11 @@ namespace MiniAuth.Managers
                     {
                         while (reader.Read())
                         {
-                            //check role_name is DBNull
-
-
-
-
                             var userEndpoint = new UserEndpointDto
                             {
                                 RoleName = reader["role_name"] == DBNull.Value ? null : reader["role_name"].ToString(),
                                 RoleId = reader["role_id"]==DBNull.Value?null: Convert.ToInt32(reader["role_id"]),
-                                EndpointId = reader["endpoint_id"] == DBNull.Value ? null : Convert.ToInt32(reader["endpoint_id"]),
+                                EndpointId = reader["endpoint_id"] == DBNull.Value ? null : reader["endpoint_id"].ToString(),
                                 Route = reader["route"] == DBNull.Value ? null : reader["route"].ToString(),
                                 EndpointName = reader["endpoint_name"] == DBNull.Value ? null : reader["endpoint_name"].ToString()
                             };

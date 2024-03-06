@@ -36,7 +36,7 @@ namespace MiniAuth
         private readonly IUserManager _userManer;
         private readonly IRoleEndpointManager _endpointManager;
         private readonly ILogger<MiniAuthMiddleware> _logger;
-        private readonly ConcurrentDictionary<string, RoleEndpointEntity> _routeEndpointCache = new ConcurrentDictionary<string, RoleEndpointEntity>();
+        private readonly ConcurrentDictionary<string, RoleEndpointEntity> _endpointCache = new ConcurrentDictionary<string, RoleEndpointEntity>();
         private RoleEndpointEntity routeEndpoint;
 
         public MiniAuthMiddleware(RequestDelegate next,
@@ -65,8 +65,8 @@ namespace MiniAuth
                 _endpointManager = new RoleEndpointManager(this._db);
             this._endpointSources = endpointSources;
             this._staticFileMiddleware = CreateStaticFileMiddleware(next, loggerFactory, hostingEnv); ;
-            
-            _routeEndpointCache = new ConcurrentDictionary<string, RoleEndpointEntity>(_endpointManager.GetEndpoints().ToDictionary(p => p.Route.ToLowerInvariant()));
+
+            InitEnpointCache(_endpointCache);
         }
 
         private StaticFileMiddleware CreateStaticFileMiddleware(RequestDelegate next, ILoggerFactory loggerFactory, IWebHostEnvironment hostingEnv)
@@ -82,11 +82,11 @@ namespace MiniAuth
         public async Task Invoke(HttpContext context)
         {
             _ = context ?? throw new ArgumentNullException(nameof(context));
-            routeEndpoint = null;
-            if (_routeEndpointCache.ContainsKey(context.Request.Path.Value.ToLowerInvariant()))
-                routeEndpoint = _routeEndpointCache[context.Request.Path.Value.ToLowerInvariant()];
-            var isMiniAuthPath = context.Request.Path.StartsWithSegments($"/{_options.RoutePrefix}");
             var endpoint = context.GetEndpoint();
+            routeEndpoint = null;
+            if (endpoint != null && _endpointCache.ContainsKey(endpoint.DisplayName))
+                routeEndpoint = _endpointCache[endpoint.DisplayName]; //TODO:avoid duplicate same name endpoist key
+            var isMiniAuthPath = context.Request.Path.StartsWithSegments($"/{_options.RoutePrefix}");
             if(routeEndpoint==null && endpoint == null && !isMiniAuthPath) // if routeEndpoint is null, it's not a controled route
             {
                 await _next(context);
@@ -163,14 +163,14 @@ namespace MiniAuth
                 var checkRouteAuth = false;
                 if (_options.AuthAllRoutes)
                 {
-                    if (routeEndpoint != null && routeEndpoint.Enable == 0)
+                    if (routeEndpoint != null && routeEndpoint.Enable)
                         checkRouteAuth = false;
                     else
                         checkRouteAuth = true;
                 }
                 else
                 {
-                    if (routeEndpoint != null && routeEndpoint.Enable == 1)
+                    if (routeEndpoint != null && routeEndpoint.Enable)
                         checkRouteAuth = true;
                     else
                         checkRouteAuth = false;
@@ -209,7 +209,7 @@ namespace MiniAuth
                         }
                         else
                         {
-                            if (routeEndpoint.Enable == 1 && usersEndpoint.Any(_ => _.EndpointId == routeEndpoint.Id))
+                            if (routeEndpoint.Enable && usersEndpoint.Any(_ => _.EndpointId == routeEndpoint.Id))
                             {
                                 // pass
                             }
@@ -245,7 +245,8 @@ namespace MiniAuth
                     {
                         if (subPath.StartsWithSegments("/api/getAllEnPoints"))
                         {
-                            await GetAllEnPointsApi(context);
+                            
+                            await ResponseWriteAsync(context, _endpointCache.Values.ToJson());
                             return;
                         }
                         if (subPath.Value.ToLowerInvariant().EndsWith(".html"))
@@ -268,7 +269,7 @@ namespace MiniAuth
                 return;
             }
 
-            if (routeEndpoint.IsAjax)
+            if (routeEndpoint.RedirectToLoginPage)
             {
                 var message = messageInfo != null ? JsonConvert.SerializeObject(messageInfo) : "Unauthorized";
                 if (status == StatusCodes.Status401Unauthorized)
@@ -285,26 +286,12 @@ namespace MiniAuth
             }
         }
 
-        private async Task GetAllEnPointsApi(HttpContext context)
+        private void InitEnpointCache(ConcurrentDictionary<string, RoleEndpointEntity> _endpointCache)
         {
-            var urlList = new List<Dictionary<string, object>>();
-            foreach (var item in _endpointSources.SelectMany(source => source.Endpoints))
-            {
-                //get endpoint namespace class name and method name
-                var routeEndpoint = item as RouteEndpoint;
-                if (routeEndpoint == null)
-                    continue;
-                var methods = item.Metadata?.GetMetadata<HttpMethodMetadata>()
-                    ?.HttpMethods;
-                var route = routeEndpoint?.RoutePattern.RawText;
-                var isAjax = item.Metadata?.GetMetadata<Microsoft.AspNetCore.Mvc.ApiControllerAttribute>()!=null;
-
-                urlList.Add(new Dictionary<string, object>{
-                    { "id",item.DisplayName},{ "isAjax",isAjax},
-                    { "methods",methods}, { "route",route}, { "status","On"}, { "type","system"}
-                });
-            }
-            await ResponseWriteAsync(context, urlList.ToJson());
+            var systemEndpoints = _endpointManager.GetEndpointsAsync(_endpointSources).GetAwaiter().GetResult();
+            var cache = systemEndpoints.ToDictionary(p => p.Id.ToLowerInvariant());
+            var endpointCache = new ConcurrentDictionary<string, RoleEndpointEntity>(cache);
+            _endpointCache = endpointCache;
         }
 
         private static async Task ResponseWriteAsync(HttpContext context, string result, string contentType = "application/json")

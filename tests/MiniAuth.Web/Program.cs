@@ -7,17 +7,8 @@ namespace MiniAuth.Web
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowAll", builder =>
-                {
-                    builder.AllowAnyOrigin()
-                           .AllowAnyMethod()
-                           .AllowAnyHeader();
-                });
-            });
-            var service = builder.Services;
-            service.AddControllers();
+            builder.Services.AddCors(options =>options.AddPolicy("AllowAll", builder =>builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+            builder.Services.AddControllers();
             var app = builder.Build();
             app.UseCors("AllowAll");
             app.UseStaticFiles();
