@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using MiniAuth.Helpers;
 namespace MiniAuth.Managers
 {
     public interface IUserManager
     {
         void CreateUser(string username, string password, string roles);
-        List<UserManager.UserEndpointDto> GetUserRoleAndEndpoints(string username);
-        List<string> GetUserRoles(string username);
+        List<string> GetUserRoleIds(string username);
         void UpdatePassword(string username, string newPassword);
         bool ValidateUser(string username, string password);
     }
@@ -45,7 +45,7 @@ namespace MiniAuth.Managers
             public string Route { get; set; }
             public string EndpointName { get; set; }
         }
-        public List<string> GetUserRoles(string username)
+        public List<string> GetUserRoleIds(string username)
         {
             var result = new List<string>(); ;
             using (var connection = this._db.GetConnection())
@@ -53,10 +53,9 @@ namespace MiniAuth.Managers
                 using (var command = connection.CreateCommand())
                 {
                     command.CommandText = @"  
-                    SELECT r.name AS role_name 
+                    SELECT ur.id 
                     FROM users u  
-                    LEFT JOIN users_roles ur ON u.id = ur.user_id  
-                    LEFT JOIN roles r ON ur.role_id = r.id   
+                    LEFT JOIN users_roles ur ON u.id = ur.user_id   
                     WHERE u.username = @username";
 
                     command.AddParameters(new Dictionary<string, object>() { { "@username", username } });
@@ -65,50 +64,14 @@ namespace MiniAuth.Managers
                     {
                         while (reader.Read())
                         {
-                            result.Add(reader["role_name"].ToString());
+                            result.Add(reader.GetInt32(0).ToString());
                         }
                     }
                 }
                 return result;
             }
         }
-        public List<UserEndpointDto> GetUserRoleAndEndpoints(string username)
-        {
-            var userEndpoints = new List<UserEndpointDto>(); ;
-            using (var connection = this._db.GetConnection())
-            {
-                using (var command = connection.CreateCommand())
-                {
-                    command.CommandText = @"  
-                    SELECT r.name AS role_name, r.id AS role_id, p.id AS endpoint_id, p.route, p.name AS endpoint_name  
-                    FROM users u  
-                    LEFT JOIN users_roles ur ON u.id = ur.user_id  
-                    LEFT JOIN roles r ON ur.role_id = r.id  
-                    LEFT JOIN role_endpoints rp ON rp.role_id = r.id  
-                    LEFT JOIN endpoints p ON rp.endpoint_id = p.id  
-                    WHERE u.username = @username";
-
-                    command.AddParameters(new Dictionary<string, object>() { { "@username", username } });
-
-                    using (var reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            var userEndpoint = new UserEndpointDto
-                            {
-                                RoleName = reader["role_name"] == DBNull.Value ? null : reader["role_name"].ToString(),
-                                RoleId = reader["role_id"]==DBNull.Value?null: Convert.ToInt32(reader["role_id"]),
-                                EndpointId = reader["endpoint_id"] == DBNull.Value ? null : reader["endpoint_id"].ToString(),
-                                Route = reader["route"] == DBNull.Value ? null : reader["route"].ToString(),
-                                EndpointName = reader["endpoint_name"] == DBNull.Value ? null : reader["endpoint_name"].ToString()
-                            };
-                            userEndpoints.Add(userEndpoint);
-                        }
-                    }
-                }
-                return userEndpoints;
-            }
-        }
+     
         public bool ValidateUser(string username, string password)
         {
             using (var connection = _db.GetConnection())
