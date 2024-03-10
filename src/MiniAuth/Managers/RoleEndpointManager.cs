@@ -151,7 +151,7 @@ namespace MiniAuth.Managers
         public class RoleEndpointEntity
         {
             public string Id { get; set; }
-            public string Type { get; set; }
+            public string Type { get; set; } = "system";
             public string Name { get; set; }
             public string Route { get; set; }
             public string[] Methods { get; set; }

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { RouterView } from 'vue-router'
-import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import { emitter } from '@/helpers/emitter'
 const loadingFlag = ref(false)
+const pagetile = ref("title")
 emitter.on('showLoading', () => {
   loadingFlag.value = true
 })
@@ -14,9 +14,25 @@ emitter.on('closeLoading', () => {
 
 <template>
   <div>
-    <DefaultLayout>
-      <RouterView />
-    </DefaultLayout>
+    <div>
+      <SidebarArea />
+      <div>
+        <HeaderArea />
+        <main>
+          <nav>
+            <ol>
+              <li>
+                <router-link to="/"> Dashboard / </router-link>
+              </li>
+              <li>{{ pagetile }}</li>
+            </ol>
+          </nav>
+          <div>
+            <RouterView />
+          </div>
+        </main>
+      </div>
+    </div>
   </div>
   <div v-show="loadingFlag">
     <div id="loading-mask">
@@ -116,7 +132,6 @@ emitter.on('closeLoading', () => {
 }
 
 @keyframes three-dots-loader-animation {
-
   0%,
   80%,
   100% {

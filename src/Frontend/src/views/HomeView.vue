@@ -1,9 +1,6 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
-import BreadcrumbDefault from '@/components/Breadcrumbs/BreadcrumbDefault.vue'
 import ViteEnv from '@/helpers/ViteEnv.ts'; 
-console.log(ViteEnv.VITE_APP_BASE_API);
-console.log(ViteEnv.VITE_DEBUG);
 let pageTitle = ref('Home');
 </script>
 
