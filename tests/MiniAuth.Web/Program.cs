@@ -36,7 +36,6 @@ namespace MiniAuth.Web
         public dynamic Get(string id) => new { id="1",name="apple"};
     }
 
-    // create restful api for productstock controller
     [ApiController]
     [Route("[controller]/[action]")]
     public class ProductStockController : ControllerBase
