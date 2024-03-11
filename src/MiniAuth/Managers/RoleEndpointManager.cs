@@ -55,10 +55,12 @@ namespace MiniAuth.Managers
                 {
                     using (var command = connection.CreateCommand())
                     {
-                        command.CommandText = @"INSERT INTO endpoints (id,name,route,methods,enable,RedirectToLoginPage) VALUES (@id,@name,@route,@methods,@enable,@RedirectToLoginPage)";
+                        command.CommandText = @"INSERT INTO endpoints (id,type,name,route,methods,enable,RedirectToLoginPage) 
+VALUES (@id,@type,@name,@route,@methods,@enable,@RedirectToLoginPage)";
                         command.AddParameters(new Dictionary<string, object>()
                         {
                             { "@id", endpoint.Id },
+                            { "@type", endpoint.Type },
                             { "@name", endpoint.Name },
                             { "@route", endpoint.Route },
                             { "@methods", string.Join(",", endpoint.Methods??new[]{ ""}) },
@@ -126,7 +128,8 @@ namespace MiniAuth.Managers
             var dbEndpoints = new List<RoleEndpointEntity>();
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = @"SELECT id,name,route,methods,enable,RedirectToLoginPage FROM endpoints p";
+                command.CommandText = @"SELECT id,name,route,methods,enable,RedirectToLoginPage,type
+FROM endpoints p";
                 using (var reader = await command.ExecuteReaderAsync())
                 {
                     while (reader.Read())
@@ -139,6 +142,7 @@ namespace MiniAuth.Managers
                             Methods = reader.GetString(3).Split(","),
                             Enable = reader.GetInt32(4) == 1,
                             RedirectToLoginPage = reader.GetInt32(5) == 1,
+                            Type = reader.GetString(6),
                             //RoleIds = reader.GetString(5) //TOOD: get role ids
                         };
                         dbEndpoints.Add(endpoint);

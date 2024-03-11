@@ -56,7 +56,8 @@ CREATE TABLE users_roles (
 );
 DROP TABLE IF EXISTS endpoints;
 CREATE TABLE endpoints (  
-    id string PRIMARY KEY,  
+    id string PRIMARY KEY,
+    type text not null,
     name TEXT NOT NULL,  
     route TEXT NOT NULL,
     methods TEXT,
@@ -72,7 +73,6 @@ CREATE TABLE role_endpoints (
 
 -- Insert users
 INSERT INTO users (username,password) VALUES ('miniauth','');
-INSERT INTO users (username,password) VALUES ('user1','');
 
 -- Insert roles
 INSERT INTO roles (name) VALUES ('admin');
@@ -80,15 +80,11 @@ INSERT INTO roles (name) VALUES ('user');
 
 -- Assign roles to users
 INSERT INTO users_roles (user_id, role_id) VALUES (1, 1); 
-INSERT INTO users_roles (user_id, role_id) VALUES (2, 2); 
 ";
                     using (var connection = _GetConnection())
                     {
                         connection.ExecuteNonQuery(sql);
                         new UserManager(this).UpdatePassword("miniauth", "miniauth");
-                        #region DEBUG
-                        new UserManager(this).UpdatePassword("user1", "user1");
-                        #endregion
                     }
                 }
             }

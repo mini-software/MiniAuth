@@ -10,12 +10,10 @@ using Microsoft.Extensions.Options;
 using MiniAuth.Configs;
 using MiniAuth.Managers;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.SQLite;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -146,7 +144,9 @@ namespace MiniAuth
                         return;
                     }
                 }
-                if (context.Request.Path.Value.EndsWith("js") || context.Request.Path.Value.EndsWith("css") || context.Request.Path.Value.EndsWith("ico"))
+                if (context.Request.Path.Value.EndsWith(".js")
+                    || context.Request.Path.Value.EndsWith("css")
+                    || context.Request.Path.Value.EndsWith(".ico"))
                 {
                     await _staticFileMiddleware.Invoke(context);
                     return;
@@ -168,7 +168,7 @@ namespace MiniAuth
         private bool IsAuth(HttpContext context)
         {
             var isAuth = true;
-            if(this._routeEndpoint==null)
+            if (this._routeEndpoint == null)
                 return isAuth;
             var message = string.Empty;
             var messageCode = default(int);
@@ -190,7 +190,7 @@ namespace MiniAuth
                     if (sub == null)
                         throw new Exception("sub can't null");
                     var roles = _userManer.GetUserRoleIds(sub);
-                    if (this._routeEndpoint.RoleIds!=null && !(this._routeEndpoint.RoleIds.Length == 0))
+                    if (this._routeEndpoint.RoleIds != null && !(this._routeEndpoint.RoleIds.Length == 0))
                     {
                         bool hasRole = roles.Any(value => this._routeEndpoint.RoleIds.Contains(value));
                         if (!hasRole)

@@ -32,9 +32,10 @@ namespace MiniAuth.Managers
                 {
                     { "@username", username },
                     { "@password", HashGenerator.GetHashPassword(password) },
-                    { "@roles", roles },
                 });
                 command.ExecuteNonQuery();
+
+                // TODO: Assign roles to user
             }
         }
         public class UserEndpointDto

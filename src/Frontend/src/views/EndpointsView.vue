@@ -17,14 +17,14 @@
           <td>
             <input type="text"
                v-model="item.Route"
-              :disabled="item.type === 'system'"
+              :disabled="item.Type === 'system' || item.Type === 'miniauth'"
               :placeholder="(item.route?.length === null || item.route?.length === 0 ? 'Enter Route...' : '')" />
           </td>
           <td>
             {{ item.Type }}
           </td>
           <td>
-            <select multiple v-model="item.Methods" :disabled="item.type === 'system'">
+            <select multiple v-model="item.Methods" :disabled="item.Type === 'system' || item.Type === 'miniauth'" style="height: 50px;">
               <option v-for="(option, index) in ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']" :key="index">{{option}}</option>
             </select>
           </td>
@@ -48,8 +48,7 @@
 
 
 <script setup>
-import { reactive, onMounted, ref } from 'vue'
-import axios from 'axios'
+import { onMounted, ref } from 'vue'
 import service from '@/axios/service.ts';
 
 const pageTitle = ref('EndPoints')

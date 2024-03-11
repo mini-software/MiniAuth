@@ -1,7 +1,4 @@
-// import './assets/css/satoshi.css'
 import './assets/css/style.css'
-import 'jsvectormap/dist/css/jsvectormap.min.css'
-import 'flatpickr/dist/flatpickr.min.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'

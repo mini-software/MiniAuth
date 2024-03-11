@@ -1,9 +1,20 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { watch, onMounted, ref } from 'vue'
 import { RouterView } from 'vue-router'
 import { emitter } from '@/helpers/emitter'
+import { useRoute } from 'vue-router';
+const route = useRoute();
+const routeName = ref("");
+
+onMounted(() => {
+  routeName.value = (route.name ?? '').toString();
+});
+
+watch(() => route.name, (newVal) => {
+  routeName.value = newVal?.toString() ?? "";
+});
+
 const loadingFlag = ref(false)
-const pagetile = ref("title")
 emitter.on('showLoading', () => {
   loadingFlag.value = true
 })
@@ -17,16 +28,41 @@ emitter.on('closeLoading', () => {
     <div>
       <SidebarArea />
       <div>
-        <HeaderArea />
-        <main>
+        <div >
+          <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container">
+              <router-link class="navbar-brand" to="/"> MiniAuth </router-link>
+              <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+              </button>
+              <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <router-link class="nav-link" to="/Endpoints"> Endpoints </router-link>
+                  </li>
+                  <li class="nav-item">
+                    <router-link class="nav-link " to="/Users"> Users </router-link>
+                  </li>
+                  <li class="nav-item">
+                    <router-link class="nav-link " to="/Roles"> Roles </router-link>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </nav>
+        </div>
+        <main class="container">
           <nav>
-            <ol>
-              <li>
-                <router-link to="/"> Dashboard / </router-link>
+            <ol class="breadcrumb"
+              style="list-style-type: none; padding: 0; margin: 0; display: flex; align-items: center;">
+              <li style="display: inline-block; margin-right: 10px;">
+                <router-link to="/"> Dashboard </router-link> /
               </li>
-              <li>{{ pagetile }}</li>
+              <li style="display: inline-block;">{{ routeName }}</li>
             </ol>
           </nav>
+
           <div>
             <RouterView />
           </div>
@@ -132,6 +168,7 @@ emitter.on('closeLoading', () => {
 }
 
 @keyframes three-dots-loader-animation {
+
   0%,
   80%,
   100% {
@@ -142,4 +179,5 @@ emitter.on('closeLoading', () => {
     box-shadow: 0 20px 0 0;
   }
 }
+
 </style>
