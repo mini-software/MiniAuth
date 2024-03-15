@@ -8,6 +8,7 @@ namespace MiniAuth.Managers
     public interface IRoleEndpointManager
     {
         Task<List<RoleEndpointManager.RoleEndpointEntity>> GetEndpointsAsync(IEnumerable<Microsoft.AspNetCore.Routing.EndpointDataSource> _endpointSources);
+        Task<bool> UpdateEndpoint(RoleEndpointManager.RoleEndpointEntity endpoint);
     }
 
     public class RoleEndpointManager : IRoleEndpointManager
@@ -47,6 +48,28 @@ namespace MiniAuth.Managers
             }
         }
 
+        public async Task<bool> UpdateEndpoint(RoleEndpointEntity endpoint)
+        {
+            using (var connection = _db.GetConnection())
+            {
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = @"update endpoints 
+set enable = @enable,RedirectToLoginPage=@RedirectToLoginPage
+where id = @id";
+                    command.AddParameters(new Dictionary<string, object>()
+                    {
+                        { "@id", endpoint.Id },
+                        { "@route", endpoint.Route },
+                        { "@methods", string.Join(",", endpoint.Methods??new[]{ ""}) },
+                        { "@enable", endpoint.Enable ? 1 : 0 },
+                        { "@RedirectToLoginPage", endpoint.RedirectToLoginPage ? 1 : 0 }
+                    });
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+            return true;
+        }
         private static async Task InsertNewEndpoint(System.Data.Common.DbConnection connection, List<RoleEndpointEntity> endpoints)
         {
             using (var transaction = await connection.BeginTransactionAsync())

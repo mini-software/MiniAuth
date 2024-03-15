@@ -151,9 +151,26 @@ namespace MiniAuth
                     await _staticFileMiddleware.Invoke(context);
                     return;
                 }
-                if (subPath.StartsWithSegments("/api/getAllEnPoints"))
+                if (subPath.StartsWithSegments("/api/getAllEndpoints"))
                 {
                     await ResponseWriteAsync(context, _endpointCache.Values.Where(w=>w.Type=="system").OrderBy(_=>_.Route).ToJson());
+                    return;
+                }
+                if (subPath.StartsWithSegments("/api/saveEndpoint"))
+                {
+                    // get id and data from body json
+                    var reader = new StreamReader(context.Request.Body);
+                    var body = await reader.ReadToEndAsync();
+                    var bodyJson = JsonDocument.Parse(body);
+                    var root = bodyJson.RootElement;
+                    var id = root.GetProperty("Id").GetString();
+                    var enable = root.GetProperty("Enable").GetBoolean();
+                    var redirectToLoginPage = root.GetProperty("RedirectToLoginPage").GetBoolean();
+                    var cacheEndpoint = _endpointCache.Values.Single(w => w.Id == id);
+                    cacheEndpoint.Enable = enable;
+                    cacheEndpoint.RedirectToLoginPage = redirectToLoginPage;
+                    await _endpointManager.UpdateEndpoint(cacheEndpoint);
+                    await ResponseWriteAsync(context, new { status=200}.ToJson());
                     return;
                 }
                 if (context.Request.Path.Value.EndsWith(".html"))

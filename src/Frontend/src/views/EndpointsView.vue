@@ -9,6 +9,7 @@
           <th>
             Route
           </th>
+          <th>Redirect</th>
           <th>Enable</th>
           <th>Roles</th>
           <th>Action</th>
@@ -24,15 +25,20 @@
           </td>
           <td >
             <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" v-model="item.RedirectToLoginPage">
+            </div>
+          </td>
+
+          <td >
+            <div class="form-check form-switch">
               <input class="form-check-input" type="checkbox" v-model="item.Enable">
-              <label class="form-check-label" >Enable</label>
             </div>
           </td>
           <td>
             
           </td>
           <td >
-            <button class="btn btn-success" @click="editItem(index)">Save</button>
+            <button class="btn btn-success" @click="saveEndpoint(item)">Save</button>
           </td>
         </tr>
       </tbody>
@@ -58,9 +64,13 @@ import service from '@/axios/service.ts';
 const pageTitle = ref('EndPoints')
 const endpoints = ref([])
 const fetchData = async () => {
-  endpoints.value = await service.get('api/getAllEnPoints')
+  endpoints.value = await service.get('api/getAllEndpoints')
 }
-
+const saveEndpoint = async (endpoint) => {
+  await service.post('api/saveEndpoint', endpoint).then(() => {
+    alert("updated successfully")
+  })
+}
 onMounted(async () => {
   await fetchData()
 })
