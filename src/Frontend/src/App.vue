@@ -53,16 +53,6 @@ emitter.on('closeLoading', () => {
           </nav>
         </div>
         <main class="container">
-          <nav>
-            <ol class="breadcrumb"
-              style="list-style-type: none; padding: 0; margin: 0; display: flex; align-items: center;">
-              <li style="display: inline-block; margin-right: 10px;">
-                <router-link to="/"> Dashboard </router-link> /
-              </li>
-              <li style="display: inline-block;">{{ routeName }}</li>
-            </ol>
-          </nav>
-
           <div>
             <RouterView />
           </div>

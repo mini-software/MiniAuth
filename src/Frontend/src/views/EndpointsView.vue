@@ -4,53 +4,57 @@
       <thead>
         <tr>
           <th>
-            Endpoints
+            Name
           </th>
-          <th>Type</th>
-          <th>Method</th>
+          <th>
+            Route
+          </th>
           <th>Enable</th>
-          <th>Actions</th>
+          <th>Roles</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(item, index) in endpoints" :key="index">
+        <tr  v-for="(item, index) in endpoints" :key="index">
           <td>
-            <input type="text"
-               v-model="item.Route"
-              :disabled="item.Type === 'system' || item.Type === 'miniauth'"
-              :placeholder="(item.route?.length === null || item.route?.length === 0 ? 'Enter Route...' : '')" />
+            {{ item.Name}} 
           </td>
           <td>
-            {{ item.Type }}
-          </td>
-          <td>
-            <select multiple v-model="item.Methods" :disabled="item.Type === 'system' || item.Type === 'miniauth'" style="height: 50px;">
-              <option v-for="(option, index) in ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']" :key="index">{{option}}</option>
-            </select>
+            {{ item.Route }}
           </td>
           <td >
-            <input type="checkbox" v-model="item.Enable">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" v-model="item.Enable">
+              <label class="form-check-label" >Enable</label>
+            </div>
           </td>
-
+          <td>
+            
+          </td>
           <td >
-            <button @click="editItem(index)">Save</button>
-            /
-            <button @click="deleteItem(index)">Delete</button>
+            <button class="btn btn-success" @click="editItem(index)">Save</button>
           </td>
         </tr>
       </tbody>
     </table>
-    <button @click="addItem" >
-      Add Item
-    </button>
   </div>
 </template>
 
+<style> 
+     .resizable {
+         height: 30px !important;
+         transition: height 0.3s ease; 
+         overflow: hidden; 
+     }
+
+         .resizable:hover {
+             height: 130px !important;
+         }
+</style>
 
 <script setup>
 import { onMounted, ref } from 'vue'
 import service from '@/axios/service.ts';
-
 const pageTitle = ref('EndPoints')
 const endpoints = ref([])
 const fetchData = async () => {
@@ -60,16 +64,4 @@ const fetchData = async () => {
 onMounted(async () => {
   await fetchData()
 })
-
-const addItem = () => {
-  endpoints.value.push({ methods: null, route: '', status: 'On' })
-}
-
-const setStatus = (item, status) => {
-  item.status = status
-}
-
-const deleteItem = (index) => {
-  endpoints.value.splice(index, 1)
-}
 </script>

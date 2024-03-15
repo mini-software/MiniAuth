@@ -21,6 +21,8 @@ namespace MiniAuth.Web
     
     public class HomeController : Controller
     {
+        [HttpGet]
+        [HttpPost]
         [Route("/")]
         public ActionResult Home() => Content("This's homepage");
         [Route("/About")]
@@ -40,6 +42,8 @@ namespace MiniAuth.Web
     [Route("[controller]/[action]")]
     public class ProductStockController : ControllerBase
     {
+        [HttpGet]
+        [HttpPost]
         public IEnumerable<dynamic> GetAll() => new[] { new { id = "1", name = "apple", stock = 100 }, new { id = "2", name = "orange", stock = 200 }, };
 
         public dynamic Get(string id) => new { id = "1", name = "apple", stock = 100 };

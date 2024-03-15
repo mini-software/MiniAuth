@@ -153,7 +153,7 @@ namespace MiniAuth
                 }
                 if (subPath.StartsWithSegments("/api/getAllEnPoints"))
                 {
-                    await ResponseWriteAsync(context, _endpointCache.Values.ToJson());
+                    await ResponseWriteAsync(context, _endpointCache.Values.Where(w=>w.Type=="system").OrderBy(_=>_.Route).ToJson());
                     return;
                 }
                 if (context.Request.Path.Value.EndsWith(".html"))
@@ -268,7 +268,6 @@ namespace MiniAuth
 
         private static void JsonResponse(HttpContext context, ResponseVo messageInfo, int status)
         {
-        JsonResponse:
             var message = messageInfo != null ? JsonConvert.SerializeObject(messageInfo) : "Unauthorized";
             if (status == StatusCodes.Status401Unauthorized)
             {
