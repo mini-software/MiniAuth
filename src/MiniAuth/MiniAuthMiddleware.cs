@@ -156,6 +156,32 @@ namespace MiniAuth
                     await ResponseWriteAsync(context, _endpointCache.Values.Where(w=>w.Type=="system").OrderBy(_=>_.Route).ToJson());
                     return;
                 }
+                if (subPath.StartsWithSegments("/api/getRoles"))
+                {
+                    var roles = new List<dynamic>();
+                    using (var cn = this._db.GetConnection())
+                    {
+                        using (var command = cn.CreateCommand())
+                        {
+                            command.CommandText = @"select * from roles r";
+                            using (var reader = await command.ExecuteReaderAsync())
+                            {
+                                while (reader.Read())
+                                {
+                                    var endpoint = new 
+                                    {
+                                        Id = reader.GetInt32(0).ToString(),
+                                        Name = reader.GetString(1)
+                                    };
+                                    roles.Add(endpoint);
+                                }
+                            }
+                        }
+                    }
+                    
+                    await ResponseWriteAsync(context, roles.ToJson());
+                    return;
+                }
                 if (subPath.StartsWithSegments("/api/saveEndpoint"))
                 {
                     // get id and data from body json
@@ -164,13 +190,15 @@ namespace MiniAuth
                     var bodyJson = JsonDocument.Parse(body);
                     var root = bodyJson.RootElement;
                     var id = root.GetProperty("Id").GetString();
+                    var roles = root.GetProperty("Roles").Deserialize<string[]>();
                     var enable = root.GetProperty("Enable").GetBoolean();
                     var redirectToLoginPage = root.GetProperty("RedirectToLoginPage").GetBoolean();
                     var cacheEndpoint = _endpointCache.Values.Single(w => w.Id == id);
                     cacheEndpoint.Enable = enable;
+                    cacheEndpoint.Roles = roles;
                     cacheEndpoint.RedirectToLoginPage = redirectToLoginPage;
                     await _endpointManager.UpdateEndpoint(cacheEndpoint);
-                    await ResponseWriteAsync(context, new { status=200}.ToJson());
+                    await ResponseWriteAsync(context, new { pk=true,code = 200,message=default(string),data=default(object)}.ToJson());
                     return;
                 }
                 if (context.Request.Path.Value.EndsWith(".html"))
@@ -207,9 +235,9 @@ namespace MiniAuth
                     if (sub == null)
                         throw new Exception("sub can't null");
                     var roles = _userManer.GetUserRoleIds(sub);
-                    if (this._routeEndpoint.RoleIds != null && !(this._routeEndpoint.RoleIds.Length == 0))
+                    if (this._routeEndpoint.Roles != null && !(this._routeEndpoint.Roles.Length == 0))
                     {
-                        bool hasRole = roles.Any(value => this._routeEndpoint.RoleIds.Contains(value));
+                        bool hasRole = roles.Any(value => this._routeEndpoint.Roles.Contains(value));
                         if (!hasRole)
                         {
                             isAuth = false;

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Routing;
 using MiniAuth.Helpers;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 namespace MiniAuth.Managers
@@ -30,7 +31,6 @@ namespace MiniAuth.Managers
                 if (dbEndpoints.Count == 0)
                 {
                     await InsertNewEndpoint(connection, endpoints);
-                    // insert miniauth endpoints
                     return endpoints;
                 }
                 else
@@ -55,7 +55,7 @@ namespace MiniAuth.Managers
                 using (var command = connection.CreateCommand())
                 {
                     command.CommandText = @"update endpoints 
-set enable = @enable,RedirectToLoginPage=@RedirectToLoginPage
+set enable = @enable,RedirectToLoginPage=@RedirectToLoginPage,roles=@roles
 where id = @id";
                     command.AddParameters(new Dictionary<string, object>()
                     {
@@ -63,7 +63,8 @@ where id = @id";
                         { "@route", endpoint.Route },
                         { "@methods", string.Join(",", endpoint.Methods??new[]{ ""}) },
                         { "@enable", endpoint.Enable ? 1 : 0 },
-                        { "@RedirectToLoginPage", endpoint.RedirectToLoginPage ? 1 : 0 }
+                        { "@RedirectToLoginPage", endpoint.RedirectToLoginPage ? 1 : 0 },
+                        { "@roles", string.Join(",",endpoint.Roles) },
                     });
                     await command.ExecuteNonQueryAsync();
                 }
@@ -78,8 +79,8 @@ where id = @id";
                 {
                     using (var command = connection.CreateCommand())
                     {
-                        command.CommandText = @"INSERT INTO endpoints (id,type,name,route,methods,enable,RedirectToLoginPage) 
-VALUES (@id,@type,@name,@route,@methods,@enable,@RedirectToLoginPage)";
+                        command.CommandText = @"INSERT INTO endpoints (id,type,name,route,methods,enable,RedirectToLoginPage,roles) 
+VALUES (@id,@type,@name,@route,@methods,@enable,@RedirectToLoginPage,@roles)";
                         command.AddParameters(new Dictionary<string, object>()
                         {
                             { "@id", endpoint.Id },
@@ -88,7 +89,8 @@ VALUES (@id,@type,@name,@route,@methods,@enable,@RedirectToLoginPage)";
                             { "@route", endpoint.Route },
                             { "@methods", string.Join(",", endpoint.Methods??new[]{ ""}) },
                             { "@enable", endpoint.Enable ? 1 : 0 },
-                            { "@RedirectToLoginPage", endpoint.RedirectToLoginPage ? 1 : 0 }
+                            { "@RedirectToLoginPage", endpoint.RedirectToLoginPage ? 1 : 0 },
+                            { "@roles", string.Join(",",endpoint.Roles) },
                         });
                         await command.ExecuteNonQueryAsync();
                     }
@@ -117,7 +119,7 @@ VALUES (@id,@type,@name,@route,@methods,@enable,@RedirectToLoginPage)";
                     Route = route,
                     Methods = methods,
                     Enable = true,
-                    RoleIds = new string[] { "1" },
+                    Roles = new string[] { "1" },
                     RedirectToLoginPage = !isApi
                 });
             }
@@ -129,7 +131,7 @@ VALUES (@id,@type,@name,@route,@methods,@enable,@RedirectToLoginPage)";
                 Route = "/miniauth/api/getallenpoints",
                 Methods = new string[0],
                 Enable = true,
-                RoleIds = new string[] { "1" },
+                Roles = new string[] { "1" },
                 RedirectToLoginPage = false
             });
             endpoints.Add(new RoleEndpointEntity
@@ -140,18 +142,18 @@ VALUES (@id,@type,@name,@route,@methods,@enable,@RedirectToLoginPage)";
                 Route = "/miniauth/index.html",
                 Methods = new string[0],
                 Enable = true,
-                RoleIds = new string[] { "1" },
+                Roles = new string[] { "1" },
                 RedirectToLoginPage = false
             });
             return endpoints;
         }
 
-        private static async Task<List<RoleEndpointEntity>> GetDbEndpoints(System.Data.Common.DbConnection connection)
+        private static async Task<List<RoleEndpointEntity>> GetDbEndpoints(DbConnection connection)
         {
             var dbEndpoints = new List<RoleEndpointEntity>();
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = @"SELECT id,name,route,methods,enable,RedirectToLoginPage,type
+                command.CommandText = @"SELECT id,name,route,methods,enable,RedirectToLoginPage,type,roles
 FROM endpoints p";
                 using (var reader = await command.ExecuteReaderAsync())
                 {
@@ -166,7 +168,7 @@ FROM endpoints p";
                             Enable = reader.GetInt32(4) == 1,
                             RedirectToLoginPage = reader.GetInt32(5) == 1,
                             Type = reader.GetString(6),
-                            //RoleIds = reader.GetString(5) //TOOD: get role ids
+                            Roles = reader.GetString(7)?.Split(',')
                         };
                         dbEndpoints.Add(endpoint);
                     }
@@ -183,7 +185,7 @@ FROM endpoints p";
             public string Route { get; set; }
             public string[] Methods { get; set; }
             public bool Enable { get; set; }
-            public string[] RoleIds { get; set; }
+            public string[] Roles { get; set; }
             public bool RedirectToLoginPage { get; set; }
         }
     }

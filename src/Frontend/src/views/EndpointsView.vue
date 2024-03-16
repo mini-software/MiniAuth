@@ -35,7 +35,10 @@
             </div>
           </td>
           <td>
-            
+            <select multiple v-model="item.Roles"  class="resizable" style="height: 25px;">
+              <option key="0"></option>
+              <option v-for="(role, index) in roles" :value="role.Id" :key="index">{{role.Name}}</option>
+            </select>
           </td>
           <td >
             <button class="btn btn-success" @click="saveEndpoint(item)">Save</button>
@@ -63,10 +66,15 @@ import { onMounted, ref } from 'vue'
 import service from '@/axios/service.ts';
 const pageTitle = ref('EndPoints')
 const endpoints = ref([])
+const roles = ref([])
 const fetchData = async () => {
   endpoints.value = await service.get('api/getAllEndpoints')
+  roles.value = await service.get('api/getRoles')
 }
 const saveEndpoint = async (endpoint) => {
+  if(!confirm("Are you sure you want to update this endpoint?")){
+    return;
+  }
   await service.post('api/saveEndpoint', endpoint).then(() => {
     alert("updated successfully")
   })

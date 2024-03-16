@@ -62,7 +62,8 @@ CREATE TABLE endpoints (
     route TEXT NOT NULL,
     methods TEXT,
     enable INTEGER NOT NULL,
-    redirectToLoginPage INTEGER NOT NULL
+    redirectToLoginPage INTEGER NOT NULL,
+    roles TEXT NOT NULL
 );
 DROP TABLE IF EXISTS role_endpoints;
 CREATE TABLE role_endpoints (  
