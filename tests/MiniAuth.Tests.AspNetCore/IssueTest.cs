@@ -43,14 +43,14 @@ namespace MiniAuth.Tests.AspNetCore
             using (var server = new TestServer(builder))
             {
                 // Test CSS
-                using (var response = await server.CreateClient().GetAsync("/miniauth/styles.css").ConfigureAwait(false))
+                using (var response = await server.CreateClient().GetAsync("/miniauth/login.css").ConfigureAwait(false))
                 {
                     var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     Assert.Contains("body {", content);
                     Assert.Equal("text/css", response.Content.Headers.ContentType?.MediaType);
                 }
                 // Test JS
-                using (var response = await server.CreateClient().GetAsync("/miniauth/script.js").ConfigureAwait(false))
+                using (var response = await server.CreateClient().GetAsync("/miniauth/login.js").ConfigureAwait(false))
                 {
                     var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     Assert.Contains("document", content);
@@ -73,7 +73,7 @@ namespace MiniAuth.Tests.AspNetCore
                     await OutWrite(response);
                     Assert.Contains("Login", content);
                     Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                    Assert.Equal("http://localhost/MiniAuth/login?returnUrl=/", response.RequestMessage.RequestUri.ToString());
+                    Assert.Equal("http://localhost/MiniAuth/login.html?returnUrl=/", response.RequestMessage.RequestUri.ToString());
                 }
 
                 // client.PostAsync miniauth/login with username and password
@@ -101,7 +101,7 @@ namespace MiniAuth.Tests.AspNetCore
                         Assert.Equal("miniauth", obj.sub.ToString());
                         Assert.Equal("miniauth", obj.name.ToString());
                         Assert.Equal("miniauth", obj.iss.ToString());
-                        Assert.Equal("admin", obj.roles[0].ToString());
+                        Assert.Equal("1", obj.roles[0].ToString());
                     }
                     await OutWrite(response);
                     Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -112,10 +112,10 @@ namespace MiniAuth.Tests.AspNetCore
                 using (var response = await client.GetAsync("/"))
                 {
                     var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    Assert.Contains("Hello MiniAuth!", content);
+                    Assert.Contains("This's homepage", content);
                 }
 
-                using (var response = await client.GetAsync("/MiniAuth/api/getAllEnPoints"))
+                using (var response = await client.GetAsync("/MiniAuth/api/getAllEndpoints"))
                 {
                     var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     Assert.Contains("[", content);
