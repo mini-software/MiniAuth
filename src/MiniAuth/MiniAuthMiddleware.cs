@@ -8,6 +8,7 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MiniAuth.Configs;
+using MiniAuth.Helpers;
 using MiniAuth.Managers;
 using Newtonsoft.Json;
 using System;
@@ -16,6 +17,7 @@ using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -153,7 +155,7 @@ namespace MiniAuth
                 }
                 if (subPath.StartsWithSegments("/api/getAllEndpoints"))
                 {
-                    await ResponseWriteAsync(context, _endpointCache.Values.Where(w=>w.Type=="system").OrderBy(_=>_.Route).ToJson());
+                    await ResponseWriteAsync(context, _endpointCache.Values.Where(w => w.Type == "system").OrderBy(_ => _.Route).ToJson());
                     return;
                 }
                 if (subPath.StartsWithSegments("/api/getRoles"))
@@ -168,18 +170,58 @@ namespace MiniAuth
                             {
                                 while (reader.Read())
                                 {
-                                    var endpoint = new 
+                                    var endpoint = new
                                     {
                                         Id = reader.GetInt32(0).ToString(),
-                                        Name = reader.GetString(1)
+                                        Name = reader.GetString(1),
+                                        Enable = reader.GetInt32(2) == 1,
                                     };
                                     roles.Add(endpoint);
                                 }
                             }
                         }
                     }
-                    
+
                     await ResponseWriteAsync(context, roles.ToJson());
+                    return;
+                }
+                if (subPath.StartsWithSegments("/api/saveRole"))
+                {
+                    var reader = new StreamReader(context.Request.Body);
+                    var body = await reader.ReadToEndAsync();
+                    var bodyJson = JsonDocument.Parse(body);
+                    var root = bodyJson.RootElement;
+                    var id = root.GetProperty("Id").GetString();
+                    var name = root.GetProperty("Name").GetString();
+                    var enable = root.GetProperty("Enable").GetBoolean();
+                    using (var cn = this._db.GetConnection())
+                    {
+                        using (var command = cn.CreateCommand())
+                        {
+                            if (id == null)
+                            {
+                                command.CommandText = @"insert into roles (name,enable) values (@name,@enable)";
+                                command.AddParameters(new Dictionary<string, object>()
+                                {
+                                    { "@name", name },
+                                    { "@enable", enable ? 1 : 0 },
+                                });
+                            }
+                            else
+                            {
+                                command.CommandText = @"update roles set name = @name,enable=@enable where id = @id";
+                                command.AddParameters(new Dictionary<string, object>()
+                                {
+                                    { "@id", id },
+                                    { "@name", name },
+                                    { "@enable", enable ? 1 : 0 },
+                                });
+                            }
+
+                            command.ExecuteNonQuery();
+                        }
+                    }
+                    await ResponseWriteAsync(context, new { pk = true, code = 200, message = default(string), data = default(object) }.ToJson());
                     return;
                 }
                 if (subPath.StartsWithSegments("/api/saveEndpoint"))
@@ -198,7 +240,7 @@ namespace MiniAuth
                     cacheEndpoint.Roles = roles;
                     cacheEndpoint.RedirectToLoginPage = redirectToLoginPage;
                     await _endpointManager.UpdateEndpoint(cacheEndpoint);
-                    await ResponseWriteAsync(context, new { pk=true,code = 200,message=default(string),data=default(object)}.ToJson());
+                    await ResponseWriteAsync(context, new { pk = true, code = 200, message = default(string), data = default(object) }.ToJson());
                     return;
                 }
                 if (context.Request.Path.Value.EndsWith(".html"))

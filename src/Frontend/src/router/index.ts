@@ -16,6 +16,14 @@ const routes = [
     meta: {
       title: 'Endpoints'
     }
+  },
+  {
+    path: '/roles',
+    name: 'Roles',
+    component: () => import('@/views/RolesView.vue'),
+    meta: {
+      title: 'Roles'
+    }
   }
 ]
 

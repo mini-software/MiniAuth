@@ -28,7 +28,7 @@ emitter.on('closeLoading', () => {
     <div>
       <SidebarArea />
       <div>
-        <div >
+        <div>
           <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             <div class="container">
               <router-link class="navbar-brand" to="/"> MiniAuth </router-link>
@@ -53,6 +53,13 @@ emitter.on('closeLoading', () => {
           </nav>
         </div>
         <main class="container">
+          <div class="row" style="padding-bottom: 10px;padding-top: 10px;">
+            <div class="col-sm-8">
+              <h2><b>{{routeName}}</b> Management</h2>
+            </div>
+            <div class="col-sm-4">
+            </div>
+          </div>
           <div>
             <RouterView />
           </div>
@@ -169,5 +176,4 @@ emitter.on('closeLoading', () => {
     box-shadow: 0 20px 0 0;
   }
 }
-
 </style>

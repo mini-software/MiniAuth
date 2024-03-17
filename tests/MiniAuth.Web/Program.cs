@@ -33,9 +33,13 @@ namespace MiniAuth.Web
     [Route("[controller]/[action]")]
     public class ProductsController : ControllerBase
     {
+        [HttpGet]
+        [HttpPost]
         public IEnumerable<dynamic> GetAll() => new[] { new { id = "1", name = "apple" }, new { id = "2", name = "orange" }, };
-
+        [HttpGet]
         public dynamic Get(string id) => new { id="1",name="apple"};
+        [HttpPost]
+        public dynamic Post(string id) => new { data="demo"};
     }
 
     [ApiController]
