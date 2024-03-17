@@ -39,15 +39,13 @@ service.interceptors.response.use(
   },  
   error => {  
     closeLoading();
-
+    const res = error.response; 
     if (error.response.status === 401 ) {
       localStorage.removeItem('X-MiniAuth-Token');
       window.location.href = '/miniauth/login.html';
       return;
     }
-
-
-    alert(error.message || 'Error');
+    alert(res.data.message || error.message || 'Error');
     console.error('Error:', error);   
     return Promise.reject(error);  
   }  

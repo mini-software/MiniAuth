@@ -8,6 +8,7 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MiniAuth.Configs;
+using MiniAuth.Exceptions;
 using MiniAuth.Helpers;
 using MiniAuth.Managers;
 using Newtonsoft.Json;
@@ -89,168 +90,235 @@ namespace MiniAuth
         }
         public async Task Invoke(HttpContext context)
         {
-            _ = context ?? throw new ArgumentNullException(nameof(context));
-            _isMiniAuthPath = context.Request.Path.StartsWithSegments($"/{_options.RoutePrefix}", out PathString subPath);
-
-            this._routeEndpoint = GetEndpoint(context);
-            if (_routeEndpoint == null && !_isMiniAuthPath)
+            try
             {
-                await _next(context);
-                return;
-            }
+                _ = context ?? throw new ArgumentNullException(nameof(context));
+                _isMiniAuthPath = context.Request.Path.StartsWithSegments($"/{_options.RoutePrefix}", out PathString subPath);
 
-            var isAuth = IsAuth(context);
-            if (!isAuth)
-                return;
-
-            if (_isMiniAuthPath)
-            {
-                if (context.Request.Path.Equals($"/{_options.RoutePrefix}/login.html"))
+                this._routeEndpoint = GetEndpoint(context);
+                if (_routeEndpoint == null && !_isMiniAuthPath)
                 {
-                    await _staticFileMiddleware.Invoke(context);
+                    await _next(context);
                     return;
                 }
-                if (context.Request.Path.Equals($"/{_options.RoutePrefix}/login"))
+
+                var isAuth = IsAuth(context);
+                if (!isAuth)
+                    return;
+
+                if (_isMiniAuthPath)
                 {
-                    if (context.Request.Method == "POST")
+                    if (context.Request.Path.Equals($"/{_options.RoutePrefix}/login.html"))
+                    {
+                        await _staticFileMiddleware.Invoke(context);
+                        return;
+                    }
+                    if (context.Request.Path.Equals($"/{_options.RoutePrefix}/login"))
+                    {
+                        if (context.Request.Method == "POST")
+                        {
+                            var reader = new StreamReader(context.Request.Body);
+                            var body = await reader.ReadToEndAsync();
+                            var bodyJson = JsonDocument.Parse(body);
+                            var root = bodyJson.RootElement;
+                            var userName = root.GetProperty("username").GetString();
+                            var password = root.GetProperty("password").GetString();
+                            if (_userManer.ValidateUser(userName, password))
+                            {
+                                var roles = _userManer.GetUserRoleIds(userName);
+                                var newToken = _jwtManager.GetToken(userName, userName, _options.ExpirationMinuteTime, roles);
+                                context.Response.Headers.Add("X-MiniAuth-Token", newToken);
+                                context.Response.Cookies.Append("X-MiniAuth-Token", newToken);
+
+                                await OkResult(context, $"{{\"X-MiniAuth-Token\":\"{newToken}\"}}").ConfigureAwait(false);
+                                return;
+                            }
+                            else
+                            {
+                                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                                return;
+                            }
+                        }
+                    }
+                    if (context.Request.Path.Equals($"/{_options.RoutePrefix}/logout", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (context.Request.Method == "GET")
+                        {
+                            context.Response.Cookies.Delete("X-MiniAuth-Token");
+                            context.Response.Redirect($"/{_options.RoutePrefix}/login.html");
+                            return;
+                        }
+                    }
+                    if (context.Request.Path.Value.EndsWith(".js")
+                        || context.Request.Path.Value.EndsWith("css")
+                        || context.Request.Path.Value.EndsWith(".ico"))
+                    {
+                        await _staticFileMiddleware.Invoke(context);
+                        return;
+                    }
+                    if (subPath.StartsWithSegments("/api/getAllEndpoints"))
+                    {
+                        await OkResult(context, _endpointCache.Values.Where(w => w.Type == "system").OrderBy(_ => _.Route).ToJson());
+                        return;
+                    }
+                    if (subPath.StartsWithSegments("/api/getRoles"))
+                    {
+                        var roles = new List<dynamic>();
+                        using (var cn = this._db.GetConnection())
+                        {
+                            using (var command = cn.CreateCommand())
+                            {
+                                command.CommandText = @"select * from roles r";
+                                using (var reader = await command.ExecuteReaderAsync())
+                                {
+                                    while (reader.Read())
+                                    {
+                                        var endpoint = new
+                                        {
+                                            Id = reader.GetInt32(0).ToString(),
+                                            Name = reader.GetString(1),
+                                            Enable = reader.GetInt32(2) == 1,
+                                        };
+                                        roles.Add(endpoint);
+                                    }
+                                }
+                            }
+                        }
+
+                        await OkResult(context, roles.ToJson());
+                        return;
+                    }
+
+                    if (subPath.StartsWithSegments("/api/getRoles"))
+                    {
+                        var roles = new List<dynamic>();
+                        using (var cn = this._db.GetConnection())
+                        {
+                            using (var command = cn.CreateCommand())
+                            {
+                                command.CommandText = @"select * from roles r";
+                                using (var reader = await command.ExecuteReaderAsync())
+                                {
+                                    while (reader.Read())
+                                    {
+                                        var endpoint = new
+                                        {
+                                            Id = reader.GetInt32(0).ToString(),
+                                            Name = reader.GetString(1),
+                                            Enable = reader.GetInt32(2) == 1,
+                                        };
+                                        roles.Add(endpoint);
+                                    }
+                                }
+                            }
+                        }
+
+                        await OkResult(context, roles.ToJson());
+                        return;
+                    }
+                    if (subPath.StartsWithSegments("/api/deleteRole"))
                     {
                         var reader = new StreamReader(context.Request.Body);
                         var body = await reader.ReadToEndAsync();
                         var bodyJson = JsonDocument.Parse(body);
                         var root = bodyJson.RootElement;
-                        var userName = root.GetProperty("username").GetString();
-                        var password = root.GetProperty("password").GetString();
-                        if (_userManer.ValidateUser(userName, password))
+                        if (!root.TryGetProperty("Id", out var _id))
+                            throw new MiniAuthException("Without Id key");
+                        var id = _id.GetString();
+                        using (var cn = this._db.GetConnection())
                         {
-                            var roles = _userManer.GetUserRoleIds(userName);
-                            var newToken = _jwtManager.GetToken(userName, userName, _options.ExpirationMinuteTime, roles);
-                            context.Response.Headers.Add("X-MiniAuth-Token", newToken);
-                            context.Response.Cookies.Append("X-MiniAuth-Token", newToken);
-
-                            await ResponseWriteAsync(context, $"{{\"X-MiniAuth-Token\":\"{newToken}\"}}").ConfigureAwait(false);
-                            return;
-                        }
-                        else
-                        {
-                            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                            return;
-                        }
-                    }
-                }
-                if (context.Request.Path.Equals($"/{_options.RoutePrefix}/logout", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (context.Request.Method == "GET")
-                    {
-                        context.Response.Cookies.Delete("X-MiniAuth-Token");
-                        context.Response.Redirect($"/{_options.RoutePrefix}/login.html");
-                        return;
-                    }
-                }
-                if (context.Request.Path.Value.EndsWith(".js")
-                    || context.Request.Path.Value.EndsWith("css")
-                    || context.Request.Path.Value.EndsWith(".ico"))
-                {
-                    await _staticFileMiddleware.Invoke(context);
-                    return;
-                }
-                if (subPath.StartsWithSegments("/api/getAllEndpoints"))
-                {
-                    await ResponseWriteAsync(context, _endpointCache.Values.Where(w => w.Type == "system").OrderBy(_ => _.Route).ToJson());
-                    return;
-                }
-                if (subPath.StartsWithSegments("/api/getRoles"))
-                {
-                    var roles = new List<dynamic>();
-                    using (var cn = this._db.GetConnection())
-                    {
-                        using (var command = cn.CreateCommand())
-                        {
-                            command.CommandText = @"select * from roles r";
-                            using (var reader = await command.ExecuteReaderAsync())
+                            using (var command = cn.CreateCommand())
                             {
-                                while (reader.Read())
+                                if (id != null)
                                 {
-                                    var endpoint = new
+                                    command.CommandText = @"delete from Roles where id = @id";
+                                    command.AddParameters(new Dictionary<string, object>()
                                     {
-                                        Id = reader.GetInt32(0).ToString(),
-                                        Name = reader.GetString(1),
-                                        Enable = reader.GetInt32(2) == 1,
-                                    };
-                                    roles.Add(endpoint);
+                                        { "@id", _id },
+                                    });
+                                    command.ExecuteNonQuery();
+                                    await OkResult(context, "".ToJson(code: 200, message: ""));
+                                }
+                                else
+                                {
+                                    throw new MiniAuthException("Id is null");
                                 }
                             }
                         }
+                        return;
                     }
-
-                    await ResponseWriteAsync(context, roles.ToJson());
-                    return;
-                }
-                if (subPath.StartsWithSegments("/api/saveRole"))
-                {
-                    var reader = new StreamReader(context.Request.Body);
-                    var body = await reader.ReadToEndAsync();
-                    var bodyJson = JsonDocument.Parse(body);
-                    var root = bodyJson.RootElement;
-                    var id = root.GetProperty("Id").GetString();
-                    var name = root.GetProperty("Name").GetString();
-                    var enable = root.GetProperty("Enable").GetBoolean();
-                    using (var cn = this._db.GetConnection())
+                    if (subPath.StartsWithSegments("/api/saveRole"))
                     {
-                        using (var command = cn.CreateCommand())
+                        var reader = new StreamReader(context.Request.Body);
+                        var body = await reader.ReadToEndAsync();
+                        var bodyJson = JsonDocument.Parse(body);
+                        var root = bodyJson.RootElement;
+                        var id = root.GetProperty("Id").GetString();
+                        var name = root.GetProperty("Name").GetString();
+                        var enable = root.GetProperty("Enable").GetBoolean();
+                        using (var cn = this._db.GetConnection())
                         {
-                            if (id == null)
+                            using (var command = cn.CreateCommand())
                             {
-                                command.CommandText = @"insert into roles (name,enable) values (@name,@enable)";
-                                command.AddParameters(new Dictionary<string, object>()
+                                if (id == null)
+                                {
+                                    command.CommandText = @"insert into roles (name,enable) values (@name,@enable)";
+                                    command.AddParameters(new Dictionary<string, object>()
                                 {
                                     { "@name", name },
                                     { "@enable", enable ? 1 : 0 },
                                 });
-                            }
-                            else
-                            {
-                                command.CommandText = @"update roles set name = @name,enable=@enable where id = @id";
-                                command.AddParameters(new Dictionary<string, object>()
+                                }
+                                else
+                                {
+                                    command.CommandText = @"update roles set name = @name,enable=@enable where id = @id";
+                                    command.AddParameters(new Dictionary<string, object>()
                                 {
                                     { "@id", id },
                                     { "@name", name },
                                     { "@enable", enable ? 1 : 0 },
                                 });
-                            }
+                                }
 
-                            command.ExecuteNonQuery();
+                                command.ExecuteNonQuery();
+                            }
                         }
+                        await OkResult(context, "".ToJson(code: 200, message: ""));
+                        return;
                     }
-                    await ResponseWriteAsync(context, new { pk = true, code = 200, message = default(string), data = default(object) }.ToJson());
-                    return;
+                    if (subPath.StartsWithSegments("/api/saveEndpoint"))
+                    {
+                        // get id and data from body json
+                        var reader = new StreamReader(context.Request.Body);
+                        var body = await reader.ReadToEndAsync();
+                        var bodyJson = JsonDocument.Parse(body);
+                        var root = bodyJson.RootElement;
+                        var id = root.GetProperty("Id").GetString();
+                        var roles = root.GetProperty("Roles").Deserialize<string[]>();
+                        var enable = root.GetProperty("Enable").GetBoolean();
+                        var redirectToLoginPage = root.GetProperty("RedirectToLoginPage").GetBoolean();
+                        var cacheEndpoint = _endpointCache.Values.Single(w => w.Id == id);
+                        cacheEndpoint.Enable = enable;
+                        cacheEndpoint.Roles = roles;
+                        cacheEndpoint.RedirectToLoginPage = redirectToLoginPage;
+                        await _endpointManager.UpdateEndpoint(cacheEndpoint);
+                        await OkResult(context, "".ToJson(code: 200, message:""));
+                        return;
+                    }
+                    if (context.Request.Path.Value.EndsWith(".html"))
+                    {
+                        await _staticFileMiddleware.Invoke(context);
+                        return;
+                    }
                 }
-                if (subPath.StartsWithSegments("/api/saveEndpoint"))
-                {
-                    // get id and data from body json
-                    var reader = new StreamReader(context.Request.Body);
-                    var body = await reader.ReadToEndAsync();
-                    var bodyJson = JsonDocument.Parse(body);
-                    var root = bodyJson.RootElement;
-                    var id = root.GetProperty("Id").GetString();
-                    var roles = root.GetProperty("Roles").Deserialize<string[]>();
-                    var enable = root.GetProperty("Enable").GetBoolean();
-                    var redirectToLoginPage = root.GetProperty("RedirectToLoginPage").GetBoolean();
-                    var cacheEndpoint = _endpointCache.Values.Single(w => w.Id == id);
-                    cacheEndpoint.Enable = enable;
-                    cacheEndpoint.Roles = roles;
-                    cacheEndpoint.RedirectToLoginPage = redirectToLoginPage;
-                    await _endpointManager.UpdateEndpoint(cacheEndpoint);
-                    await ResponseWriteAsync(context, new { pk = true, code = 200, message = default(string), data = default(object) }.ToJson());
-                    return;
-                }
-                if (context.Request.Path.Value.EndsWith(".html"))
-                {
-                    await _staticFileMiddleware.Invoke(context);
-                    return;
-                }
+                await _next(context);
+                return;
             }
-            await _next(context);
-            return;
+            catch (Exception e)
+            {
+                await NotOkResult(context, "".ToJson(code:500,message:e.Message));
+                return;
+            }
         }
         private bool IsAuth(HttpContext context)
         {
@@ -365,9 +433,16 @@ namespace MiniAuth
             }
         }
 
-        private static async Task ResponseWriteAsync(HttpContext context, string result, string contentType = "application/json")
+        private static async Task OkResult(HttpContext context, string result, string contentType = "application/json")
         {
             context.Response.StatusCode = StatusCodes.Status200OK;
+            context.Response.ContentType = contentType;
+            context.Response.ContentLength = result != null ? Encoding.UTF8.GetByteCount(result) : 0;
+            await context.Response.WriteAsync(result).ConfigureAwait(false);
+        }
+        private static async Task NotOkResult(HttpContext context, string result, string contentType = "application/json")
+        {
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
             context.Response.ContentType = contentType;
             context.Response.ContentLength = result != null ? Encoding.UTF8.GetByteCount(result) : 0;
             await context.Response.WriteAsync(result).ConfigureAwait(false);
