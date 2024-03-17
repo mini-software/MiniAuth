@@ -27,18 +27,41 @@
       <thead>
         <tr class="table-dark">
           <th>ID</th>
-          <th>Name</th>
+          <th>User Name</th>
+          <th>Roles</th>
+          <th>First Name</th>
+          <th>Last Name</th>
+          <th hidden>Email</th>
+          <th>New Password</th>
           <th>Enable</th>
           <th>Action</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(item, index) in roles" :key="index">
+        <tr v-for="(item, index) in users" :key="index">
           <td>
             {{ item.Id }}
           </td>
           <td>
-            <input type="text" v-model="item.Name">
+            <input type="text" v-model="item.Username">
+          </td>
+          <td>
+            <select multiple v-model="item.Roles" class="resizable" style="height: 25px;">
+              <option></option>
+              <option v-for="(role, index) in roles" :value="role.Id" :key="index">{{ role.Name }}</option>              
+            </select>
+          </td>
+          <td>
+            <input type="text" v-model="item.First_name"> 
+          </td>
+          <td>
+            <input type="text" v-model="item.Last_name">
+          </td>
+          <td hidden>
+            <input type="mail" v-model="item.Mail">
+          </td>
+          <td>
+            <input type="password" v-model="item.Password">
           </td>
           <td>
             <div class="form-check form-switch">
@@ -46,6 +69,13 @@
             </div>
           </td>
           <td>
+            <button class="btn" @click="deleteRole(item.Id)">
+              <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M13.0151 13.6556C14.8093 14.3587 16.9279 13.9853 18.3777 12.5355C20.3304 10.5829 20.3304 7.41709 18.3777 5.46447C16.4251 3.51184 13.2593 3.51184 11.3067 5.46447C9.85687 6.91426 9.48353 9.03288 10.1866 10.8271M12.9964 13.6742L6.82843 19.8422L4.2357 19.6065L4 17.0138L10.168 10.8458M15.5493 8.31568V8.29289"
+                  stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
             <button class="btn" @click="save(item)">
               <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g id="System / Save">
@@ -54,7 +84,7 @@
                     stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </g>
               </svg>
-            </button>&nbsp;
+            </button>
             <button class="btn" @click="deleteRole(item.Id)"><svg width="20px" height="20px" viewBox="0 0 24 24"
                 fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M10 12V17" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -76,37 +106,59 @@
 input[type="text"] {
   widows: 100%;
   border: 0;
-  border-bottom: 2px solid black;
+  border-bottom: 1px solid black;
   outline: 0;
   background-color: rgba(226, 226, 226, 0.744);
 }
+input[type="password"] {
+  widows: 100%;
+  border: 0;
+  border-bottom: 1px solid black;
+  outline: 0;
+  background-color: rgba(226, 226, 226, 0.744);
+}
+
 input[type="mail"] {
   widows: 100%;
   border: 0;
-  border-bottom: 2px solid black;
+  border-bottom: 1px solid black;
   outline: 0;
   background-color: rgba(226, 226, 226, 0.744);
 }
+
+.resizable {
+  height: 26px !important;
+  transition: height 0.3s ease;
+  border: 0; 
+  border-bottom: 1px solid black; 
+}
+
+.resizable:hover {
+  height: 100% !important;
+}
 </style>
+
 <script setup>
 import { onMounted, ref } from 'vue'
 import service from '@/axios/service.ts';
-const pageTitle = ref('Roles')
+const pageTitle = ref('Users')
+const users = ref([])
 const roles = ref([])
 const fetchData = async () => {
+  users.value = await service.get('api/getUsers')
   roles.value = await service.get('api/getRoles')
 }
 const insert = async () => {
   if (!confirm("Are you sure you want to insert?")) {
     return;
   }
-  roles.value.push({ Id: null, Name: '', Enable: true })
+  users.value.push({ Id: null, Enable: true })
 }
 const deleteRole = async (Id) => {
   if (!confirm("Are you sure you want to delete?")) {
     return;
   }
-  await service.post('api/deleteRole', {Id:Id}).then(async() => {
+  await service.post('api/deleteRole', { Id: Id }).then(async () => {
     alert("Delete successfully")
     await fetchData();
   })
@@ -115,7 +167,7 @@ const save = async (data) => {
   if (!confirm("Are you sure you want to update?")) {
     return;
   }
-  await service.post('api/saveRole', data).then(async () => {
+  await service.post('api/saveUser', data).then(async () => {
     alert("updated successfully")
     await fetchData();
   })

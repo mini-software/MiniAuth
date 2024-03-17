@@ -1,4 +1,4 @@
-﻿namespace MiniAuth
+﻿namespace MiniAuth.Models
 {
     internal class ResponseVo
     {

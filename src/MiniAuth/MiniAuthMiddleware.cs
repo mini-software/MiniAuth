@@ -11,6 +11,7 @@ using MiniAuth.Configs;
 using MiniAuth.Exceptions;
 using MiniAuth.Helpers;
 using MiniAuth.Managers;
+using MiniAuth.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
@@ -216,6 +217,75 @@ namespace MiniAuth
                         await OkResult(context, roles.ToJson());
                         return;
                     }
+
+                    if (subPath.StartsWithSegments("/api/getUsers"))
+                    {
+                        var users = new List<dynamic>();
+                        using (var cn = this._db.GetConnection())
+                        {
+                            using (var command = cn.CreateCommand())
+                            {
+                                command.CommandText = @"select id,username,first_name,
+last_name,emp_no,mail,Enable from users u ";
+                                using (var reader = await command.ExecuteReaderAsync())
+                                {
+                                    while (reader.Read())
+                                    {
+                                        var e = new
+                                        {
+                                            Id = reader.GetInt32(0).ToString(),
+                                            Username = reader.IsDBNull(1)?null:reader.GetString(1),
+                                            First_name = reader.IsDBNull(2) ? null : reader.GetString(2),
+                                            Last_name = reader.IsDBNull(3) ? null : reader.GetString(3),
+                                            Emp_no = reader.IsDBNull(4) ? null : reader.GetString(4),
+                                            Mail = reader.IsDBNull(5) ? null : reader.GetString(5),
+                                            Enable = reader.GetInt32(6)==1,
+                                        };
+                                        users.Add(e);
+                                    }
+                                }
+                            }
+                        }
+
+                        await OkResult(context, users.ToJson());
+                        return;
+                    }
+
+                    if (subPath.StartsWithSegments("/api/saveUser"))
+                    {
+                        var reader = new StreamReader(context.Request.Body);
+                        var body = await reader.ReadToEndAsync();
+                        var bodyJson = JsonDocument.Parse(body);
+                        var root = bodyJson.RootElement;
+                        var id = root.GetProperty("Id").GetString();
+                        var parameters = new Dictionary<string, object>()
+                        {
+                            { "@id", id },
+                            { "@username", root.GetProperty("Username").GetString() },
+                            { "@enable", root.GetProperty("Enable").GetBoolean() ? 1 : 0 },
+                        };
+                        using (var cn = this._db.GetConnection())
+                        {
+                            using (var command = cn.CreateCommand())
+                            {
+                                if (id == null)
+                                {
+                                    command.CommandText = @"insert into users (username,enable) values (@username,@enable)";
+                                    command.AddParameters(parameters);
+                                }
+                                else
+                                {
+                                    command.CommandText = @"update users set username = @username,enable=@enable where id = @id";
+                                    command.AddParameters(parameters);
+                                }
+
+                                command.ExecuteNonQuery();
+                            }
+                        }
+                        await OkResult(context, "".ToJson(code: 200, message: ""));
+                        return;
+                    }
+
                     if (subPath.StartsWithSegments("/api/deleteRole"))
                     {
                         var reader = new StreamReader(context.Request.Body);

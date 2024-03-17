@@ -35,9 +35,9 @@
             </div>
           </td>
           <td>
-            <select multiple v-model="item.Roles"  class="resizable" style="height: 25px;">
-              <option key="0"></option>
-              <option v-for="(role, index) in roles" :value="role.Id" :key="index">{{role.Name}}</option>
+            <select multiple v-model="item.Roles"  class="resizable" style="height: 25px;">      
+              <option></option>
+              <option v-for="(role, index) in roles" :value="role.Id" :key="index">{{role.Name}}</option>              
             </select>
           </td>
           <td >
@@ -49,7 +49,7 @@
   </div>
 </template>
 
-<style> 
+<style scoped> 
      .resizable {
          height: 30px !important;
          transition: height 0.3s ease; 
