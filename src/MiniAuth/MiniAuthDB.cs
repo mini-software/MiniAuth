@@ -40,6 +40,14 @@ CREATE TABLE users (
     password TEXT NOT NULL,  
     extension TEXT NULL
 );
+ALTER table users add column emp_no text default '';
+ALTER table users add column first_name text default '';
+ALTER table users add column last_name text default '';
+ALTER table users add column mail text default '';
+ALTER table users add column roles text default '';
+ALTER table users add column Enable integer default 0;
+
+
 DROP TABLE IF EXISTS roles;
 CREATE TABLE roles (  
     id INTEGER PRIMARY KEY AUTOINCREMENT,  
@@ -86,7 +94,7 @@ INSERT INTO users_roles (user_id, role_id) VALUES (1, 1);
                     using (var connection = _GetConnection())
                     {
                         connection.ExecuteNonQuery(sql);
-                        new UserManager(this).UpdatePassword("miniauth", "miniauth");
+                        new UserManager(this).UpdatePassword("1", "miniauth");
                     }
                 }
             }
