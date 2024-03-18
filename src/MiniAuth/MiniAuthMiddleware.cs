@@ -254,6 +254,19 @@ from users u ";
                         return;
                     }
 
+                    if (subPath.StartsWithSegments("/api/resetPassword"))
+                    {
+                        var reader = new StreamReader(context.Request.Body);
+                        var body = await reader.ReadToEndAsync();
+                        var bodyJson = JsonDocument.Parse(body);
+                        var root = bodyJson.RootElement;
+                        var id = root.GetProperty("Id").GetString();
+                        var newPassword = Guid.NewGuid().ToString("N");
+                        _userManer.UpdatePassword(id, newPassword);
+                        await OkResult(context, new { newPassword}.ToJson(code: 200, message: ""));
+                        return;
+                    }
+
                     if (subPath.StartsWithSegments("/api/saveUser"))
                     {
                         var reader = new StreamReader(context.Request.Body);
