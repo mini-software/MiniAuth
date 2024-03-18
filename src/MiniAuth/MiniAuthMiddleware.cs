@@ -21,6 +21,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -226,7 +227,8 @@ namespace MiniAuth
                             using (var command = cn.CreateCommand())
                             {
                                 command.CommandText = @"select id,username,first_name,
-last_name,emp_no,mail,Enable from users u ";
+last_name,emp_no,mail,Enable,roles 
+from users u ";
                                 using (var reader = await command.ExecuteReaderAsync())
                                 {
                                     while (reader.Read())
@@ -234,12 +236,13 @@ last_name,emp_no,mail,Enable from users u ";
                                         var e = new
                                         {
                                             Id = reader.GetInt32(0).ToString(),
-                                            Username = reader.IsDBNull(1)?null:reader.GetString(1),
+                                            Username = reader.IsDBNull(1) ? null : reader.GetString(1),
                                             First_name = reader.IsDBNull(2) ? null : reader.GetString(2),
                                             Last_name = reader.IsDBNull(3) ? null : reader.GetString(3),
                                             Emp_no = reader.IsDBNull(4) ? null : reader.GetString(4),
                                             Mail = reader.IsDBNull(5) ? null : reader.GetString(5),
-                                            Enable = reader.GetInt32(6)==1,
+                                            Enable = reader.GetInt32(6) == 1,
+                                            Roles = reader.GetString(7)?.Split(',')
                                         };
                                         users.Add(e);
                                     }
@@ -258,11 +261,16 @@ last_name,emp_no,mail,Enable from users u ";
                         var bodyJson = JsonDocument.Parse(body);
                         var root = bodyJson.RootElement;
                         var id = root.GetProperty("Id").GetString();
+                        var roles = root.GetProperty("Roles").Deserialize<string[]>();
                         var parameters = new Dictionary<string, object>()
                         {
                             { "@id", id },
                             { "@username", root.GetProperty("Username").GetString() },
                             { "@enable", root.GetProperty("Enable").GetBoolean() ? 1 : 0 },
+                            { "@First_name", root.GetProperty("First_name").GetString() },
+                            { "@Last_name", root.GetProperty("Last_name").GetString() },
+                            { "@Mail", root.GetProperty("Mail").GetString() },
+                            { "@Roles", string.Join(",",roles) },
                         };
                         using (var cn = this._db.GetConnection())
                         {
@@ -270,17 +278,28 @@ last_name,emp_no,mail,Enable from users u ";
                             {
                                 if (id == null)
                                 {
-                                    command.CommandText = @"insert into users (username,enable) values (@username,@enable)";
+                                    command.CommandText = @"insert into users (username,enable,Roles,First_name,Last_name,Mail) 
+values (@username,@enable,@Roles,@First_name,@Last_name,@Mail)";
                                     command.AddParameters(parameters);
                                 }
                                 else
                                 {
-                                    command.CommandText = @"update users set username = @username,enable=@enable where id = @id";
+                                    command.CommandText = @"update users set username = @username,
+enable=@enable , Roles=@Roles,First_name=@First_name,Last_name=@Last_name,Mail=@Mail
+where id = @id";
                                     command.AddParameters(parameters);
+
+                                    var newPassword = root.GetProperty("NewPassword").GetString();
+                                    if (!string.IsNullOrEmpty(newPassword))
+                                    {
+                                        _userManer.UpdatePassword(id,newPassword);
+                                    }
                                 }
 
                                 command.ExecuteNonQuery();
                             }
+
+                            
                         }
                         await OkResult(context, "".ToJson(code: 200, message: ""));
                         return;
@@ -372,7 +391,7 @@ last_name,emp_no,mail,Enable from users u ";
                         cacheEndpoint.Roles = roles;
                         cacheEndpoint.RedirectToLoginPage = redirectToLoginPage;
                         await _endpointManager.UpdateEndpoint(cacheEndpoint);
-                        await OkResult(context, "".ToJson(code: 200, message:""));
+                        await OkResult(context, "".ToJson(code: 200, message: ""));
                         return;
                     }
                     if (context.Request.Path.Value.EndsWith(".html"))
@@ -386,7 +405,7 @@ last_name,emp_no,mail,Enable from users u ";
             }
             catch (Exception e)
             {
-                await NotOkResult(context, "".ToJson(code:500,message:e.Message));
+                await NotOkResult(context, "".ToJson(code: 500, message: e.Message));
                 return;
             }
         }

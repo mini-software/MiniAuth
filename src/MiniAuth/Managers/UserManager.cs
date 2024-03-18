@@ -91,14 +91,14 @@ namespace MiniAuth.Managers
             }
         }
 
-        public void UpdatePassword(string username, string newPassword)
+        public void UpdatePassword(string id, string newPassword)
         {
             using (var connection = _db.GetConnection())
             {
-                string sql = "UPDATE Users SET Password = @newPassword WHERE username = @username;";
+                string sql = "UPDATE Users SET Password = @newPassword WHERE id = @id;";
                 connection.ExecuteNonQuery(sql, new Dictionary<string, object>
                 {
-                    { "@username", username },
+                    { "@id", id },
                     { "@newPassword", HashGenerator.GetHashPassword(newPassword) }
                 });
             }

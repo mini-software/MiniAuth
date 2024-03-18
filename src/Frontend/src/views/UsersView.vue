@@ -61,7 +61,7 @@
             <input type="mail" v-model="item.Mail">
           </td>
           <td>
-            <input type="password" v-model="item.Password">
+            <input type="password" v-model="item.NewPassword">
           </td>
           <td>
             <div class="form-check form-switch">
