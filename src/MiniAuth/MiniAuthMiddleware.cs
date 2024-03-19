@@ -119,9 +119,7 @@ namespace MiniAuth
                     {
                         if (context.Request.Method == "POST")
                         {
-                            var reader = new StreamReader(context.Request.Body);
-                            var body = await reader.ReadToEndAsync();
-                            var bodyJson = JsonDocument.Parse(body);
+                            JsonDocument bodyJson = await GetBodyJson(context);
                             var root = bodyJson.RootElement;
                             var userName = root.GetProperty("username").GetString();
                             var password = root.GetProperty("password").GetString();
@@ -221,6 +219,12 @@ namespace MiniAuth
 
                     if (subPath.StartsWithSegments("/api/getUsers"))
                     {
+                        JsonDocument bodyJson = await GetBodyJson(context);
+                        var root = bodyJson.RootElement;
+                        var pageIndex = root.GetProperty("pageIndex").GetInt32();
+                        var pageSize = root.GetProperty("pageSize").GetInt32();
+                        var offset = pageIndex * pageSize;
+                        var totalItems = default(long);
                         var users = new List<dynamic>();
                         using (var cn = this._db.GetConnection())
                         {
@@ -228,7 +232,15 @@ namespace MiniAuth
                             {
                                 command.CommandText = @"select id,username,first_name,
 last_name,emp_no,mail,Enable,roles 
-from users u ";
+from users u 
+order by id
+LIMIT @pageSize OFFSET @offset;
+";
+                                command.AddParameters(new Dictionary<string, object>()
+                                {
+                                    { "@pageSize", pageSize },
+                                    { "@offset", offset },
+                                });
                                 using (var reader = await command.ExecuteReaderAsync())
                                 {
                                     while (reader.Read())
@@ -248,17 +260,16 @@ from users u ";
                                     }
                                 }
                             }
+                            totalItems = cn.ExecuteScalar<long>("select count(*) from users");
                         }
 
-                        await OkResult(context, users.ToJson());
+                        await OkResult(context, new { users, totalItems }.ToJson());
                         return;
                     }
 
                     if (subPath.StartsWithSegments("/api/resetPassword"))
                     {
-                        var reader = new StreamReader(context.Request.Body);
-                        var body = await reader.ReadToEndAsync();
-                        var bodyJson = JsonDocument.Parse(body);
+                        JsonDocument bodyJson = await GetBodyJson(context);
                         var root = bodyJson.RootElement;
                         var id = root.GetProperty("Id").GetString();
                         var newPassword = Guid.NewGuid().ToString("N").Substring(0, 10);
@@ -269,9 +280,7 @@ from users u ";
 
                     if (subPath.StartsWithSegments("/api/saveUser"))
                     {
-                        var reader = new StreamReader(context.Request.Body);
-                        var body = await reader.ReadToEndAsync();
-                        var bodyJson = JsonDocument.Parse(body);
+                        JsonDocument bodyJson = await GetBodyJson(context);
                         var root = bodyJson.RootElement;
                         var id = root.GetProperty("Id").GetString();
                         var roles = root.GetProperty("Roles").Deserialize<string[]>();
@@ -320,9 +329,7 @@ where id = @id";
 
                     if (subPath.StartsWithSegments("/api/deleteRole"))
                     {
-                        var reader = new StreamReader(context.Request.Body);
-                        var body = await reader.ReadToEndAsync();
-                        var bodyJson = JsonDocument.Parse(body);
+                        JsonDocument bodyJson = await GetBodyJson(context);
                         var root = bodyJson.RootElement;
                         if (!root.TryGetProperty("Id", out var _id))
                             throw new MiniAuthException("Without Id key");
@@ -351,9 +358,7 @@ where id = @id";
                     }
                     if (subPath.StartsWithSegments("/api/saveRole"))
                     {
-                        var reader = new StreamReader(context.Request.Body);
-                        var body = await reader.ReadToEndAsync();
-                        var bodyJson = JsonDocument.Parse(body);
+                        JsonDocument bodyJson = await GetBodyJson(context);
                         var root = bodyJson.RootElement;
                         var id = root.GetProperty("Id").GetString();
                         var name = root.GetProperty("Name").GetString();
@@ -391,9 +396,7 @@ where id = @id";
                     if (subPath.StartsWithSegments("/api/saveEndpoint"))
                     {
                         // get id and data from body json
-                        var reader = new StreamReader(context.Request.Body);
-                        var body = await reader.ReadToEndAsync();
-                        var bodyJson = JsonDocument.Parse(body);
+                        JsonDocument bodyJson = await GetBodyJson(context);
                         var root = bodyJson.RootElement;
                         var id = root.GetProperty("Id").GetString();
                         var roles = root.GetProperty("Roles").Deserialize<string[]>();
@@ -422,6 +425,15 @@ where id = @id";
                 return;
             }
         }
+
+        private static async Task<JsonDocument> GetBodyJson(HttpContext context)
+        {
+            var reader = new StreamReader(context.Request.Body);
+            var body = await reader.ReadToEndAsync();
+            var bodyJson = JsonDocument.Parse(body);
+            return bodyJson;
+        }
+
         private bool IsAuth(HttpContext context)
         {
             var isAuth = true;

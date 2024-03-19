@@ -48,11 +48,11 @@
           <td>
             <select multiple v-model="item.Roles" class="resizable" style="height: 25px;">
               <option></option>
-              <option v-for="(role, index) in roles" :value="role.Id" :key="index">{{ role.Name }}</option>              
+              <option v-for="(role, index) in roles" :value="role.Id" :key="index">{{ role.Name }}</option>
             </select>
           </td>
           <td>
-            <input type="text" v-model="item.First_name"> 
+            <input type="text" v-model="item.First_name">
           </td>
           <td>
             <input type="text" v-model="item.Last_name">
@@ -70,10 +70,17 @@
           </td>
           <td>
             <button class="btn" @click="resetPassword(item)">
-              <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M13.0151 13.6556C14.8093 14.3587 16.9279 13.9853 18.3777 12.5355C20.3304 10.5829 20.3304 7.41709 18.3777 5.46447C16.4251 3.51184 13.2593 3.51184 11.3067 5.46447C9.85687 6.91426 9.48353 9.03288 10.1866 10.8271M12.9964 13.6742L6.82843 19.8422L4.2357 19.6065L4 17.0138L10.168 10.8458M15.5493 8.31568V8.29289"
-                  stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              <svg fill="#000000" xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 52 52"
+                enable-background="new 0 0 52 52" xml:space="preserve">
+                <g>
+                  <path d="M42,23H10c-2.2,0-4,1.8-4,4v19c0,2.2,1.8,4,4,4h32c2.2,0,4-1.8,4-4V27C46,24.8,44.2,23,42,23z M31,44.5
+		c-1.5,1-3.2,1.5-5,1.5c-0.6,0-1.2-0.1-1.8-0.2c-2.4-0.5-4.4-1.8-5.7-3.8l3.3-2.2c0.7,1.1,1.9,1.9,3.2,2.1c1.3,0.3,2.6,0,3.8-0.8
+		c2.3-1.5,2.9-4.7,1.4-6.9c-0.7-1.1-1.9-1.9-3.2-2.1c-1.3-0.3-2.6,0-3.8,0.8c-0.3,0.2-0.5,0.4-0.7,0.6L26,37h-9v-9l2.6,2.6
+		c0.4-0.4,0.9-0.8,1.3-1.1c2-1.3,4.4-1.8,6.8-1.4c2.4,0.5,4.4,1.8,5.7,3.8C36.2,36.1,35.1,41.7,31,44.5z" />
+                  <path d="M10,18.1v0.4C10,18.4,10,18.3,10,18.1C10,18.1,10,18.1,10,18.1z" />
+                  <path d="M11,19h4c0.6,0,1-0.3,1-0.9V18c0-5.7,4.9-10.4,10.7-10C32,8.4,36,13,36,18.4v-0.3c0,0.6,0.4,0.9,1,0.9h4
+		c0.6,0,1-0.3,1-0.9V18c0-9.1-7.6-16.4-16.8-16c-8.5,0.4-15,7.6-15.2,16.1C10.1,18.6,10.5,19,11,19z" />
+                </g>
               </svg>
             </button>
             <button class="btn" @click="save(item)">
@@ -99,10 +106,33 @@
         </tr>
       </tbody>
     </table>
+
+    <nav aria-label="Page navigation">  
+      <ul class="pagination justify-content-center">  
+        <li class="page-item" :class="{ 'disabled': pageIndex === 0 }">  
+          <button class="page-link" @click.prevent="goToPage(pageIndex - 1)">Previous</button>  
+        </li>  
+        <li class="page-item" :class="{ 'active': pageIndex === currentIndex }" v-for="(page, currentIndex) in computedPages" :key="currentIndex">  
+          <button class="page-link" @click.prevent="goToPage(currentIndex)">{{ currentIndex + 1 }}</button>  
+        </li>  
+        <li class="page-item" :class="{ 'disabled': pageIndex >= (Math.ceil(totalItems / pageSize) - 1) }">  
+          <button class="page-link" @click.prevent="goToPage(pageIndex + 1)">Next</button>  
+        </li>  
+      </ul>  
+    </nav>  
   </div>
 </template>
 
 <style scoped>
+.page-item.active .page-link {
+  color: #fff !important;
+  background: black !important;
+  --bs-pagination-active-border-color: black;
+}
+.page-link {
+  color: black !important;
+}
+
 input[type="text"] {
   widows: 100%;
   border: 0;
@@ -110,6 +140,7 @@ input[type="text"] {
   outline: 0;
   background-color: rgba(226, 226, 226, 0.744);
 }
+
 input[type="password"] {
   widows: 100%;
   border: 0;
@@ -129,8 +160,8 @@ input[type="mail"] {
 .resizable {
   height: 26px !important;
   transition: height 0.3s ease;
-  border: 0; 
-  border-bottom: 1px solid black; 
+  border: 0;
+  border-bottom: 1px solid black;
 }
 
 .resizable:hover {
@@ -139,13 +170,29 @@ input[type="mail"] {
 </style>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed,onMounted, ref } from 'vue'
 import service from '@/axios/service.ts';
 const pageTitle = ref('Users')
 const users = ref([])
 const roles = ref([])
+const pageSize = ref(10)
+const pageIndex = ref(0)
+const totalItems = ref(0)
+
+const goToPage = (index) => {
+  pageIndex.value = index
+  fetchData()
+}
+const computedPages = computed(() => {
+  const totalPages = Math.ceil(totalItems.value / pageSize.value);  
+  return Array.from({ length: totalPages }, (_, index) => index);  
+})
 const fetchData = async () => {
-  users.value = await service.get('api/getUsers')
+  await service.post('api/getUsers',{pageSize:pageSize.value,pageIndex:pageIndex.value}).then(res=>{
+    totalItems.value = res.totalItems
+    users.value = res.users
+    return res.users
+  })
   roles.value = await service.get('api/getRoles')
 }
 const insert = async () => {
