@@ -7,8 +7,6 @@ on:
     - main
     paths:
     - '*'
-    - '!/releases/*' # Don't run workflow when files are only in the /docs directory
-    - '!*.md' # Don't run workflow when files are markdown
 
 jobs:
   vm-job:
