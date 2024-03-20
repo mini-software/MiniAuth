@@ -326,7 +326,35 @@ where id = @id";
                         await OkResult(context, "".ToJson(code: 200, message: ""));
                         return;
                     }
-
+                    if (subPath.StartsWithSegments("/api/deleteUser"))
+                    {
+                        JsonDocument bodyJson = await GetBodyJson(context);
+                        var root = bodyJson.RootElement;
+                        if (!root.TryGetProperty("Id", out var _id))
+                            throw new MiniAuthException("Without Id key");
+                        var id = _id.GetString();
+                        using (var cn = this._db.GetConnection())
+                        {
+                            using (var command = cn.CreateCommand())
+                            {
+                                if (id != null)
+                                {
+                                    command.CommandText = @"delete from users where id = @id";
+                                    command.AddParameters(new Dictionary<string, object>()
+                                    {
+                                        { "@id", _id },
+                                    });
+                                    command.ExecuteNonQuery();
+                                    await OkResult(context, "".ToJson(code: 200, message: ""));
+                                }
+                                else
+                                {
+                                    throw new MiniAuthException("Id is null");
+                                }
+                            }
+                        }
+                        return;
+                    }
                     if (subPath.StartsWithSegments("/api/deleteRole"))
                     {
                         JsonDocument bodyJson = await GetBodyJson(context);
