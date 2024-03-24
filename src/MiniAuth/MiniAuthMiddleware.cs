@@ -62,7 +62,7 @@ namespace MiniAuth
             if (db == null)
                 this._db = new MiniAuthDB<SQLiteConnection>("Data Source=miniauth.db;Version=3;");
             if (jwtManager == null)
-                _jwtManager = new JWTManager("miniauth", "miniauth", "miniauth.pfx");
+                _jwtManager = new JWTManager(_options.SubjectName, _options.Password, _options.CerPath);
             if (options == null)
                 _options = new MiniAuthOptions();
             if (userManager == null)

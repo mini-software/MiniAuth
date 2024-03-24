@@ -1,5 +1,4 @@
-﻿//create MiniAuthException
-namespace MiniAuth.Exceptions
+﻿namespace MiniAuth.Exceptions
 {
     public class MiniAuthException : System.Exception
     {

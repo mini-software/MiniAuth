@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 namespace MiniAuth.Managers
 {
     public interface IJWTManager
@@ -17,6 +18,8 @@ namespace MiniAuth.Managers
     public class JWTManager : IJWTManager
     {
         private readonly X509Certificate2 _certificate;
+        private readonly IJwtDecoder _decoder;
+
         public JWTManager(string subjectName, string password, string cerPath)
         {
             if (!File.Exists(cerPath))
@@ -35,6 +38,15 @@ namespace MiniAuth.Managers
                 }
             }
             _certificate = new X509Certificate2(cerPath, password);
+            {
+                IJsonSerializer serializer = new JsonNetSerializer();
+                IDateTimeProvider provider = new UtcDateTimeProvider();
+                IJwtValidator validator = new JwtValidator(serializer, provider);
+                IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder();
+                IJwtAlgorithm algorithm = new RS256Algorithm(_certificate);
+                IJwtDecoder decoder = new JwtDecoder(serializer, validator, urlEncoder, algorithm);
+                _decoder = decoder;
+            }
         }
 
         public string GetToken(string sub, string name, int expMins, IEnumerable<string> roles)
@@ -62,13 +74,7 @@ namespace MiniAuth.Managers
 
         public string DecodeToken(string token)
         {
-            IJsonSerializer serializer = new JsonNetSerializer();
-            IDateTimeProvider provider = new UtcDateTimeProvider();
-            IJwtValidator validator = new JwtValidator(serializer, provider);
-            IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder();
-            IJwtAlgorithm algorithm = new RS256Algorithm(_certificate);
-            IJwtDecoder decoder = new JwtDecoder(serializer, validator, urlEncoder, algorithm);
-            var json = decoder.Decode(token);
+            var json = _decoder.Decode(token);
             return json;
         }
     }
