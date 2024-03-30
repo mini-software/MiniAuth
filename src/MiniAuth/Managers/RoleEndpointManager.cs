@@ -82,7 +82,7 @@ where id = @id";
                     {
                         command.CommandText = @"INSERT INTO endpoints (id,type,name,route,methods,enable,RedirectToLoginPage,roles) 
 VALUES (@id,@type,@name,@route,@methods,@enable,@RedirectToLoginPage,@roles)";
-                        command.AddParameters(new Dictionary<string, object>()
+                        var ps = new Dictionary<string, object>
                         {
                             { "@id", endpoint.Id },
                             { "@type", endpoint.Type },
@@ -91,8 +91,9 @@ VALUES (@id,@type,@name,@route,@methods,@enable,@RedirectToLoginPage,@roles)";
                             { "@methods", string.Join(",", endpoint.Methods??new[]{ ""}) },
                             { "@enable", endpoint.Enable ? 1 : 0 },
                             { "@RedirectToLoginPage", endpoint.RedirectToLoginPage ? 1 : 0 },
-                            { "@roles", string.Join(",",endpoint.Roles) },
-                        });
+                            { "@roles", endpoint.Roles==null?null:string.Join(",",endpoint.Roles) },
+                        };
+                        command.AddParameters(ps);
                         await command.ExecuteNonQueryAsync();
                     }
                 }
@@ -120,7 +121,6 @@ VALUES (@id,@type,@name,@route,@methods,@enable,@RedirectToLoginPage,@roles)";
                     Route = route,
                     Methods = methods,
                     Enable = true,
-                    Roles = new string[] { "1" },
                     RedirectToLoginPage = !isApi
                 });
             }
@@ -132,7 +132,6 @@ VALUES (@id,@type,@name,@route,@methods,@enable,@RedirectToLoginPage,@roles)";
                 Route = "/miniauth/api/getallenpoints",
                 Methods = new string[0],
                 Enable = true,
-                Roles = new string[] { "1" },
                 RedirectToLoginPage = false
             });
             endpoints.Add(new RoleEndpointEntity
@@ -143,7 +142,6 @@ VALUES (@id,@type,@name,@route,@methods,@enable,@RedirectToLoginPage,@roles)";
                 Route = "/miniauth/index.html",
                 Methods = new string[0],
                 Enable = true,
-                Roles = new string[] { "1" },
                 RedirectToLoginPage = false
             });
             return endpoints;
@@ -169,7 +167,7 @@ FROM endpoints p";
                             Enable = reader.GetInt32(4) == 1,
                             RedirectToLoginPage = reader.GetInt32(5) == 1,
                             Type = reader.GetString(6),
-                            Roles = reader.GetString(7)?.Split(',')
+                            Roles = reader.IsDBNull(7)?null:reader.GetString(7)?.Split(',')
                         };
                         dbEndpoints.Add(endpoint);
                     }

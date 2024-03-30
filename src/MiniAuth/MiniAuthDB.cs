@@ -20,10 +20,11 @@ namespace MiniAuth
         }
         public MiniAuthDB(string connectionString)
         {
-            _GetConnection = () => {
+            _GetConnection = () =>
+            {
                 var cn = new T();
                 cn.ConnectionString = connectionString;
-                if(cn.State==System.Data.ConnectionState.Closed )
+                if (cn.State == System.Data.ConnectionState.Closed)
                     cn.Open();
                 return cn;
             };
@@ -33,68 +34,49 @@ namespace MiniAuth
                 {
                     SQLiteConnection.CreateFile("miniauth.db");
                     string sql = @"
-DROP TABLE IF EXISTS users;
-CREATE TABLE users (  
-    id INTEGER PRIMARY KEY AUTOINCREMENT,  
-    username TEXT NOT NULL UNIQUE,  
-    password TEXT NOT NULL,  
-    extension TEXT NULL
-);
-ALTER table users add column emp_no text default '';
-ALTER table users add column first_name text default '';
-ALTER table users add column last_name text default '';
-ALTER table users add column mail text default '';
-ALTER table users add column roles text default '';
-ALTER table users add column Enable integer default 0;
-
-
-DROP TABLE IF EXISTS roles;
-CREATE TABLE roles (  
-    id INTEGER PRIMARY KEY AUTOINCREMENT,  
-    name TEXT NOT NULL UNIQUE,
-    enable INTEGER DEFAULT (1) NOT NULL
+create table users (  
+    id text not null primary key,  
+    username text not null unique,  
+    password text not null, 
+    roles text,
+    enable integer default 1,
+    first_name text,
+    last_name text,
+    mail text,
+    emp_no text 
 );
 
-DROP TABLE IF EXISTS users_roles;
-CREATE TABLE users_roles (  
-    id INTEGER PRIMARY KEY AUTOINCREMENT,  
-    user_id INTEGER,  
-    role_id INTEGER,  
-    FOREIGN KEY(user_id) REFERENCES users(id),  
-    FOREIGN KEY(role_id) REFERENCES roles(id)  
+create table roles (  
+    id text primary key,  
+    name text not null unique,
+    enable integer default (1) not null
 );
-DROP TABLE IF EXISTS endpoints;
-CREATE TABLE endpoints (  
-    id string PRIMARY KEY,
+
+create table endpoints (  
+    id text primary key,
     type text not null,
-    name TEXT NOT NULL,  
-    route TEXT NOT NULL,
-    methods TEXT,
-    enable INTEGER NOT NULL,
-    redirectToLoginPage INTEGER NOT NULL,
-    roles TEXT NOT NULL
-);
-DROP TABLE IF EXISTS role_endpoints;
-CREATE TABLE role_endpoints (  
-    role_id INTEGER NOT NULL,  
-    endpoint_id string NOT NULL,  
-    PRIMARY KEY (role_id, endpoint_id)  
+    name text not null,  
+    route text not null,
+    methods text,
+    enable integer default (1) not null,
+    redirecttologinpage integer not null,
+    roles text 
 );
 
--- Insert users
-INSERT INTO users (username,password) VALUES ('miniauth','');
+insert into roles (id,name) values ('141f6722-b2d2-4d2b-81a8-a889335e2acd','miniauth-admin');
+insert into roles (id,name) values ('3ab21f79-fa49-498b-aa3d-e57188d3b0d2','miniauth-user');
+insert into roles (id,name) values ('25347851-cdfe-4456-b525-52dc8cb95f10','miniauth-hr');
+insert into roles (id,name) values ('b783d347-30cc-46b5-b2fc-d0b2b41684ad','miniauth-it');
 
--- Insert roles
-INSERT INTO roles (name) VALUES ('admin');
-INSERT INTO roles (name) VALUES ('user');
+insert into users (id,username,password,roles) values ('d8eb1139-7ee0-4dbd-b8a1-3c979543b982','miniauth','','141f6722-b2d2-4d2b-81a8-a889335e2acd');
+insert into users (id,username,password,roles) values ('a564df6f-705f-4361-a346-b578d7a711a8','miniauth-hr','','25347851-cdfe-4456-b525-52dc8cb95f10');
 
--- Assign roles to users
-INSERT INTO users_roles (user_id, role_id) VALUES (1, 1); 
+
 ";
                     using (var connection = _GetConnection())
                     {
                         connection.ExecuteNonQuery(sql);
-                        new UserManager(this).UpdatePassword("1", "miniauth");
+                        new UserManager(this).UpdatePassword("d8eb1139-7ee0-4dbd-b8a1-3c979543b982", "miniauth");
                     }
                 }
             }

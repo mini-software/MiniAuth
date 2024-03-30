@@ -35,7 +35,7 @@
       <tbody>
         <tr v-for="(item, index) in roles" :key="index">
           <td>
-            {{ item.Id }}
+            {{ index+1 }}
           </td>
           <td>
             <input type="text" v-model="item.Name">

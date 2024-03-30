@@ -51,8 +51,7 @@ namespace MiniAuth.Managers
 
         public string GetToken(string sub, string name, int expMins, IEnumerable<string> roles)
         {
-            //TODO:token id
-            var id = Guid.NewGuid().ToString();
+            var id = Helpers.IdHelper.NewId();
             var payload = new Dictionary<string, object>
             {
                 { "sub", sub },

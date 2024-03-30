@@ -14,6 +14,12 @@ watch(() => route.name, (newVal) => {
   routeName.value = newVal?.toString() ?? "";
 });
 
+
+const logout = () => {
+  localStorage.removeItem('X-MiniAuth-Token')
+  window.location.href = '/miniauth/login.html'
+}
+
 const loadingFlag = ref(false)
 emitter.on('showLoading', () => {
   loadingFlag.value = true
@@ -48,6 +54,9 @@ emitter.on('closeLoading', () => {
                     <router-link class="nav-link " to="/Roles"> Roles </router-link>
                   </li>
                 </ul>
+                <div class="navbar-nav ms-auto">
+                    <div @click="logout" class="btn nav-item nav-link">Logout</div>
+                </div>
               </div>
             </div>
           </nav>

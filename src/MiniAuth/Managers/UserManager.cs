@@ -7,7 +7,7 @@ namespace MiniAuth.Managers
     public interface IUserManager
     {
         void CreateUser(string username, string password, string roles);
-        List<string> GetUserRoleIds(string username);
+        Dictionary<string,object> GetUser(string userName);
         void UpdatePassword(string username, string newPassword);
         bool ValidateUser(string username, string password);
     }
@@ -25,11 +25,12 @@ namespace MiniAuth.Managers
         {
             using (var connection = _db.GetConnection())
             {
-                string sql = "INSERT INTO Users (Username, Password) VALUES (@username, @password);";
+                string sql = "INSERT INTO Users (id,Username, Password) VALUES (@id,@username, @password);";
                 var command = connection.CreateCommand();
                 command.CommandText = sql;
                 command.AddParameters(new Dictionary<string, object>
                 {
+                    { "@id", Helpers.IdHelper.NewId() },
                     { "@username", username },
                     { "@password", HashGenerator.GetHashPassword(password) },
                 });
@@ -38,46 +39,12 @@ namespace MiniAuth.Managers
                 // TODO: Assign roles to user
             }
         }
-        public class UserEndpointDto
-        {
-            public string RoleName { get; set; }
-            public int? RoleId { get; set; }
-            public string? EndpointId { get; set; }
-            public string Route { get; set; }
-            public string EndpointName { get; set; }
-        }
-        public List<string> GetUserRoleIds(string username)
-        {
-            var result = new List<string>(); ;
-            using (var connection = this._db.GetConnection())
-            {
-                using (var command = connection.CreateCommand())
-                {
-                    command.CommandText = @"  
-                    SELECT ur.id 
-                    FROM users u  
-                    LEFT JOIN users_roles ur ON u.id = ur.user_id   
-                    WHERE u.username = @username";
-
-                    command.AddParameters(new Dictionary<string, object>() { { "@username", username } });
-
-                    using (var reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            result.Add(reader.GetInt32(0).ToString());
-                        }
-                    }
-                }
-                return result;
-            }
-        }
      
         public bool ValidateUser(string username, string password)
         {
             using (var connection = _db.GetConnection())
             {
-                string sql = "SELECT * FROM Users WHERE Username = @username;";
+                string sql = "SELECT * FROM Users WHERE Username = @username and enable = 1;";
                 var command = connection.CreateCommand();
                 command.CommandText = sql;
                 command.AddParameters(new Dictionary<string, object>
@@ -104,5 +71,29 @@ namespace MiniAuth.Managers
             }
         }
 
+        public Dictionary<string, object> GetUser(string userName)
+        {
+            using (var connection = _db.GetConnection())
+            {
+                string sql = "SELECT * FROM Users WHERE Username = @username and enable = 1;";
+                var command = connection.CreateCommand();
+                command.CommandText = sql;
+                command.AddParameters(new Dictionary<string, object>
+                {
+                    { "@username", userName }
+                });
+                var reader = command.ExecuteReader();
+                if (reader.Read())
+                {
+                    return new Dictionary<string, object>
+                    {
+                        { "id", reader["id"] },
+                        { "username", reader["username"] },
+                        { "roles", reader["roles"]?.ToString().Split(',') }
+                    };
+                }
+                return null;
+            }
+        }
     }
 }

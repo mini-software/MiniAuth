@@ -61,10 +61,10 @@ namespace MiniAuth
             this._next = next;
             if (db == null)
                 this._db = new MiniAuthDB<SQLiteConnection>("Data Source=miniauth.db;Version=3;");
-            if (jwtManager == null)
-                _jwtManager = new JWTManager(_options.SubjectName, _options.Password, _options.CerPath);
             if (options == null)
                 _options = new MiniAuthOptions();
+            if (jwtManager == null)
+                _jwtManager = new JWTManager(_options.SubjectName, _options.Password, _options.CerPath);
             if (userManager == null)
                 _userManer = new UserManager(this._db);
             if (endpointManager == null)
@@ -125,7 +125,8 @@ namespace MiniAuth
                             var password = root.GetProperty("password").GetString();
                             if (_userManer.ValidateUser(userName, password))
                             {
-                                var roles = _userManer.GetUserRoleIds(userName);
+                                var user = _userManer.GetUser(userName);
+                                var roles = user["roles"] as string[];
                                 var newToken = _jwtManager.GetToken(userName, userName, _options.ExpirationMinuteTime, roles);
                                 context.Response.Headers.Add("X-MiniAuth-Token", newToken);
                                 context.Response.Cookies.Append("X-MiniAuth-Token", newToken);
@@ -175,35 +176,7 @@ namespace MiniAuth
                                     {
                                         var endpoint = new
                                         {
-                                            Id = reader.GetInt32(0).ToString(),
-                                            Name = reader.GetString(1),
-                                            Enable = reader.GetInt32(2) == 1,
-                                        };
-                                        roles.Add(endpoint);
-                                    }
-                                }
-                            }
-                        }
-
-                        await OkResult(context, roles.ToJson());
-                        return;
-                    }
-
-                    if (subPath.StartsWithSegments("/api/getRoles"))
-                    {
-                        var roles = new List<dynamic>();
-                        using (var cn = this._db.GetConnection())
-                        {
-                            using (var command = cn.CreateCommand())
-                            {
-                                command.CommandText = @"select * from roles r";
-                                using (var reader = await command.ExecuteReaderAsync())
-                                {
-                                    while (reader.Read())
-                                    {
-                                        var endpoint = new
-                                        {
-                                            Id = reader.GetInt32(0).ToString(),
+                                            Id = reader.GetString(0),
                                             Name = reader.GetString(1),
                                             Enable = reader.GetInt32(2) == 1,
                                         };
@@ -247,7 +220,7 @@ LIMIT @pageSize OFFSET @offset;
                                     {
                                         var e = new
                                         {
-                                            Id = reader.GetInt32(0).ToString(),
+                                            Id = reader.GetString(0),
                                             Username = reader.IsDBNull(1) ? null : reader.GetString(1),
                                             First_name = reader.IsDBNull(2) ? null : reader.GetString(2),
                                             Last_name = reader.IsDBNull(3) ? null : reader.GetString(3),
@@ -397,12 +370,13 @@ where id = @id";
                             {
                                 if (id == null)
                                 {
-                                    command.CommandText = @"insert into roles (name,enable) values (@name,@enable)";
+                                    command.CommandText = @"insert into roles (id,name,enable) values (@id,@name,@enable)";
                                     command.AddParameters(new Dictionary<string, object>()
-                                {
-                                    { "@name", name },
-                                    { "@enable", enable ? 1 : 0 },
-                                });
+                                    {
+                                        { "@id", Helpers.IdHelper.NewId() },
+                                        { "@name", name },
+                                        { "@enable", enable ? 1 : 0 },
+                                    });
                                 }
                                 else
                                 {
@@ -486,7 +460,8 @@ where id = @id";
                     var sub = JsonDocument.Parse(json).RootElement.GetProperty("sub").GetString();
                     if (sub == null)
                         throw new Exception("sub can't null");
-                    var roles = _userManer.GetUserRoleIds(sub);
+                    var user = _userManer.GetUser(sub);
+                    var roles = user["roles"] as string[];
                     if (this._routeEndpoint.Roles != null && !(this._routeEndpoint.Roles.Length == 0))
                     {
                         bool hasRole = roles.Any(value => this._routeEndpoint.Roles.Contains(value));

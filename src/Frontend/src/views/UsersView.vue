@@ -26,7 +26,6 @@
     <table class="table">
       <thead>
         <tr class="table-dark">
-          <th>ID</th>
           <th>User Name</th>
           <th>Roles</th>
           <th>First Name</th>
@@ -39,9 +38,6 @@
       </thead>
       <tbody>
         <tr v-for="(item, index) in users" :key="index">
-          <td>
-            {{ item.Id }}
-          </td>
           <td>
             <input type="text" v-model="item.Username">
           </td>
