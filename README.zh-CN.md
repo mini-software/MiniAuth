@@ -22,7 +22,7 @@
 
 ### 简介
 
-「一行代码」为「现有新旧项目」添加登录账号管理系统。
+「一行代码」为「现有新旧项目」添加JWT账号、动态路由权限管理系统。
 
 开箱即用，渐进式添加功能，避免需要打掉重写或是严重耦合情况。
 
@@ -82,6 +82,14 @@ app.UseMiniAuth();    // using MiniAuth;
 #### 自定义 Login - js, css
 
 添加 `app.UseStaticFiles()` 在UseMiniAuth之前，并新增  `wwwroot\MiniAuth\login.css`,  `wwwroot\MiniAuth\login.js`
+
+
+
+### 选项
+
+设定密钥生成账号、密码、路径
+
+
 
 
 

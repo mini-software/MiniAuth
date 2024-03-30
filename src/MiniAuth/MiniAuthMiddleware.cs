@@ -57,7 +57,10 @@ namespace MiniAuth
             IMiniAuthDB db = null
         )
         {
+            // get host string
+            var host = Environment.GetEnvironmentVariable("ASPNETCORE_URLS") ?? "http://localhost:5000";
             this._logger = logger;
+            this._logger.LogInformation($"MiniAuth management page : {host}/miniauth/index.html");
             this._next = next;
             if (db == null)
                 this._db = new MiniAuthDB<SQLiteConnection>("Data Source=miniauth.db;Version=3;");
@@ -119,42 +122,14 @@ namespace MiniAuth
                     {
                         if (context.Request.Method == "POST")
                         {
-                            JsonDocument bodyJson = await GetBodyJson(context);
-                            var root = bodyJson.RootElement;
-                            var userName = root.GetProperty("username").GetString();
-                            var password = root.GetProperty("password").GetString();
-                            if (_userManer.ValidateUser(userName, password))
-                            {
-                                var user = _userManer.GetUser(userName);
-                                var roles = user["roles"] as string[];
-                                var newToken = _jwtManager.GetToken(userName, userName, _options.ExpirationMinuteTime, roles);
-                                context.Response.Headers.Add("X-MiniAuth-Token", newToken);
-                                context.Response.Cookies.Append("X-MiniAuth-Token", newToken, new CookieOptions
-                                {
-                                    Expires = DateTimeOffset.UtcNow.AddMinutes(_options.ExpirationMinuteTime),
-                                    HttpOnly = true,
-                                    Secure = true,
-                                    SameSite = SameSiteMode.Strict
-                                });
-
-                                await OkResult(context, $"{{\"X-MiniAuth-Token\":\"{newToken}\"}}").ConfigureAwait(false);
-                                return;
-                            }
-                            else
-                            {
-                                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                                return;
-                            }
+                            await Login(context).ConfigureAwait(false);
+                            return;
                         }
                     }
                     if (context.Request.Path.Equals($"/{_options.RoutePrefix}/logout", StringComparison.OrdinalIgnoreCase))
                     {
-                        if (context.Request.Method == "GET")
-                        {
-                            context.Response.Cookies.Delete("X-MiniAuth-Token");
-                            context.Response.Redirect($"/{_options.RoutePrefix}/login.html");
-                            return;
-                        }
+                        Logout(context);
+                        return;
                     }
                     if (context.Request.Path.Value.EndsWith(".js")
                         || context.Request.Path.Value.EndsWith("css")
@@ -170,252 +145,45 @@ namespace MiniAuth
                     }
                     if (subPath.StartsWithSegments("/api/getRoles"))
                     {
-                        var roles = new List<dynamic>();
-                        using (var cn = this._db.GetConnection())
-                        {
-                            using (var command = cn.CreateCommand())
-                            {
-                                command.CommandText = @"select * from roles r";
-                                using (var reader = await command.ExecuteReaderAsync())
-                                {
-                                    while (reader.Read())
-                                    {
-                                        var endpoint = new
-                                        {
-                                            Id = reader.GetString(0),
-                                            Name = reader.GetString(1),
-                                            Enable = reader.GetInt32(2) == 1,
-                                        };
-                                        roles.Add(endpoint);
-                                    }
-                                }
-                            }
-                        }
-
-                        await OkResult(context, roles.ToJson());
+                        await GetRoles(context);
                         return;
                     }
 
                     if (subPath.StartsWithSegments("/api/getUsers"))
                     {
-                        JsonDocument bodyJson = await GetBodyJson(context);
-                        var root = bodyJson.RootElement;
-                        var pageIndex = root.GetProperty("pageIndex").GetInt32();
-                        var pageSize = root.GetProperty("pageSize").GetInt32();
-                        var offset = pageIndex * pageSize;
-                        var totalItems = default(long);
-                        var users = new List<dynamic>();
-                        using (var cn = this._db.GetConnection())
-                        {
-                            using (var command = cn.CreateCommand())
-                            {
-                                command.CommandText = @"select id,username,first_name,
-last_name,emp_no,mail,Enable,roles 
-from users u 
-order by id
-LIMIT @pageSize OFFSET @offset;
-";
-                                command.AddParameters(new Dictionary<string, object>()
-                                {
-                                    { "@pageSize", pageSize },
-                                    { "@offset", offset },
-                                });
-                                using (var reader = await command.ExecuteReaderAsync())
-                                {
-                                    while (reader.Read())
-                                    {
-                                        var e = new
-                                        {
-                                            Id = reader.GetString(0),
-                                            Username = reader.IsDBNull(1) ? null : reader.GetString(1),
-                                            First_name = reader.IsDBNull(2) ? null : reader.GetString(2),
-                                            Last_name = reader.IsDBNull(3) ? null : reader.GetString(3),
-                                            Emp_no = reader.IsDBNull(4) ? null : reader.GetString(4),
-                                            Mail = reader.IsDBNull(5) ? null : reader.GetString(5),
-                                            Enable = reader.GetInt32(6) == 1,
-                                            Roles = reader.GetString(7)?.Split(',')
-                                        };
-                                        users.Add(e);
-                                    }
-                                }
-                            }
-                            totalItems = cn.ExecuteScalar<long>("select count(*) from users");
-                        }
-
-                        await OkResult(context, new { users, totalItems }.ToJson());
+                        await GetUsers(context);
                         return;
                     }
 
                     if (subPath.StartsWithSegments("/api/resetPassword"))
                     {
-                        JsonDocument bodyJson = await GetBodyJson(context);
-                        var root = bodyJson.RootElement;
-                        var id = root.GetProperty("Id").GetString();
-                        var newPassword = Guid.NewGuid().ToString("N").Substring(0, 10);
-                        _userManer.UpdatePassword(id, newPassword);
-                        await OkResult(context, new { newPassword}.ToJson(code: 200, message: ""));
+                        await ResetPassword(context);
                         return;
                     }
 
                     if (subPath.StartsWithSegments("/api/saveUser"))
                     {
-                        JsonDocument bodyJson = await GetBodyJson(context);
-                        var root = bodyJson.RootElement;
-                        var id = root.GetProperty("Id").GetString();
-                        var roles = root.GetProperty("Roles").Deserialize<string[]>();
-                        var parameters = new Dictionary<string, object>()
-                        {
-                            { "@id", id },
-                            { "@username", root.GetProperty("Username").GetString() },
-                            { "@enable", root.GetProperty("Enable").GetBoolean() ? 1 : 0 },
-                            { "@First_name", root.GetProperty("First_name").GetString() },
-                            { "@Last_name", root.GetProperty("Last_name").GetString() },
-                            { "@Mail", root.GetProperty("Mail").GetString() },
-                            { "@Roles", string.Join(",",roles) },
-                        };
-                        using (var cn = this._db.GetConnection())
-                        {
-                            using (var command = cn.CreateCommand())
-                            {
-                                if (id == null)
-                                {
-                                    command.CommandText = @"insert into users (username,enable,Roles,First_name,Last_name,Mail) 
-values (@username,@enable,@Roles,@First_name,@Last_name,@Mail)";
-                                    command.AddParameters(parameters);
-                                }
-                                else
-                                {
-                                    command.CommandText = @"update users set username = @username,
-enable=@enable , Roles=@Roles,First_name=@First_name,Last_name=@Last_name,Mail=@Mail
-where id = @id";
-                                    command.AddParameters(parameters);
-
-                                    var newPassword = root.GetProperty("NewPassword").GetString();
-                                    if (!string.IsNullOrEmpty(newPassword))
-                                    {
-                                        _userManer.UpdatePassword(id,newPassword);
-                                    }
-                                }
-
-                                command.ExecuteNonQuery();
-                            }
-
-                            
-                        }
-                        await OkResult(context, "".ToJson(code: 200, message: ""));
+                        await SaveUser(context);
                         return;
                     }
                     if (subPath.StartsWithSegments("/api/deleteUser"))
                     {
-                        JsonDocument bodyJson = await GetBodyJson(context);
-                        var root = bodyJson.RootElement;
-                        if (!root.TryGetProperty("Id", out var _id))
-                            throw new MiniAuthException("Without Id key");
-                        var id = _id.GetString();
-                        using (var cn = this._db.GetConnection())
-                        {
-                            using (var command = cn.CreateCommand())
-                            {
-                                if (id != null)
-                                {
-                                    command.CommandText = @"delete from users where id = @id";
-                                    command.AddParameters(new Dictionary<string, object>()
-                                    {
-                                        { "@id", _id },
-                                    });
-                                    command.ExecuteNonQuery();
-                                    await OkResult(context, "".ToJson(code: 200, message: ""));
-                                }
-                                else
-                                {
-                                    throw new MiniAuthException("Id is null");
-                                }
-                            }
-                        }
+                        await DeleteUser(context);
                         return;
                     }
                     if (subPath.StartsWithSegments("/api/deleteRole"))
                     {
-                        JsonDocument bodyJson = await GetBodyJson(context);
-                        var root = bodyJson.RootElement;
-                        if (!root.TryGetProperty("Id", out var _id))
-                            throw new MiniAuthException("Without Id key");
-                        var id = _id.GetString();
-                        using (var cn = this._db.GetConnection())
-                        {
-                            using (var command = cn.CreateCommand())
-                            {
-                                if (id != null)
-                                {
-                                    command.CommandText = @"delete from Roles where id = @id";
-                                    command.AddParameters(new Dictionary<string, object>()
-                                    {
-                                        { "@id", _id },
-                                    });
-                                    command.ExecuteNonQuery();
-                                    await OkResult(context, "".ToJson(code: 200, message: ""));
-                                }
-                                else
-                                {
-                                    throw new MiniAuthException("Id is null");
-                                }
-                            }
-                        }
+                        await DeleteRole(context);
                         return;
                     }
                     if (subPath.StartsWithSegments("/api/saveRole"))
                     {
-                        JsonDocument bodyJson = await GetBodyJson(context);
-                        var root = bodyJson.RootElement;
-                        var id = root.GetProperty("Id").GetString();
-                        var name = root.GetProperty("Name").GetString();
-                        var enable = root.GetProperty("Enable").GetBoolean();
-                        using (var cn = this._db.GetConnection())
-                        {
-                            using (var command = cn.CreateCommand())
-                            {
-                                if (id == null)
-                                {
-                                    command.CommandText = @"insert into roles (id,name,enable) values (@id,@name,@enable)";
-                                    command.AddParameters(new Dictionary<string, object>()
-                                    {
-                                        { "@id", Helpers.IdHelper.NewId() },
-                                        { "@name", name },
-                                        { "@enable", enable ? 1 : 0 },
-                                    });
-                                }
-                                else
-                                {
-                                    command.CommandText = @"update roles set name = @name,enable=@enable where id = @id";
-                                    command.AddParameters(new Dictionary<string, object>()
-                                {
-                                    { "@id", id },
-                                    { "@name", name },
-                                    { "@enable", enable ? 1 : 0 },
-                                });
-                                }
-
-                                command.ExecuteNonQuery();
-                            }
-                        }
-                        await OkResult(context, "".ToJson(code: 200, message: ""));
+                        await SaveRole(context);
                         return;
                     }
                     if (subPath.StartsWithSegments("/api/saveEndpoint"))
                     {
-                        // get id and data from body json
-                        JsonDocument bodyJson = await GetBodyJson(context);
-                        var root = bodyJson.RootElement;
-                        var id = root.GetProperty("Id").GetString();
-                        var roles = root.GetProperty("Roles").Deserialize<string[]>();
-                        var enable = root.GetProperty("Enable").GetBoolean();
-                        var redirectToLoginPage = root.GetProperty("RedirectToLoginPage").GetBoolean();
-                        var cacheEndpoint = _endpointCache.Values.Single(w => w.Id == id);
-                        cacheEndpoint.Enable = enable;
-                        cacheEndpoint.Roles = roles;
-                        cacheEndpoint.RedirectToLoginPage = redirectToLoginPage;
-                        await _endpointManager.UpdateEndpoint(cacheEndpoint);
-                        await OkResult(context, "".ToJson(code: 200, message: ""));
+                        await SaveEndpoint(context);
                         return;
                     }
                     if (context.Request.Path.Value.EndsWith(".html"))
@@ -430,8 +198,294 @@ where id = @id";
             catch (Exception e)
             {
                 await NotOkResult(context, "".ToJson(code: 500, message: e.Message));
+                _logger.LogError(e, e.StackTrace);
+                _logger.LogError(e, e.Message);
+#if DEBUG
+                throw;
+#endif
                 return;
             }
+        }
+
+        private async Task SaveEndpoint(HttpContext context)
+        {
+            JsonDocument bodyJson = await GetBodyJson(context);
+            var root = bodyJson.RootElement;
+            var id = root.GetProperty("Id").GetString();
+            var roles = root.GetProperty("Roles").Deserialize<string[]>();
+            var enable = root.GetProperty("Enable").GetBoolean();
+            var redirectToLoginPage = root.GetProperty("RedirectToLoginPage").GetBoolean();
+            var cacheEndpoint = _endpointCache.Values.Single(w => w.Id == id);
+            cacheEndpoint.Enable = enable;
+            cacheEndpoint.Roles = roles;
+            cacheEndpoint.RedirectToLoginPage = redirectToLoginPage;
+            await _endpointManager.UpdateEndpoint(cacheEndpoint);
+            await OkResult(context, "".ToJson(code: 200, message: ""));
+        }
+
+        private async Task SaveRole(HttpContext context)
+        {
+            JsonDocument bodyJson = await GetBodyJson(context);
+            var root = bodyJson.RootElement;
+            var id = root.GetProperty("Id").GetString();
+            var name = root.GetProperty("Name").GetString();
+            var enable = root.GetProperty("Enable").GetBoolean();
+            using (var cn = this._db.GetConnection())
+            {
+                using (var command = cn.CreateCommand())
+                {
+                    if (id == null)
+                    {
+                        command.CommandText = @"insert into roles (id,name,enable) values (@id,@name,@enable)";
+                        command.AddParameters(new Dictionary<string, object>()
+                                    {
+                                        { "@id", Helpers.IdHelper.NewId() },
+                                        { "@name", name },
+                                        { "@enable", enable ? 1 : 0 },
+                                    });
+                    }
+                    else
+                    {
+                        command.CommandText = @"update roles set name = @name,enable=@enable where id = @id";
+                        command.AddParameters(new Dictionary<string, object>()
+                                {
+                                    { "@id", id },
+                                    { "@name", name },
+                                    { "@enable", enable ? 1 : 0 },
+                                });
+                    }
+
+                    command.ExecuteNonQuery();
+                }
+            }
+            await OkResult(context, "".ToJson(code: 200, message: ""));
+        }
+
+        private async Task DeleteRole(HttpContext context)
+        {
+            JsonDocument bodyJson = await GetBodyJson(context);
+            var root = bodyJson.RootElement;
+            if (!root.TryGetProperty("Id", out var _id))
+                throw new MiniAuthException("Without Id key");
+            var id = _id.GetString();
+            using (var cn = this._db.GetConnection())
+            {
+                using (var command = cn.CreateCommand())
+                {
+                    if (id != null)
+                    {
+                        command.CommandText = @"delete from Roles where id = @id";
+                        command.AddParameters(new Dictionary<string, object>()
+                                    {
+                                        { "@id", _id },
+                                    });
+                        command.ExecuteNonQuery();
+                        await OkResult(context, "".ToJson(code: 200, message: ""));
+                    }
+                    else
+                    {
+                        throw new MiniAuthException("Id is null");
+                    }
+                }
+            }
+        }
+
+        private async Task DeleteUser(HttpContext context)
+        {
+            JsonDocument bodyJson = await GetBodyJson(context);
+            var root = bodyJson.RootElement;
+            if (!root.TryGetProperty("Id", out var _id))
+                throw new MiniAuthException("Without Id key");
+            var id = _id.GetString();
+            using (var cn = this._db.GetConnection())
+            {
+                using (var command = cn.CreateCommand())
+                {
+                    if (id != null)
+                    {
+                        command.CommandText = @"delete from users where id = @id";
+                        command.AddParameters(new Dictionary<string, object>()
+                                    {
+                                        { "@id", _id },
+                                    });
+                        command.ExecuteNonQuery();
+                        await OkResult(context, "".ToJson(code: 200, message: ""));
+                    }
+                    else
+                    {
+                        throw new MiniAuthException("Id is null");
+                    }
+                }
+            }
+        }
+
+        private async Task ResetPassword(HttpContext context)
+        {
+            JsonDocument bodyJson = await GetBodyJson(context);
+            var root = bodyJson.RootElement;
+            var id = root.GetProperty("Id").GetString();
+            var newPassword = Guid.NewGuid().ToString("N").Substring(0, 10);
+            _userManer.UpdatePassword(id, newPassword);
+            await OkResult(context, new { newPassword }.ToJson(code: 200, message: ""));
+        }
+
+        private async Task GetUsers(HttpContext context)
+        {
+            JsonDocument bodyJson = await GetBodyJson(context);
+            var root = bodyJson.RootElement;
+            var pageIndex = root.GetProperty("pageIndex").GetInt32();
+            var pageSize = root.GetProperty("pageSize").GetInt32();
+            var offset = pageIndex * pageSize;
+            var totalItems = default(long);
+            var users = new List<dynamic>();
+            using (var cn = this._db.GetConnection())
+            {
+                using (var command = cn.CreateCommand())
+                {
+                    command.CommandText = @"select id,username,first_name,
+last_name,emp_no,mail,Enable,roles 
+from users u 
+order by id
+LIMIT @pageSize OFFSET @offset;
+";
+                    command.AddParameters(new Dictionary<string, object>()
+                                {
+                                    { "@pageSize", pageSize },
+                                    { "@offset", offset },
+                                });
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (reader.Read())
+                        {
+                            var e = new
+                            {
+                                Id = reader.GetString(0),
+                                Username = reader.IsDBNull(1) ? null : reader.GetString(1),
+                                First_name = reader.IsDBNull(2) ? null : reader.IsDBNull(2) ? null : reader.GetString(2),
+                                Last_name = reader.IsDBNull(3) ? null : reader.IsDBNull(3) ? null : reader.GetString(3),
+                                Emp_no = reader.IsDBNull(4) ? null : reader.IsDBNull(4) ? null : reader.GetString(4),
+                                Mail = reader.IsDBNull(5) ? null : reader.IsDBNull(5) ? null : reader.GetString(5),
+                                Enable = reader.GetInt32(6) == 1,
+                                Roles = reader.IsDBNull(7) ? null : reader.GetString(7)?.Split(',')
+                            };
+                            users.Add(e);
+                        }
+                    }
+                }
+                totalItems = cn.ExecuteScalar<long>("select count(*) from users");
+            }
+
+            await OkResult(context, new { users, totalItems }.ToJson());
+        }
+
+        private async Task GetRoles(HttpContext context)
+        {
+            var roles = new List<dynamic>();
+            using (var cn = this._db.GetConnection())
+            {
+                using (var command = cn.CreateCommand())
+                {
+                    command.CommandText = @"select * from roles r";
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (reader.Read())
+                        {
+                            var endpoint = new
+                            {
+                                Id = reader.GetString(0),
+                                Name = reader.GetString(1),
+                                Enable = reader.GetInt32(2) == 1,
+                            };
+                            roles.Add(endpoint);
+                        }
+                    }
+                }
+            }
+
+            await OkResult(context, roles.ToJson());
+        }
+
+        private void Logout(HttpContext context)
+        {
+            context.Response.Cookies.Delete("X-MiniAuth-Token");
+            context.Response.Redirect($"/{_options.RoutePrefix}/login.html");
+        }
+
+        private async Task Login(HttpContext context)
+        {
+            JsonDocument bodyJson = await GetBodyJson(context);
+            var root = bodyJson.RootElement;
+            var userName = root.GetProperty("username").GetString();
+            var password = root.GetProperty("password").GetString();
+            if (_userManer.ValidateUser(userName, password))
+            {
+                var user = _userManer.GetUser(userName);
+                var roles = user["roles"] as string[];
+                var newToken = _jwtManager.GetToken(userName, userName, _options.ExpirationMinuteTime, roles);
+                context.Response.Headers.Add("X-MiniAuth-Token", newToken);
+                context.Response.Cookies.Append("X-MiniAuth-Token", newToken, new CookieOptions
+                {
+                    Expires = DateTimeOffset.UtcNow.AddMinutes(_options.ExpirationMinuteTime),
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict
+                });
+
+                await OkResult(context, $"{{\"X-MiniAuth-Token\":\"{newToken}\"}}").ConfigureAwait(false);
+
+            }
+            else
+            {
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            }
+        }
+
+        private async Task SaveUser(HttpContext context)
+        {
+            JsonDocument bodyJson = await GetBodyJson(context);
+            var root = bodyJson.RootElement;
+            var id = root.GetProperty("Id").GetString();
+            var roles = root.GetProperty("Roles").Deserialize<string[]>();
+            var parameters = new Dictionary<string, object>()
+                        {
+                            { "@id", id },
+                            { "@username", root.GetProperty("Username").GetString() },
+                            { "@enable", root.GetProperty("Enable").GetBoolean() ? 1 : 0 },
+                            { "@First_name", root.GetProperty("First_name").GetString() },
+                            { "@Last_name", root.GetProperty("Last_name").GetString() },
+                            { "@Mail", root.GetProperty("Mail").GetString() },
+                            { "@Roles", roles==null?null:string.Join(",",roles) },
+                        };
+            using (var cn = this._db.GetConnection())
+            {
+                using (var command = cn.CreateCommand())
+                {
+                    if (id == null)
+                    {
+                        command.CommandText = @"insert into users (username,enable,Roles,First_name,Last_name,Mail) 
+values (@username,@enable,@Roles,@First_name,@Last_name,@Mail)";
+                        command.AddParameters(parameters);
+                    }
+                    else
+                    {
+                        command.CommandText = @"update users set username = @username,
+enable=@enable , Roles=@Roles,First_name=@First_name,Last_name=@Last_name,Mail=@Mail
+where id = @id";
+                        command.AddParameters(parameters);
+
+                        var newPassword = root.GetProperty("NewPassword").GetString();
+                        if (!string.IsNullOrEmpty(newPassword))
+                        {
+                            _userManer.UpdatePassword(id, newPassword);
+                        }
+                    }
+
+                    command.ExecuteNonQuery();
+                }
+
+
+            }
+            await OkResult(context, "".ToJson(code: 200, message: ""));
         }
 
         private static async Task<JsonDocument> GetBodyJson(HttpContext context)

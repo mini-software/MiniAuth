@@ -19,7 +19,6 @@ const logout = () => {
   localStorage.removeItem('X-MiniAuth-Token')
   document.cookie = 'X-MiniAuth-Token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
   window.location.href = '/miniauth/login.html'
-  
 }
 
 const loadingFlag = ref(false)
