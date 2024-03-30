@@ -63,25 +63,25 @@ create table endpoints (
     roles text 
 );
 
-insert into roles (id,name) values ('141f6722-b2d2-4d2b-81a8-a889335e2acd','miniauth-ADMIN');
-insert into roles (id,name) values ('25347851-cdfe-4456-b525-52dc8cb95f10','miniauth-HR');
-insert into roles (id,name) values ('b783d347-30cc-46b5-b2fc-d0b2b41684ad','miniauth-IT');
-insert into roles (id,name) values ('9183c4d6-54e8-4758-b378-19b2d019c043','miniauth-RD');
+insert into roles (id,name) values ('13414618672271360','miniauth-ADMIN');
+insert into roles (id,name) values ('13414618672271361','miniauth-HR');
+insert into roles (id,name) values ('13414618672271362','miniauth-IT');
+insert into roles (id,name) values ('13414618672271363','miniauth-RD');
 
-insert into users (id,username,password,roles) values ('d8eb1139-7ee0-4dbd-b8a1-3c979543b982','miniauth','','141f6722-b2d2-4d2b-81a8-a889335e2acd');
-insert into users (id,username,password,roles) values ('a564df6f-705f-4361-a346-b578d7a711a8','miniauth-user','',null);
-insert into users (id,username,password,roles) values ('b23d96e6-7b3c-43bd-8723-7720315d4ad8','miniauth-hr','','25347851-cdfe-4456-b525-52dc8cb95f10');
-insert into users (id,username,password,roles) values ('170d03a6-b698-4862-9390-59d5f67f770e','miniauth-it','','b783d347-30cc-46b5-b2fc-d0b2b41684ad,17c7084a-3e45-40c1-afb9-73e35ba71314');
+insert into users (id,username,password,roles) values ('13414618672271350','miniauth','','13414618672271360');
+insert into users (id,username,password,roles) values ('13414618672271351','miniauth-user','',null);
+insert into users (id,username,password,roles) values ('13414618672271352','miniauth-hr','','13414618672271361');
+insert into users (id,username,password,roles) values ('13414618672271353','miniauth-it','','13414618672271362,13414618672271363');
 
 
 ";
                     using (var connection = _GetConnection())
                     {
                         connection.ExecuteNonQuery(sql);
-                        new UserManager(this).UpdatePassword("d8eb1139-7ee0-4dbd-b8a1-3c979543b982", "miniauth");
-                        new UserManager(this).UpdatePassword("a564df6f-705f-4361-a346-b578d7a711a8", "miniauth-user");
-                        new UserManager(this).UpdatePassword("b23d96e6-7b3c-43bd-8723-7720315d4ad8", "miniauth-hr");
-                        new UserManager(this).UpdatePassword("170d03a6-b698-4862-9390-59d5f67f770e", "miniauth-it");
+                        new UserManager(this).UpdatePassword("13414618672271350", "miniauth");
+                        new UserManager(this).UpdatePassword("13414618672271351", "miniauth-user");
+                        new UserManager(this).UpdatePassword("13414618672271352", "miniauth-hr");
+                        new UserManager(this).UpdatePassword("13414618672271353", "miniauth-it");
                     }
                 }
             }
