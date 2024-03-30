@@ -129,7 +129,13 @@ namespace MiniAuth
                                 var roles = user["roles"] as string[];
                                 var newToken = _jwtManager.GetToken(userName, userName, _options.ExpirationMinuteTime, roles);
                                 context.Response.Headers.Add("X-MiniAuth-Token", newToken);
-                                context.Response.Cookies.Append("X-MiniAuth-Token", newToken);
+                                context.Response.Cookies.Append("X-MiniAuth-Token", newToken, new CookieOptions
+                                {
+                                    Expires = DateTimeOffset.UtcNow.AddMinutes(_options.ExpirationMinuteTime),
+                                    HttpOnly = true,
+                                    Secure = true,
+                                    SameSite = SameSiteMode.Strict
+                                });
 
                                 await OkResult(context, $"{{\"X-MiniAuth-Token\":\"{newToken}\"}}").ConfigureAwait(false);
                                 return;
