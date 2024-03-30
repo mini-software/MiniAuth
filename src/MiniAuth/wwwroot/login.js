@@ -96,7 +96,7 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
 
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
-    // get url returnUrl from query string
+    const remember = document.getElementById('remember').checked;
     const url = new URL(window.location.href);
     const returnUrl = url.searchParams.get('returnUrl') || '/';
 
@@ -122,5 +122,5 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
         document.getElementById('message').textContent = 'An error occurred while trying to log in.'; // You might want to change this message to something more user-friendly  
     };
     
-    xhr.send(JSON.stringify({ username: username, password: password }));
+    xhr.send(JSON.stringify({ username: username, password: password,remember:remember }));
 });

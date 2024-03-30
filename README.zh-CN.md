@@ -41,27 +41,24 @@
 
 ### 快速开始
 
-在 Startup 添加以下代码并运行项目即可
+在 Startup 添加一行代码并运行项目即可
 
 ```csharp
-app.UseMiniAuth();    // using MiniAuth; 
+app.UseMiniAuth();    
 ```
 
-预设admin管理账号为 miniauth 密码为 miniauth，第一次登入后会要求修改密码
+预设 admin 管理账号为 miniauth 密码为 miniauth (注意记得修改密码)
+管理页面为 `http(s)://yourhost/miniauth/index.html`
 
 ### 更新日志
 
 请查看 [Release Notes](releases)
 
-### 安全
-
-- 预设 JWT 的处理方式为 RS256 + X509，第一次运行时会生成新的凭证在本地 `miniauth.pfx`, `miniauthsalt.cer` 请妥善管理
-
 ### API
 
 #### 登入
 
-如没有 cookie 环境，可以 call api 接口 `Post /MiniAuth/login` 
+api 接口 `Post /MiniAuth/login` 
 传入 json body
 
 ```json
@@ -70,30 +67,59 @@ app.UseMiniAuth();    // using MiniAuth;
 	"password":"password"
 }
 ```
-可以在 Headers 或是 Response Body 获取Key 为 X-MiniAuth-Token 的 JWT Value。
+可以在 Headers 或是 Response Body 获取Key 为 X-MiniAuth-Token 的 JWT Token
+
+预设同一个域会自动添加 cookie。
+
+
 
 #### 登出
-如没有 cookie 环境，可以 call api 接口 `Get /MiniAuth/login` 
+
+删除 Cookie X-MiniAuth-Token 系统即可登出
+
+也可以使用 api 接口 `Get /MiniAuth/logout` 删除 cookie 跟跳转到登入页面
 
 
 
-### 设定
+### 工具
+
+#### 获取当前用户数据
+
+注意 : 从 Request 读取 JWT Token 的用户数据，而不是再一次读取DB数据
+
+```C#
+    public class YourController : Controller
+    {
+        public ActionResult UserInfo()
+        {
+            var user = this.GetMiniAuthUser();  
+            //..
+        }
+    }
+```
+
+
+
+### 设定、选项
+
+#### 预设过期时间
+
+MiniAuthOptions.ExpirationMinuteTime 预设过期时间为7天，如要修改请参考，注意单位是分钟
+
+```C#
+services.AddSingleton<MiniAuthOptions>(new MiniAuthOptions {ExpirationMinuteTime=12*24*60 });
+```
 
 #### 自定义 Login - js, css
 
 添加 `app.UseStaticFiles()` 在UseMiniAuth之前，并新增  `wwwroot\MiniAuth\login.css`,  `wwwroot\MiniAuth\login.js`
 
+### 安全
 
-
-### 选项
-
-设定密钥生成账号、密码、路径
-
-
-
-
+#### 密钥
+预设 JWT 的处理方式为 RS256 + X509，第一次运行时会生成新的凭证在本地 `miniauth.pfx`, `miniauthsalt.cer` 请妥善管理
 
 ### 分布式系统
 
-- 数据库来源请换成 MySQL、PostgreSQL 等数据库。
+- 数据库来源请换成 SQL Server、MySQL、PostgreSQL 等数据库，系统预设使用 SQLite
 - 请确认每个机器上的 `miniauth.pfx`, `miniauthsalt.cer`都是同一个，否则会导致验证失败。

@@ -57,21 +57,30 @@ namespace MiniAuth
             IMiniAuthDB db = null
         )
         {
-            // get host string
             var host = Environment.GetEnvironmentVariable("ASPNETCORE_URLS") ?? "http://localhost:5000";
             this._logger = logger;
             this._logger.LogInformation($"MiniAuth management page : {host}/miniauth/index.html");
             this._next = next;
             if (db == null)
                 this._db = new MiniAuthDB<SQLiteConnection>("Data Source=miniauth.db;Version=3;");
+            else
+                this._db = db;
             if (options == null)
                 _options = new MiniAuthOptions();
+            else
+                _options = options;
             if (jwtManager == null)
                 _jwtManager = new JWTManager(_options.SubjectName, _options.Password, _options.CerPath);
+            else
+                _jwtManager = jwtManager;
             if (userManager == null)
                 _userManer = new UserManager(this._db);
+            else
+                _userManer = userManager;
             if (endpointManager == null)
                 _endpointManager = new RoleEndpointManager(this._db);
+            else
+                _endpointManager = endpointManager;
             this._endpointSources = endpointSources;
             this._staticFileMiddleware = CreateStaticFileMiddleware(next, loggerFactory, hostingEnv); ;
 
@@ -417,19 +426,36 @@ LIMIT @pageSize OFFSET @offset;
             var root = bodyJson.RootElement;
             var userName = root.GetProperty("username").GetString();
             var password = root.GetProperty("password").GetString();
+            var remember = default(Boolean);
+            if (root.TryGetProperty("remember", out var _))
+                remember = root.GetProperty("remember").GetBoolean();
             if (_userManer.ValidateUser(userName, password))
             {
                 var user = _userManer.GetUser(userName);
                 var roles = user["roles"] as string[];
                 var newToken = _jwtManager.GetToken(userName, userName, _options.ExpirationMinuteTime, roles);
                 context.Response.Headers.Add("X-MiniAuth-Token", newToken);
-                context.Response.Cookies.Append("X-MiniAuth-Token", newToken, new CookieOptions
+
+
+                if (remember)
                 {
-                    Expires = DateTimeOffset.UtcNow.AddMinutes(_options.ExpirationMinuteTime),
-                    HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.Strict
-                });
+                    context.Response.Cookies.Append("X-MiniAuth-Token", newToken, new CookieOptions
+                    {
+                        Expires = DateTimeOffset.UtcNow.AddMinutes(_options.ExpirationMinuteTime),
+                        HttpOnly = true,
+                        Secure = true,
+                        SameSite = SameSiteMode.Strict
+                    });
+                }
+                else
+                {
+                    context.Response.Cookies.Append("X-MiniAuth-Token", newToken, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true,
+                        SameSite = SameSiteMode.Strict
+                    });
+                }
 
                 await OkResult(context, $"{{\"X-MiniAuth-Token\":\"{newToken}\"}}").ConfigureAwait(false);
 

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MiniAuth.Configs;
 using MiniAuth.Helpers;
 
 namespace MiniAuth.Web
