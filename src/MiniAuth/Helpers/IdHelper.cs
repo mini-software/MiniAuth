@@ -7,7 +7,6 @@ namespace MiniAuth.Helpers
         static SnowflakeIdGenerator snowflakeIdGenerator = new SnowflakeIdGenerator(1);
         public static string NewId()
         {
-            //return System.Guid.NewGuid().ToString();
             return snowflakeIdGenerator.GenerateId().ToString();
         }
 

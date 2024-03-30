@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MiniAuth.Helpers;
 
 namespace MiniAuth.Web
 {
@@ -7,7 +8,7 @@ namespace MiniAuth.Web
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            builder.Services.AddCors(options =>options.AddPolicy("AllowAll", builder =>builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+            builder.Services.AddCors(options => options.AddPolicy("AllowAll", builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
             builder.Services.AddControllers();
             var app = builder.Build();
             app.UseCors("AllowAll");
@@ -18,7 +19,7 @@ namespace MiniAuth.Web
             app.Run();
         }
     }
-    
+
     public class HomeController : Controller
     {
         [HttpGet]
@@ -27,6 +28,12 @@ namespace MiniAuth.Web
         public ActionResult Home() => Content("This's homepage");
         [Route("/About")]
         public ActionResult About() => Content("This's About");
+        [Route("/UserInfo")]
+        public ActionResult UserInfo()
+        {
+            var user = this.GetMiniAuthUser();
+            return Json(user);
+        }
     }
 
     [ApiController]
@@ -37,9 +44,9 @@ namespace MiniAuth.Web
         [HttpPost]
         public IEnumerable<dynamic> GetAll() => new[] { new { id = "1", name = "apple" }, new { id = "2", name = "orange" }, };
         [HttpGet]
-        public dynamic Get(string id) => new { id="1",name="apple"};
+        public dynamic Get(string id) => new { id = "1", name = "apple" };
         [HttpPost]
-        public dynamic Post(string id) => new { data="demo"};
+        public dynamic Post(string id) => new { data = "demo" };
     }
 
     [ApiController]

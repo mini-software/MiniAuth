@@ -349,15 +349,15 @@ order by id
 LIMIT @pageSize OFFSET @offset;
 ";
                     command.AddParameters(new Dictionary<string, object>()
-                                {
-                                    { "@pageSize", pageSize },
-                                    { "@offset", offset },
-                                });
+                    {
+                        { "@pageSize", pageSize },
+                        { "@offset", offset },
+                    });
                     using (var reader = await command.ExecuteReaderAsync())
                     {
                         while (reader.Read())
                         {
-                            var e = new
+                            var e = new MiniAuthUser
                             {
                                 Id = reader.GetString(0),
                                 Username = reader.IsDBNull(1) ? null : reader.GetString(1),

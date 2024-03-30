@@ -19,6 +19,7 @@ namespace MiniAuth.Managers
     {
         private readonly X509Certificate2 _certificate;
         private readonly IJwtDecoder _decoder;
+        private readonly IJwtEncoder _encoder;
 
         public JWTManager(string subjectName, string password, string cerPath)
         {
@@ -46,6 +47,7 @@ namespace MiniAuth.Managers
                 IJwtAlgorithm algorithm = new RS256Algorithm(_certificate);
                 IJwtDecoder decoder = new JwtDecoder(serializer, validator, urlEncoder, algorithm);
                 _decoder = decoder;
+                _encoder = new JwtEncoder(algorithm, serializer, urlEncoder);
             }
         }
 
@@ -62,12 +64,9 @@ namespace MiniAuth.Managers
                 { "exp", DateTimeOffset.UtcNow.AddMinutes(expMins).ToUnixTimeSeconds() },
                 { "iat", DateTimeOffset.UtcNow.ToUnixTimeSeconds() },
             };
-            IJwtAlgorithm algorithm = new RS256Algorithm(_certificate);
-            IJsonSerializer serializer = new JsonNetSerializer();
-            IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder();
-            IJwtEncoder encoder = new JwtEncoder(algorithm, serializer, urlEncoder);
+
             const string key = null;
-            var token = encoder.Encode(payload, key);
+            var token = _encoder.Encode(payload, key);
             return token;
         }
 
