@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<AssemblyName>MiniAuth</AssemblyName>
 		<Title>MiniAuth</Title>
-		<Version>0.0.1</Version>
+		<Version>0.7.0</Version>
 		<Description>Lightweight .NET login website adding to your project just by one line code</Description>
 		<Authors>Wei Lin, mini-software</Authors>
 		<PackageTags>MiniAuth</PackageTags>
