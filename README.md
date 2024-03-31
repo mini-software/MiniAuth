@@ -14,8 +14,9 @@
 ---
 
 <div align="center">
- Your <a href="https://github.com/mini-software/miniauth">Star</a> and <a href="https://edu.51cto.com/course/32914.html">Donate</a> can make MiniAuth better 
+ Your <a href="https://github.com/mini-software/miniauth">Star</a>, <a href="https://miniexcel.github.io/">Donate</a>, <a href="https://www.linkedin.com/in/itweihan/">Recommendations</a> can make MiniAuth better 
 </div>
+
 
 
 
