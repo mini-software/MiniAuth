@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="scrollable-container">
     <div class="row" style="padding-bottom: 10px;padding-top: 10px;">
       <div class="col-sm-8">
         <button @click="insert" class="btn" type="button">

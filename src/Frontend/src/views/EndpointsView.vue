@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="scrollable-container">
     <table class="table">
       <thead>
         <tr>
@@ -16,32 +16,34 @@
         </tr>
       </thead>
       <tbody>
-        <tr  v-for="(item, index) in endpoints" :key="index">
+        <tr v-for="(item, index) in endpoints" :key="index">
           <td>
-            {{ item.Name}} 
+            {{ item.Name }}
           </td>
           <td>
             {{ item.Route }}
           </td>
-          <td >
+          <td>
             <div class="form-check form-switch">
-              <input :disabled="item.Type=='miniauth'" class="form-check-input" type="checkbox" v-model="item.RedirectToLoginPage">
+              <input :disabled="item.Type == 'miniauth'" class="form-check-input" type="checkbox"
+                v-model="item.RedirectToLoginPage">
             </div>
           </td>
 
-          <td >
+          <td>
             <div class="form-check form-switch">
-              <input :disabled="item.Type=='miniauth'" class="form-check-input" type="checkbox" v-model="item.Enable">
+              <input :disabled="item.Type == 'miniauth'" class="form-check-input" type="checkbox" v-model="item.Enable">
             </div>
           </td>
           <td>
-            <select :disabled="item.Type=='miniauth'" multiple v-model="item.Roles"  class="resizable" style="height: 25px;">      
+            <select :disabled="item.Type == 'miniauth'" multiple v-model="item.Roles" class="resizable"
+              style="height: 25px;">
               <option></option>
-              <option v-for="(role, index) in roles" :value="role.Id" :key="index">{{role.Name}}</option>              
+              <option v-for="(role, index) in roles" :value="role.Id" :key="index">{{ role.Name }}</option>
             </select>
           </td>
-          <td >
-            <button :disabled="item.Type=='miniauth'" class="btn" @click="saveEndpoint(item)">
+          <td>
+            <button :disabled="item.Type == 'miniauth'" class="btn" @click="saveEndpoint(item)">
               <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g id="System / Save">
                   <path id="Vector"
@@ -57,16 +59,18 @@
   </div>
 </template>
 
-<style scoped> 
-     .resizable {
-         height: 30px !important;
-         transition: height 0.3s ease; 
-         overflow: hidden; 
-     }
+<style scoped>
+.resizable {
+  height: 30px !important;
+  transition: height 0.3s ease;
+  overflow: hidden;
+}
 
-         .resizable:hover {
-             height: 130px !important;
-         }
+.resizable:hover {
+  height: 130px !important;
+}
+
+
 </style>
 
 <script setup>
@@ -80,7 +84,7 @@ const fetchData = async () => {
   roles.value = await service.get('api/getRoles')
 }
 const saveEndpoint = async (endpoint) => {
-  if(!confirm("Are you sure you want to update this endpoint?")){
+  if (!confirm("Are you sure you want to update this endpoint?")) {
     return;
   }
   await service.post('api/saveEndpoint', endpoint).then(() => {

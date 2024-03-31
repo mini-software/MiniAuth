@@ -37,7 +37,7 @@ emitter.on('closeLoading', () => {
       <div>
         <div>
           <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-            <div class="container">
+            <div class="container scrollable-container">
               <router-link class="navbar-brand" to="/"> MiniAuth </router-link>
               <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,7 +62,7 @@ emitter.on('closeLoading', () => {
             </div>
           </nav>
         </div>
-        <main class="container">
+        <main class="container scrollable-container">
           <div class="row" style="padding-bottom: 10px;padding-top: 10px;">
             <div class="col-sm-8">
               <h2><b>{{ routeName }}</b> Management</h2>
@@ -87,6 +87,26 @@ emitter.on('closeLoading', () => {
 </template>
 
 <style>
+/* scrollable-container */
+.scrollable-container {
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.scrollable-container::-webkit-scrollbar {
+  width: 10px;
+}
+
+.scrollable-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.scrollable-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+/*  */
 .btn:disabled {
   border-color: #ffffff !important;
 }
