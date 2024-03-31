@@ -3,6 +3,10 @@ import { watch, onMounted, ref } from 'vue'
 import { RouterView } from 'vue-router'
 import { emitter } from '@/helpers/emitter'
 import { useRoute } from 'vue-router';
+import { i18n } from '@/i18n'
+import { useI18n } from 'vue-i18n';
+const {t}  = useI18n();
+
 const route = useRoute();
 const routeName = ref("");
 
@@ -16,9 +20,17 @@ watch(() => route.name, (newVal) => {
 
 
 const logout = () => {
+  if(!confirm(t('LogoutMessage'))) {
+    return;
+  }
   localStorage.removeItem('X-MiniAuth-Token')
   document.cookie = 'X-MiniAuth-Token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
   window.location.href = '/miniauth/login.html'
+}
+
+const switchLang = () => {
+  i18n.global.locale.value = i18n.global.locale.value === 'en_us' ? 'zh_cn' : 'en_us'
+  localStorage.setItem('lang', i18n.global.locale.value)
 }
 
 const loadingFlag = ref(false)
@@ -28,6 +40,9 @@ emitter.on('showLoading', () => {
 emitter.on('closeLoading', () => {
   loadingFlag.value = false
 })
+
+i18n.global.locale.value = localStorage.getItem('lang')?.toString() ?? 'en_us'
+
 </script>
 
 <template>
@@ -46,17 +61,22 @@ emitter.on('closeLoading', () => {
               <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
                   <li class="nav-item">
-                    <router-link class="nav-link" to="/Endpoints"> Endpoints </router-link>
+                    <router-link class="nav-link" to="/Endpoints"> {{ $t("Endpoints") }} </router-link>
                   </li>
                   <li class="nav-item">
-                    <router-link class="nav-link " to="/Users"> Users </router-link>
+                    <router-link class="nav-link " to="/Users"> {{ $t("Users") }} </router-link>
                   </li>
                   <li class="nav-item">
-                    <router-link class="nav-link " to="/Roles"> Roles </router-link>
+                    <router-link class="nav-link " to="/Roles"> {{ $t("Roles") }} </router-link>
                   </li>
                 </ul>
                 <div class="navbar-nav ms-auto">
-                  <div @click="logout" class="btn nav-item nav-link">Logout</div>
+                  <div @click="switchLang" class="btn nav-item nav-link">
+                    {{ $t("Lang") }}
+                  </div>
+                  <div @click="logout" class="btn nav-item nav-link">
+                    {{ $t("Logout") }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -65,7 +85,7 @@ emitter.on('closeLoading', () => {
         <main class="container scrollable-container">
           <div class="row" style="padding-bottom: 10px;padding-top: 10px;">
             <div class="col-sm-8">
-              <h2><b>{{ routeName }}</b> Management</h2>
+              <h2><b>{{ routeName }}</b> {{ $t("Management") }}</h2>
             </div>
             <div class="col-sm-4">
             </div>

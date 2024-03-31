@@ -26,13 +26,13 @@
     <table class="table">
       <thead>
         <tr class="table-dark">
-          <th>User Name</th>
-          <th>Roles</th>
-          <th>First Name</th>
-          <th>Last Name</th>
+          <th>{{ $t("UserName") }}</th>
+          <th>{{ $t("Roles") }}</th>
+          <th>{{ $t("FirstName") }}</th>
+          <th>{{ $t("LastName") }}</th>
           <th hidden>Email</th>
-          <th>Enable</th>
-          <th>Action</th>
+          <th>{{ $t("Enable") }}</th>
+          <th>{{ $t("Action") }}</th>
         </tr>
       </thead>
       <tbody>
@@ -103,13 +103,13 @@
     <nav aria-label="Page navigation">  
       <ul class="pagination justify-content-center">  
         <li class="page-item" :class="{ 'disabled': pageIndex === 0 }">  
-          <button class="page-link" @click.prevent="goToPage(pageIndex - 1)">Previous</button>  
+          <button class="page-link" @click.prevent="goToPage(pageIndex - 1)">{{ $t("Previous") }}</button>  
         </li>  
         <li class="page-item" :class="{ 'active': pageIndex === currentIndex }" v-for="(page, currentIndex) in computedPages" :key="currentIndex">  
           <button class="page-link" @click.prevent="goToPage(currentIndex)">{{ currentIndex + 1 }}</button>  
         </li>  
         <li class="page-item" :class="{ 'disabled': pageIndex >= (Math.ceil(totalItems / pageSize) - 1) }">  
-          <button class="page-link" @click.prevent="goToPage(pageIndex + 1)">Next</button>  
+          <button class="page-link" @click.prevent="goToPage(pageIndex + 1)">{{ $t("Next") }}</button>  
         </li>  
       </ul>  
     </nav>  
@@ -165,6 +165,10 @@ input[type="mail"] {
 <script setup>
 import { computed,onMounted, ref } from 'vue'
 import service from '@/axios/service.ts';
+import { i18n } from '@/i18n'
+import { useI18n } from 'vue-i18n';
+const {t}  = useI18n();
+
 const pageTitle = ref('Users')
 const users = ref([])
 const roles = ref([])
@@ -204,20 +208,20 @@ const deleteUser = async (Id) => {
   })
 }
 const save = async (data) => {
-  if (!confirm("Are you sure you want to update?")) {
+  if (!confirm(t("please_confirm"))) {
     return;
   }
   await service.post('api/saveUser', data).then(async () => {
-    alert("updated successfully")
+    alert(t("updated_successfully"))
     await fetchData();
   })
 }
 const resetPassword = async (data) => {
-  if (!confirm("Are you sure you want to reset password?")) {
+  if (!confirm(t("resetPasswordConfirm"))) {
     return;
   }
   await service.post('api/resetPassword', data).then(async (res) => {
-    alert("New password : " + res.newPassword + " and copied to clipboard")
+    alert(t("new_password", [res.newPassword]))
     navigator.clipboard.writeText(res.newPassword)
   })
 }

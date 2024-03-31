@@ -27,9 +27,9 @@
       <thead>
         <tr class="table-dark">
           <th>ID</th>
-          <th>Name</th>
-          <th>Enable</th>
-          <th>Action</th>
+          <th>{{ $t("Name") }}</th>
+          <th>{{ $t("Enable") }}</th>
+          <th>{{ $t("Action") }}</th>
         </tr>
       </thead>
       <tbody>
@@ -91,32 +91,36 @@ input[type="mail"] {
 <script setup>
 import { onMounted, ref } from 'vue'
 import service from '@/axios/service.ts';
+import { i18n } from '@/i18n'
+import { useI18n } from 'vue-i18n';
+const {t}  = useI18n();
+
 const pageTitle = ref('Roles')
 const roles = ref([])
 const fetchData = async () => {
   roles.value = await service.get('api/getRoles')
 }
 const insert = async () => {
-  if (!confirm("Are you sure you want to insert?")) {
+  if (!confirm(t("please_confirm"))) {
     return;
   }
   roles.value.push({ Id: null, Name: '', Enable: true })
 }
 const deleteRole = async (Id) => {
-  if (!confirm("Are you sure you want to delete?")) {
+  if (!confirm(t("please_confirm"))) {
     return;
   }
   await service.post('api/deleteRole', {Id:Id}).then(async() => {
-    alert("Delete successfully")
+    alert(t("updated_successfully"))
     await fetchData();
   })
 }
 const save = async (data) => {
-  if (!confirm("Are you sure you want to update?")) {
+  if (!confirm(t("please_confirm"))) {
     return;
   }
   await service.post('api/saveRole', data).then(async () => {
-    alert("updated successfully")
+    alert(t("updated_successfully"))
     await fetchData();
   })
 }

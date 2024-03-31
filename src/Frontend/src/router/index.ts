@@ -6,7 +6,7 @@ const routes = [
     name: 'Home',
     component: () => import('@/views/EndpointsView.vue'),
     meta: {
-      title: 'Home'
+      title: 'Endpoints'
     }
   },
   {

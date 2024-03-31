@@ -4,15 +4,15 @@
       <thead>
         <tr>
           <th>
-            Name
+            {{ $t("Name") }}
           </th>
           <th>
-            Route
+            {{ $t("Route") }}
           </th>
-          <th>Redirect</th>
-          <th>Enable</th>
-          <th>Roles</th>
-          <th>Action</th>
+          <th>{{ $t("Redirect") }}</th>
+          <th>{{ $t("Enable") }}</th>
+          <th>{{ $t("Roles") }}</th>
+          <th>{{ $t("Action") }}</th>
         </tr>
       </thead>
       <tbody>
@@ -76,6 +76,11 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import service from '@/axios/service.ts';
+import { i18n } from '@/i18n'
+import { useI18n } from 'vue-i18n';
+const {t}  = useI18n();
+
+
 const pageTitle = ref('EndPoints')
 const endpoints = ref([])
 const roles = ref([])
@@ -84,11 +89,11 @@ const fetchData = async () => {
   roles.value = await service.get('api/getRoles')
 }
 const saveEndpoint = async (endpoint) => {
-  if (!confirm("Are you sure you want to update this endpoint?")) {
+  if (!confirm(t("please_confirm"))) {
     return;
   }
   await service.post('api/saveEndpoint', endpoint).then(() => {
-    alert("updated successfully")
+    alert(t("updated_successfully"))
   })
 }
 onMounted(async () => {
