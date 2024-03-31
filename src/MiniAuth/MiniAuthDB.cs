@@ -36,20 +36,22 @@ namespace MiniAuth
                     string sql = @"
 create table users (  
     id text not null primary key,  
-    username text not null unique,  
+    username text not null unique, 
     password text not null, 
     roles text,
     enable integer default 1,
     first_name text,
     last_name text,
     mail text,
-    emp_no text 
+    emp_no text ,
+    type text  
 );
 
 create table roles (  
     id text primary key,  
     name text not null unique,
-    enable integer default (1) not null
+    enable integer default (1) not null,
+    type text  
 );
 
 create table endpoints (  
@@ -63,25 +65,28 @@ create table endpoints (
     roles text 
 );
 
-insert into roles (id,name) values ('13414618672271360','miniauth-ADMIN');
-insert into roles (id,name) values ('13414618672271361','miniauth-HR');
-insert into roles (id,name) values ('13414618672271362','miniauth-IT');
-insert into roles (id,name) values ('13414618672271363','miniauth-RD');
-
-insert into users (id,username,password,roles) values ('13414618672271350','miniauth','','13414618672271360');
-insert into users (id,username,password,roles) values ('13414618672271351','miniauth-user','',null);
-insert into users (id,username,password,roles) values ('13414618672271352','miniauth-hr','','13414618672271361');
-insert into users (id,username,password,roles) values ('13414618672271353','miniauth-it','','13414618672271362,13414618672271363');
-
+insert into roles (id,type,name) values ('13414618672271360','miniauth','miniauth-admin');
+insert into users (id,type,username,password,roles) values ('13414618672271350','miniauth','miniauth','','13414618672271360');
 
 ";
                     using (var connection = _GetConnection())
                     {
                         connection.ExecuteNonQuery(sql);
                         new UserManager(this).UpdatePassword("13414618672271350", "miniauth");
+
+#if DEBUG
+                        connection.ExecuteNonQuery(@"
+insert into roles (id,type,name) values ('13414618672271361',null,'HR');
+insert into roles (id,type,name) values ('13414618672271362',null,'IT');
+insert into roles (id,type,name) values ('13414618672271363',null,'RD');
+insert into users (id,type,username,password,roles) values ('13414618672271351',null,'miniauth-user','',null);
+insert into users (id,type,username,password,roles) values ('13414618672271352',null,'miniauth-hr','','13414618672271361');
+insert into users (id,type,username,password,roles) values ('13414618672271353',null,'miniauth-it','','13414618672271362,13414618672271363');
+");
                         new UserManager(this).UpdatePassword("13414618672271351", "miniauth-user");
                         new UserManager(this).UpdatePassword("13414618672271352", "miniauth-hr");
                         new UserManager(this).UpdatePassword("13414618672271353", "miniauth-it");
+#endif
                     }
                 }
             }

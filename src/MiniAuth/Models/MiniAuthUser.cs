@@ -10,5 +10,6 @@
         public string Mail { get; set; }
         public bool Enable { get; set; }
         public string[] Roles { get; set; }
+        public string Type { get; set; }
     }
 }

@@ -356,7 +356,7 @@ namespace MiniAuth
                 using (var command = cn.CreateCommand())
                 {
                     command.CommandText = @"select id,username,first_name,
-last_name,emp_no,mail,Enable,roles 
+last_name,emp_no,mail,Enable,roles ,type
 from users u 
 order by id
 LIMIT @pageSize OFFSET @offset;
@@ -379,7 +379,8 @@ LIMIT @pageSize OFFSET @offset;
                                 Emp_no = reader.IsDBNull(4) ? null : reader.IsDBNull(4) ? null : reader.GetString(4),
                                 Mail = reader.IsDBNull(5) ? null : reader.IsDBNull(5) ? null : reader.GetString(5),
                                 Enable = reader.GetInt32(6) == 1,
-                                Roles = reader.IsDBNull(7) ? null : reader.GetString(7)?.Split(',')
+                                Roles = reader.IsDBNull(7) ? null : reader.GetString(7)?.Split(','),
+                                Type = reader.IsDBNull(8) ? null : reader.GetString(8)
                             };
                             users.Add(e);
                         }
@@ -398,7 +399,7 @@ LIMIT @pageSize OFFSET @offset;
             {
                 using (var command = cn.CreateCommand())
                 {
-                    command.CommandText = @"select * from roles r";
+                    command.CommandText = @"select id,name,enable,type from roles r";
                     using (var reader = await command.ExecuteReaderAsync())
                     {
                         while (reader.Read())
@@ -408,6 +409,7 @@ LIMIT @pageSize OFFSET @offset;
                                 Id = reader.GetString(0),
                                 Name = reader.GetString(1),
                                 Enable = reader.GetInt32(2) == 1,
+                                Type = reader.IsDBNull(3)?null: reader.GetString(3)
                             };
                             roles.Add(endpoint);
                         }

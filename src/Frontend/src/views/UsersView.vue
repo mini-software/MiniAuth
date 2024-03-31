@@ -61,7 +61,7 @@
           </td>
           <td>
             <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" v-model="item.Enable">
+              <input :disabled="item.Type=='miniauth'" class="form-check-input" type="checkbox" v-model="item.Enable">
             </div>
           </td>
           <td>
@@ -88,7 +88,7 @@
                 </g>
               </svg>
             </button>
-            <button class="btn" @click="deleteUser(item.Id)"><svg width="20px" height="20px" viewBox="0 0 24 24"
+            <button :disabled="item.Type=='miniauth'" class="btn" @click="deleteUser(item.Id)"><svg width="20px" height="20px" viewBox="0 0 24 24"
                 fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M10 12V17" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 <path d="M14 12V17" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />

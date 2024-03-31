@@ -56,7 +56,7 @@ emitter.on('closeLoading', () => {
                   </li>
                 </ul>
                 <div class="navbar-nav ms-auto">
-                    <div @click="logout" class="btn nav-item nav-link">Logout</div>
+                  <div @click="logout" class="btn nav-item nav-link">Logout</div>
                 </div>
               </div>
             </div>
@@ -65,7 +65,7 @@ emitter.on('closeLoading', () => {
         <main class="container">
           <div class="row" style="padding-bottom: 10px;padding-top: 10px;">
             <div class="col-sm-8">
-              <h2><b>{{routeName}}</b> Management</h2>
+              <h2><b>{{ routeName }}</b> Management</h2>
             </div>
             <div class="col-sm-4">
             </div>
@@ -87,6 +87,10 @@ emitter.on('closeLoading', () => {
 </template>
 
 <style>
+.btn:disabled {
+  border-color: #ffffff !important;
+}
+
 #loading-mask {
   width: 100vw;
   height: 100%;
