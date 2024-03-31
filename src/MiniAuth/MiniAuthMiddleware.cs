@@ -158,7 +158,7 @@ namespace MiniAuth
                     }
                     if (subPath.StartsWithSegments("/api/getAllEndpoints"))
                     {
-                        await OkResult(context, _endpointCache.Values.ToJson());
+                        await OkResult(context, _endpointCache.Values.OrderByDescending(o=>o.Id).ToJson());
                         return;
                     }
                     if (subPath.StartsWithSegments("/api/getRoles"))
@@ -427,7 +427,12 @@ LIMIT @pageSize OFFSET @offset;
                         }
                     }
                 }
-                totalItems = cn.ExecuteScalar<int>("select count(*) from users");
+                if(_db.GetCurrentDBType()==DBType.SQLite)
+                    totalItems = cn.ExecuteScalar<long>("select count(*) from users");
+                else if (_db.GetCurrentDBType() == DBType.SQLServer)
+                    totalItems = cn.ExecuteScalar<int>("select count(*) from users");
+                else
+                    totalItems = cn.ExecuteScalar<long>("select count(*) from users");
             }
 
             await OkResult(context, new { users, totalItems }.ToJson());

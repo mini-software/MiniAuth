@@ -61,7 +61,7 @@
 
 <style scoped>
 .resizable {
-  height: 30px !important;
+  height: 27px !important;
   transition: height 0.3s ease;
   overflow: hidden;
 }
