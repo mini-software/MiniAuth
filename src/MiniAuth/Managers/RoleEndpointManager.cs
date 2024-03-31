@@ -130,7 +130,87 @@ VALUES (@id,@type,@name,@route,@methods,@enable,@RedirectToLoginPage,@roles)";
                 Type = "miniauth",
                 Name = "/miniauth/api/getallenpoints",
                 Route = "/miniauth/api/getallenpoints",
-                Methods = new string[0],
+                Roles = new[] { "13414618672271360" },
+                Enable = true,
+                RedirectToLoginPage = false
+            });
+            endpoints.Add(new RoleEndpointEntity
+            {
+                Id = "/miniauth/api/getroles",
+                Type = "miniauth",
+                Name = "/miniauth/api/getroles",
+                Route = "/miniauth/api/getroles",
+                Roles = new[] { "13414618672271360" },
+                Enable = true,
+                RedirectToLoginPage = false
+            });
+            endpoints.Add(new RoleEndpointEntity
+            {
+                Id = "/miniauth/api/getusers",
+                Type = "miniauth",
+                Name = "/miniauth/api/getusers",
+                Route = "/miniauth/api/getusers",
+                Roles = new[] { "13414618672271360" },
+                Enable = true,
+                RedirectToLoginPage = false
+            });
+            endpoints.Add(new RoleEndpointEntity
+            {
+                Id = "/miniauth/api/resetpassword",
+                Type = "miniauth",
+                Name = "/miniauth/api/resetpassword",
+                Route = "/miniauth/api/resetpassword",
+                Roles = new[] { "13414618672271360" },
+                Enable = true,
+                RedirectToLoginPage = false
+            });
+            endpoints.Add(new RoleEndpointEntity
+            {
+                Id = "/miniauth/api/saveuser",
+                Type = "miniauth",
+                Name = "/miniauth/api/saveuser",
+                Route = "/miniauth/api/saveuser",
+                Roles = new[] { "13414618672271360" },
+                Enable = true,
+                RedirectToLoginPage = false
+            });
+            endpoints.Add(new RoleEndpointEntity
+            {
+                Id = "/miniauth/api/deleteuser",
+                Type = "miniauth",
+                Name = "/miniauth/api/deleteuser",
+                Route = "/miniauth/api/deleteuser",
+                Roles = new[] { "13414618672271360" },
+                Enable = true,
+                RedirectToLoginPage = false
+            });
+            endpoints.Add(new RoleEndpointEntity
+            {
+                Id = "/miniauth/api/deleterole",
+                Type = "miniauth",
+                Name = "/miniauth/api/deleterole",
+                Route = "/miniauth/api/deleterole",
+                Roles = new[] { "13414618672271360" },
+                Enable = true,
+                RedirectToLoginPage = false
+            });
+            endpoints.Add(new RoleEndpointEntity
+            {
+                Id = "/miniauth/api/saverole",
+                Type = "miniauth",
+                Name = "/miniauth/api/saverole",
+                Route = "/miniauth/api/saverole",
+                Roles = new[] { "13414618672271360" },
+                Enable = true,
+                RedirectToLoginPage = false
+            });
+            endpoints.Add(new RoleEndpointEntity
+            {
+                Id = "/miniauth/api/saveendpoint",
+                Type = "miniauth",
+                Name = "/miniauth/api/saveendpoint",
+                Route = "/miniauth/api/saveendpoint",
+                Roles = new[] { "13414618672271360" },
                 Enable = true,
                 RedirectToLoginPage = false
             });
@@ -140,10 +220,11 @@ VALUES (@id,@type,@name,@route,@methods,@enable,@RedirectToLoginPage,@roles)";
                 Type = "miniauth",
                 Name = "/miniauth/index.html",
                 Route = "/miniauth/index.html",
-                Methods = new string[0],
+                Roles = new[] { "13414618672271360" },
                 Enable = true,
-                RedirectToLoginPage = false
+                RedirectToLoginPage = true
             });
+
             return endpoints;
         }
 

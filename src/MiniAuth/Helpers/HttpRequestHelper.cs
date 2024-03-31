@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Http;
 using MiniAuth.Managers;
+using MiniAuth.Models;
 using System.Collections.Generic;
 using System.Text.Json;
 
@@ -8,7 +9,7 @@ namespace MiniAuth.Helpers
 {
     public static class HttpRequestHelper
     {
-        public static MiniAuthUser GetMiniAuthUser(this Microsoft.AspNetCore.Mvc.Controller controller)
+        public static MiniAuthUser GetMiniAuthUser(this Microsoft.AspNetCore.Mvc.ControllerBase controller)
         {
             return controller.Request.GetMiniAuthUser();
         }

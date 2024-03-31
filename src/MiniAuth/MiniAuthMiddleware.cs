@@ -109,7 +109,7 @@ namespace MiniAuth
                 _ = context ?? throw new ArgumentNullException(nameof(context));
                 _isMiniAuthPath = context.Request.Path.StartsWithSegments($"/{_options.RoutePrefix}", out PathString subPath);
 
-                this._routeEndpoint = GetEndpoint(context);
+                _routeEndpoint = GetEndpoint(context);
                 if (_routeEndpoint == null && !_isMiniAuthPath)
                 {
                     await _next(context);
@@ -119,6 +119,10 @@ namespace MiniAuth
                 var isAuth = IsAuth(context);
                 if (!isAuth)
                     return;
+
+#if DEBUG
+                _logger.LogInformation($"Path: {context.Request.Path}, isAuth: {isAuth}, _isMiniAuthPath: {_isMiniAuthPath}, _routeEndpoint: {_routeEndpoint?.Id} {_routeEndpoint?.Name} {_routeEndpoint?.Route} {_routeEndpoint?.Type}");
+#endif
 
                 if (_isMiniAuthPath)
                 {
@@ -149,7 +153,7 @@ namespace MiniAuth
                     }
                     if (subPath.StartsWithSegments("/api/getAllEndpoints"))
                     {
-                        await OkResult(context, _endpointCache.Values.Where(w => w.Type == "system").OrderBy(_ => _.Route).ToJson());
+                        await OkResult(context, _endpointCache.Values.OrderBy(_ => _.Route).ToJson());
                         return;
                     }
                     if (subPath.StartsWithSegments("/api/getRoles"))
@@ -557,33 +561,41 @@ where id = @id";
                             messageCode = 401;
                             message = "Unauthorized";
                         }
+#if DEBUG
+                        _logger.LogInformation($"hasRole: {hasRole}");
+#endif
                     }
+#if DEBUG
+                    _logger.LogInformation($"Endpoint.Roles {JsonConvert.SerializeObject(new { _routeEndpoint.Roles })}");
+                    _logger.LogInformation($"JWT User {JsonConvert.SerializeObject(user)}");
+#endif
                 }
                 catch (TokenNotYetValidException)
                 {
                     isAuth = false;
                     messageCode = 401;
                     message = "Token is not valid yet";
-                    goto End;
                 }
                 catch (TokenExpiredException)
                 {
                     isAuth = false;
                     messageCode = 401;
                     message = "Token is expired";
-                    goto End;
                 }
                 catch (SignatureVerificationException)
                 {
                     isAuth = false;
                     messageCode = 401;
                     message = "Token signature is not valid";
-                    goto End;
                 }
             }
+
         End:
             if (!isAuth)
-                DeniedEndpoint(context, new ResponseVo { code = 401, message = "Token signature is not valid" });
+                DeniedEndpoint(context, new ResponseVo { code = messageCode, message = message });
+#if DEBUG
+            _logger.LogInformation($"messageCode: {messageCode} message: {message}");
+#endif
             return isAuth;
         }
         private RoleEndpointEntity GetEndpoint(HttpContext context)

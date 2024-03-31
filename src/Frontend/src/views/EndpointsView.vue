@@ -25,23 +25,23 @@
           </td>
           <td >
             <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" v-model="item.RedirectToLoginPage">
+              <input :disabled="item.Type=='miniauth'" class="form-check-input" type="checkbox" v-model="item.RedirectToLoginPage">
             </div>
           </td>
 
           <td >
             <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" v-model="item.Enable">
+              <input :disabled="item.Type=='miniauth'" class="form-check-input" type="checkbox" v-model="item.Enable">
             </div>
           </td>
           <td>
-            <select multiple v-model="item.Roles"  class="resizable" style="height: 25px;">      
+            <select :disabled="item.Type=='miniauth'" multiple v-model="item.Roles"  class="resizable" style="height: 25px;">      
               <option></option>
               <option v-for="(role, index) in roles" :value="role.Id" :key="index">{{role.Name}}</option>              
             </select>
           </td>
           <td >
-            <button class="btn" @click="saveEndpoint(item)">
+            <button :disabled="item.Type=='miniauth'" class="btn" @click="saveEndpoint(item)">
               <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g id="System / Save">
                   <path id="Vector"
