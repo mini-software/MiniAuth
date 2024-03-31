@@ -9,14 +9,17 @@
 <div align="center">
 <p><strong><a href="README.md">English</a> | <a href="README.zh-CN.md">简体中文</a></strong></p>
 </div>
-
-
 ---
 
 <div align="center">
 <p> 您的 <a href="https://github.com/mini-software/miniauth">Star</a>、<a href="https://miniexcel.github.io">赞助</a>、<a href="https://edu.51cto.com/course/32914.html">购买视频</a>、<a href="https://www.linkedin.com/in/itweihan/">Linkedin 推荐</a> 能帮助 MiniAuth 成长 </p>
 </div>
+---
 
+
+### QQ群(1群) : [813100564](https://qm.qq.com/cgi-bin/qm/qr?k=3OkxuL14sXhJsUimWK8wx_Hf28Wl49QE&jump_from=webapi) / QQ群(2群) : [579033769](https://jq.qq.com/?_wv=1027&k=UxTdB8pR) / QQ群(3群) : [625362917](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=ZFudsVhvZSNkHyt0ljbfTqZfMFO9AoFH&authKey=G5zGjiUNHjZ3efr7GzR43lESp3e3mYL2fczPALvEsUduZD2zWk9y%2BGXBJ0egt0%2FE&noverify=0&group_code=625362917)
+
+###  [视频教学店铺](https://edu.51cto.com/course/32914.html)  |  [咸鱼店铺](https://m.tb.cn/h.5yxd1XY?tk=98krWpVNBzR)  |   [淘宝店铺](https://minisoftware.taobao.com/)
 
 ---
 
