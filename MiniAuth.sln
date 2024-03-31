@@ -11,14 +11,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Readme", "Readme", "{0896AF
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
 		README.zh-CN.md = README.zh-CN.md
-		README.zh-Hant.md = README.zh-Hant.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Releases", "Releases", "{0FF62372-13BC-4520-8749-AAE3E5BE3B0D}"
 	ProjectSection(SolutionItems) = preProject
 		releases\README.md = releases\README.md
 		releases\README.zh-CN.md = releases\README.zh-CN.md
-		releases\README.zh-Hant.md = releases\README.zh-Hant.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{119A6AF1-E780-4B91-A26A-EA6647E1C1D4}"
