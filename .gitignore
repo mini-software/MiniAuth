@@ -8,6 +8,8 @@
 *.db
 *.trx
 *.pfx
+*.db-wal
+*.db-shm
 
 # User-specific files
 *.rsuser
