@@ -216,7 +216,8 @@ const resetPassword = async (data) => {
     return;
   }
   await service.post('api/resetPassword', data).then(async (res) => {
-    alert("New password : " + res.newPassword)
+    alert("New password : " + res.newPassword + " and copied to clipboard")
+    navigator.clipboard.writeText(res.newPassword)
   })
 }
 onMounted(async () => {

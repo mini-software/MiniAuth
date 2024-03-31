@@ -1,4 +1,5 @@
 ﻿using MiniAuth.Models;
+using System.Text.Json;
 
 namespace MiniAuth.Helpers
 {
@@ -12,6 +13,15 @@ namespace MiniAuth.Helpers
                 message = message,
                 data = data
             });
+        }
+        public static T GetProperty<T>(this JsonElement data,string key) 
+        {
+            var obj= default(object);
+            if(data.TryGetProperty(key,out JsonElement j))
+                obj = j.Deserialize<T>();
+            if(obj == null)
+                return default(T);
+            return (T)obj;
         }
     }
 }

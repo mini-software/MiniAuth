@@ -7,8 +7,8 @@ namespace MiniAuth.Managers
 {
     public interface IUserManager
     {
-        void CreateUser(string username, string password, string roles);
-        Dictionary<string,object> GetUser(string userName);
+        void CreateUser(string username, string password, string[] roles = null, string first_name = null, string last_name = null, string mail = null);
+        Dictionary<string, object> GetUser(string userName);
         void UpdatePassword(string username, string newPassword);
         bool ValidateUser(string username, string password);
     }
@@ -21,26 +21,32 @@ namespace MiniAuth.Managers
         {
             _db = db;
         }
-
-        public void CreateUser(string username, string password, string roles)
+        public void CreateUser(string username, string password, string[] roles = null,
+            string first_name = null, string last_name = null, string mail = null)
         {
+
             using (var connection = _db.GetConnection())
             {
-                string sql = "INSERT INTO Users (id,Username, Password) VALUES (@id,@username, @password);";
+                string sql = @"insert into users (id,username,enable,Roles,First_name,Last_name,Mail,password) 
+values (@id,@username,@enable,@Roles,@First_name,@Last_name,@Mail,@newpassword)";
                 var command = connection.CreateCommand();
                 command.CommandText = sql;
                 command.AddParameters(new Dictionary<string, object>
-                {
-                    { "@id", Helpers.IdHelper.NewId() },
-                    { "@username", username },
-                    { "@password", HashGenerator.GetHashPassword(password) },
-                });
+                    {
+                        { "@id", Helpers.IdHelper.NewId() },
+                        { "@username", username },
+                        { "@enable", true },
+                        { "@Roles", roles == null ? null : string.Join(",", roles) },
+                        { "@First_name", first_name },
+                        { "@Last_name", last_name },
+                        { "@Mail", mail },
+                        { "@newpassword", HashGenerator.GetHashPassword(password) },
+                    });
                 command.ExecuteNonQuery();
-
-                // TODO: Assign roles to user
             }
+
         }
-     
+
         public bool ValidateUser(string username, string password)
         {
             using (var connection = _db.GetConnection())
