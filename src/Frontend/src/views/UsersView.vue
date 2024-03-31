@@ -31,7 +31,6 @@
           <th>First Name</th>
           <th>Last Name</th>
           <th hidden>Email</th>
-          <th>New Password</th>
           <th>Enable</th>
           <th>Action</th>
         </tr>
@@ -55,9 +54,6 @@
           </td>
           <td hidden>
             <input type="mail" v-model="item.Mail">
-          </td>
-          <td>
-            <input type="password" v-model="item.NewPassword">
           </td>
           <td>
             <div class="form-check form-switch">

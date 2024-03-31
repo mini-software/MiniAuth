@@ -153,7 +153,7 @@ namespace MiniAuth
                     }
                     if (subPath.StartsWithSegments("/api/getAllEndpoints"))
                     {
-                        await OkResult(context, _endpointCache.Values.OrderBy(_ => _.Route).ToJson());
+                        await OkResult(context, _endpointCache.Values.ToJson());
                         return;
                     }
                     if (subPath.StartsWithSegments("/api/getRoles"))
@@ -176,7 +176,7 @@ namespace MiniAuth
 
                     if (subPath.StartsWithSegments("/api/saveUser"))
                     {
-                        await SaveUser(context);
+                        SaveUser(context);
                         return;
                     }
                     if (subPath.StartsWithSegments("/api/deleteUser"))
@@ -222,7 +222,7 @@ namespace MiniAuth
 
         private async Task SaveEndpoint(HttpContext context)
         {
-            JsonDocument bodyJson = await GetBodyJson(context);
+            JsonDocument bodyJson = GetBodyJson(context);
             var root = bodyJson.RootElement;
             var id = root.GetProperty("Id").GetString();
             var roles = root.GetProperty("Roles").Deserialize<string[]>();
@@ -238,7 +238,7 @@ namespace MiniAuth
 
         private async Task SaveRole(HttpContext context)
         {
-            JsonDocument bodyJson = await GetBodyJson(context);
+            JsonDocument bodyJson = GetBodyJson(context);
             var root = bodyJson.RootElement;
             var id = root.GetProperty("Id").GetString();
             var name = root.GetProperty("Name").GetString();
@@ -276,7 +276,7 @@ namespace MiniAuth
 
         private async Task DeleteRole(HttpContext context)
         {
-            JsonDocument bodyJson = await GetBodyJson(context);
+            JsonDocument bodyJson = GetBodyJson(context);
             var root = bodyJson.RootElement;
             if (!root.TryGetProperty("Id", out var _id))
                 throw new MiniAuthException("Without Id key");
@@ -305,7 +305,7 @@ namespace MiniAuth
 
         private async Task DeleteUser(HttpContext context)
         {
-            JsonDocument bodyJson = await GetBodyJson(context);
+            JsonDocument bodyJson = GetBodyJson(context);
             var root = bodyJson.RootElement;
             if (!root.TryGetProperty("Id", out var _id))
                 throw new MiniAuthException("Without Id key");
@@ -334,7 +334,7 @@ namespace MiniAuth
 
         private async Task ResetPassword(HttpContext context)
         {
-            JsonDocument bodyJson = await GetBodyJson(context);
+            JsonDocument bodyJson = GetBodyJson(context);
             var root = bodyJson.RootElement;
             var id = root.GetProperty("Id").GetString();
             var newPassword = Guid.NewGuid().ToString("N").Substring(0, 10);
@@ -344,7 +344,7 @@ namespace MiniAuth
 
         private async Task GetUsers(HttpContext context)
         {
-            JsonDocument bodyJson = await GetBodyJson(context);
+            JsonDocument bodyJson = GetBodyJson(context);
             var root = bodyJson.RootElement;
             var pageIndex = root.GetProperty("pageIndex").GetInt32();
             var pageSize = root.GetProperty("pageSize").GetInt32();
@@ -428,7 +428,7 @@ LIMIT @pageSize OFFSET @offset;
 
         private async Task Login(HttpContext context)
         {
-            JsonDocument bodyJson = await GetBodyJson(context);
+            JsonDocument bodyJson = GetBodyJson(context);
             var root = bodyJson.RootElement;
             var userName = root.GetProperty("username").GetString();
             var password = root.GetProperty("password").GetString();
@@ -472,22 +472,22 @@ LIMIT @pageSize OFFSET @offset;
             }
         }
 
-        private async Task SaveUser(HttpContext context)
+        private void SaveUser(HttpContext context)
         {
-            JsonDocument bodyJson = await GetBodyJson(context);
+            JsonDocument bodyJson = GetBodyJson(context);
             var root = bodyJson.RootElement;
             var id = root.GetProperty("Id").GetString();
             var roles = root.GetProperty("Roles").Deserialize<string[]>();
             var parameters = new Dictionary<string, object>()
-                        {
-                            { "@id", id },
-                            { "@username", root.GetProperty("Username").GetString() },
-                            { "@enable", root.GetProperty("Enable").GetBoolean() ? 1 : 0 },
-                            { "@First_name", root.GetProperty("First_name").GetString() },
-                            { "@Last_name", root.GetProperty("Last_name").GetString() },
-                            { "@Mail", root.GetProperty("Mail").GetString() },
-                            { "@Roles", roles==null?null:string.Join(",",roles) },
-                        };
+            {
+                { "@id", id },
+                { "@username", root.GetProperty("Username").GetString() },
+                { "@enable", root.GetProperty("Enable").GetBoolean() ? 1 : 0 },
+                { "@First_name", root.GetProperty("First_name").GetString() },
+                { "@Last_name", root.GetProperty("Last_name").GetString() },
+                { "@Mail", root.GetProperty("Mail").GetString() },
+                { "@Roles", roles==null?null:string.Join(",",roles) },
+            };
             using (var cn = this._db.GetConnection())
             {
                 using (var command = cn.CreateCommand())
@@ -504,11 +504,14 @@ values (@username,@enable,@Roles,@First_name,@Last_name,@Mail)";
 enable=@enable , Roles=@Roles,First_name=@First_name,Last_name=@Last_name,Mail=@Mail
 where id = @id";
                         command.AddParameters(parameters);
-
-                        var newPassword = root.GetProperty("NewPassword").GetString();
-                        if (!string.IsNullOrEmpty(newPassword))
+                        var newPassword = string.Empty;
+                        if (root.TryGetProperty("NewPassword",out JsonElement j))
                         {
-                            _userManer.UpdatePassword(id, newPassword);
+                            newPassword = j.GetString();
+                            if (!string.IsNullOrEmpty(newPassword))
+                            {
+                                _userManer.UpdatePassword(id, newPassword);
+                            }
                         }
                     }
 
@@ -517,13 +520,13 @@ where id = @id";
 
 
             }
-            await OkResult(context, "".ToJson(code: 200, message: ""));
+            OkResult(context, "".ToJson(code: 200, message: "")).GetAwaiter().GetResult();
         }
 
-        private static async Task<JsonDocument> GetBodyJson(HttpContext context)
+        private JsonDocument GetBodyJson(HttpContext context)
         {
             var reader = new StreamReader(context.Request.Body);
-            var body = await reader.ReadToEndAsync();
+            var body = reader.ReadToEndAsync().GetAwaiter().GetResult(); //TODO:
             var bodyJson = JsonDocument.Parse(body);
             return bodyJson;
         }

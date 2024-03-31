@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using MiniAuth.Exceptions;
 using MiniAuth.Helpers;
 namespace MiniAuth.Managers
 {
@@ -60,6 +61,10 @@ namespace MiniAuth.Managers
 
         public void UpdatePassword(string id, string newPassword)
         {
+            if (newPassword.Length < 8)
+                throw new MiniAuthException("Password must be at least 8 characters");
+            if (newPassword.Length > 100)
+                throw new MiniAuthException("Password must be less than 100 characters");
             using (var connection = _db.GetConnection())
             {
                 string sql = "UPDATE Users SET Password = @newPassword WHERE id = @id;";
