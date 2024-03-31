@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using MiniAuth.Configs;
 using MiniAuth.Helpers;
+using System.Data.SqlClient;
+using System.Data.SQLite;
 
 namespace MiniAuth.Web
 {
@@ -11,6 +13,10 @@ namespace MiniAuth.Web
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddCors(options => options.AddPolicy("AllowAll", builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
             builder.Services.AddControllers();
+            //builder.Services.AddSingleton<MiniAuthOptions>(new MiniAuthOptions {ExpirationMinuteTime=12*24*60 });
+            builder.Services.AddSingleton<IMiniAuthDB>(
+                 new MiniAuthDB<System.Data.SqlClient.SqlConnection>("Data Source=(localdb)\\MSSQLLocalDB;Integrated Security=SSPI;Initial Catalog=miniauth;app=MiniAuth")
+            );
             var app = builder.Build();
             app.UseCors("AllowAll");
             app.UseStaticFiles();

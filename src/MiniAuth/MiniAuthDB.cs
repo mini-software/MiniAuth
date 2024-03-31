@@ -1,19 +1,37 @@
-﻿using MiniAuth.Helpers;
+﻿using MiniAuth.Exceptions;
+using MiniAuth.Helpers;
 using MiniAuth.Managers;
 using System;
 using System.Data.Common;
 using System.Data.SQLite;
+using System.Text.RegularExpressions;
 namespace MiniAuth
 {
     public interface IMiniAuthDB
     {
         DbConnection GetConnection();
+        DBType GetCurrentDBType();
+    }
+
+    // enum for sqlite or sqlserver
+    public enum DBType
+    {
+        SQLite,
+        SQLServer,
+        Unknown
     }
     public class MiniAuthDB<T> : IMiniAuthDB
         where T : DbConnection, new()
     {
         public string ConnectionString;
         public Func<DbConnection> _GetConnection;
+
+        public DBType DBType = DBType.Unknown;
+        public DBType GetCurrentDBType()
+        {
+            return DBType;
+        }
+
         public DbConnection GetConnection()
         {
             return _GetConnection();
@@ -28,12 +46,22 @@ namespace MiniAuth
                     cn.Open();
                 return cn;
             };
+
             if (typeof(T).Name.ToUpper().Contains("SQLITE"))
+                DBType = DBType.SQLite;
+            if (typeof(T).Name.ToUpper() == ("SQLCONNECTION"))
+                DBType = DBType.SQLServer;
+            if (DBType == DBType.Unknown)
+                throw new MiniAuthException($"{typeof(T).Name} DB Type doesn't support.");
+
             {
-                if (!System.IO.File.Exists("miniauth.db"))
+                string initSql = string.Empty;
+                if (DBType == DBType.SQLite)
                 {
-                    SQLiteConnection.CreateFile("miniauth.db");
-                    string sql = @"
+                    if (!System.IO.File.Exists("miniauth.db"))
+                    {
+                        SQLiteConnection.CreateFile("miniauth.db");
+                        initSql = @"
 create table users (  
     id text not null primary key,  
     username text not null unique, 
@@ -67,15 +95,15 @@ create table endpoints (
 
 insert into roles (id,type,name) values ('13414618672271360','miniauth','miniauth-admin');
 insert into users (id,type,username,password,roles) values ('13414618672271350','miniauth','miniauth','','13414618672271360');
-
 ";
-                    using (var connection = _GetConnection())
-                    {
-                        connection.ExecuteNonQuery(sql);
-                        new UserManager(this).UpdatePassword("13414618672271350", "miniauth");
+                        using (var connection = _GetConnection())
+                        {
+                            connection.ExecuteNonQuery(initSql);
+                            var manager = new UserManager(this);
+                            manager.UpdatePassword("13414618672271350", "miniauth");
 
 #if DEBUG
-                        connection.ExecuteNonQuery(@"
+                            connection.ExecuteNonQuery(@"
 insert into roles (id,type,name) values ('13414618672271361',null,'HR');
 insert into roles (id,type,name) values ('13414618672271362',null,'IT');
 insert into roles (id,type,name) values ('13414618672271363',null,'RD');
@@ -83,15 +111,37 @@ insert into users (id,type,username,password,roles) values ('13414618672271351',
 insert into users (id,type,username,password,roles) values ('13414618672271352',null,'miniauth-hr','','13414618672271361');
 insert into users (id,type,username,password,roles) values ('13414618672271353',null,'miniauth-it','','13414618672271362,13414618672271363');
 ");
-                        new UserManager(this).UpdatePassword("13414618672271351", "miniauth-user");
-                        new UserManager(this).UpdatePassword("13414618672271352", "miniauth-hr");
-                        new UserManager(this).UpdatePassword("13414618672271353", "miniauth-it");
+                            manager.UpdatePassword("13414618672271351", "miniauth-user");
+                            manager.UpdatePassword("13414618672271352", "miniauth-hr");
+                            manager.UpdatePassword("13414618672271353", "miniauth-it");
 #endif
+                        }
+                    }
+                }
+
+                if (DBType == DBType.SQLServer)
+                {
+                    try
+                    {
+                        using (var connection = _GetConnection())
+                        {
+                            var existDb = connection.ExecuteScalar<int?>("select 1 from sys.databases where name = 'miniauth' ") == 1;
+                            if (!existDb)
+                                throw new MiniAuthException("Please create sql server db by script first");
+
+                            var adminPassword = connection.ExecuteScalar<string>("select password from miniauth..users where id = '13414618672271350' ");
+                            if (string.IsNullOrWhiteSpace(adminPassword))
+                            {
+                                new UserManager(this).UpdatePassword("13414618672271350", "miniauth");
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
                     }
                 }
             }
         }
-
-
     }
 }

@@ -41,7 +41,7 @@ namespace MiniAuth
         private readonly IUserManager _userManer;
         private readonly IRoleEndpointManager _endpointManager;
         private readonly ILogger<MiniAuthMiddleware> _logger;
-        private readonly ConcurrentDictionary<string, RoleEndpointEntity> _endpointCache = new ConcurrentDictionary<string, RoleEndpointEntity>();
+        private ConcurrentDictionary<string, RoleEndpointEntity> _endpointCache = new ConcurrentDictionary<string, RoleEndpointEntity>();
         private RoleEndpointEntity _routeEndpoint;
         private bool _isMiniAuthPath;
 
@@ -84,12 +84,7 @@ namespace MiniAuth
             this._endpointSources = endpointSources;
             this._staticFileMiddleware = CreateStaticFileMiddleware(next, loggerFactory, hostingEnv); ;
 
-            {
-                var systemEndpoints = _endpointManager.GetEndpointsAsync(_endpointSources).GetAwaiter().GetResult();
-                var cache = systemEndpoints.ToDictionary(p => p.Id);
-                var endpointCache = new ConcurrentDictionary<string, RoleEndpointEntity>(cache);
-                _endpointCache = endpointCache;
-            }
+ 
         }
 
         private StaticFileMiddleware CreateStaticFileMiddleware(RequestDelegate next, ILoggerFactory loggerFactory, IWebHostEnvironment hostingEnv)
@@ -106,6 +101,16 @@ namespace MiniAuth
         {
             try
             {
+                if (_endpointCache.Count==0) // avoid init error to shut down app
+                {
+                    {
+                        var systemEndpoints = _endpointManager.GetAndInitEndpointsAsync(_endpointSources).GetAwaiter().GetResult();
+                        var cache = systemEndpoints.ToDictionary(p => p.Id);
+                        var endpointCache = new ConcurrentDictionary<string, RoleEndpointEntity>(cache);
+                        _endpointCache = endpointCache;
+                    }
+                }
+
                 _ = context ?? throw new ArgumentNullException(nameof(context));
                 _isMiniAuthPath = context.Request.Path.StartsWithSegments($"/{_options.RoutePrefix}", out PathString subPath);
 
@@ -360,12 +365,43 @@ namespace MiniAuth
             {
                 using (var command = cn.CreateCommand())
                 {
-                    command.CommandText = @"select id,username,first_name,
+                    switch (_db.GetCurrentDBType())
+                    {
+                        case DBType.SQLite:
+                            command.CommandText = @"select id,username,first_name,
 last_name,emp_no,mail,Enable,roles ,type
 from users u 
 order by id
 LIMIT @pageSize OFFSET @offset;
 ";
+                            break;
+                        case DBType.SQLServer:
+                            command.CommandText = @"SELECT id, username, first_name,  
+       last_name, emp_no, mail, Enable, roles, type  
+FROM users u  
+ORDER BY id  
+OFFSET @offset ROWS  
+FETCH NEXT @pageSize ROWS ONLY;
+";
+                            break;
+                        case DBType.Unknown:
+                            command.CommandText = @"select id,username,first_name,
+last_name,emp_no,mail,Enable,roles ,type
+from users u 
+order by id
+LIMIT @pageSize OFFSET @offset;
+";
+                            break;
+                        default:
+                            command.CommandText = @"select id,username,first_name,
+last_name,emp_no,mail,Enable,roles ,type
+from users u 
+order by id
+LIMIT @pageSize OFFSET @offset;
+";
+                            break;
+                    }
+                    
                     command.AddParameters(new Dictionary<string, object>()
                     {
                         { "@pageSize", pageSize },
@@ -391,7 +427,7 @@ LIMIT @pageSize OFFSET @offset;
                         }
                     }
                 }
-                totalItems = cn.ExecuteScalar<long>("select count(*) from users");
+                totalItems = cn.ExecuteScalar<int>("select count(*) from users");
             }
 
             await OkResult(context, new { users, totalItems }.ToJson());
@@ -532,7 +568,8 @@ where id = @id";
                         command.ExecuteNonQuery();
                     }
                 }
-            }  
+            }
+            OkResult(context, "".ToJson(code: 200, message: "")).GetAwaiter().GetResult();
         }
 
         private async Task<JsonDocument> GetBodyJson(HttpContext context)

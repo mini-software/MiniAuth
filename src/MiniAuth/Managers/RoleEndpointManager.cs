@@ -9,7 +9,7 @@ namespace MiniAuth.Managers
 {
     public interface IRoleEndpointManager
     {
-        Task<List<RoleEndpointManager.RoleEndpointEntity>> GetEndpointsAsync(IEnumerable<Microsoft.AspNetCore.Routing.EndpointDataSource> _endpointSources);
+        Task<List<RoleEndpointManager.RoleEndpointEntity>> GetAndInitEndpointsAsync(IEnumerable<Microsoft.AspNetCore.Routing.EndpointDataSource> _endpointSources);
         Task<bool> UpdateEndpoint(RoleEndpointManager.RoleEndpointEntity endpoint);
     }
 
@@ -22,7 +22,7 @@ namespace MiniAuth.Managers
             _db = db;
         }
 
-        public async Task<List<RoleEndpointEntity>> GetEndpointsAsync(IEnumerable<Microsoft.AspNetCore.Routing.EndpointDataSource> _endpointSources)
+        public async Task<List<RoleEndpointEntity>> GetAndInitEndpointsAsync(IEnumerable<Microsoft.AspNetCore.Routing.EndpointDataSource> _endpointSources)
         {
             using (var connection = _db.GetConnection())
             {
@@ -65,7 +65,7 @@ where id = @id";
                         { "@methods", string.Join(",", endpoint.Methods??new[]{ ""}) },
                         { "@enable", endpoint.Enable ? 1 : 0 },
                         { "@RedirectToLoginPage", endpoint.RedirectToLoginPage ? 1 : 0 },
-                        { "@roles", string.Join(",",endpoint.Roles) },
+                        { "@roles", endpoint.Roles==null?null:string.Join(",",endpoint.Roles) },
                     });
                     await command.ExecuteNonQueryAsync();
                 }
@@ -80,6 +80,7 @@ where id = @id";
                 {
                     using (var command = connection.CreateCommand())
                     {
+                        command.Transaction = transaction;
                         command.CommandText = @"INSERT INTO endpoints (id,type,name,route,methods,enable,RedirectToLoginPage,roles) 
 VALUES (@id,@type,@name,@route,@methods,@enable,@RedirectToLoginPage,@roles)";
                         var ps = new Dictionary<string, object>
@@ -97,7 +98,7 @@ VALUES (@id,@type,@name,@route,@methods,@enable,@RedirectToLoginPage,@roles)";
                         await command.ExecuteNonQueryAsync();
                     }
                 }
-                transaction.Commit();
+                await transaction.CommitAsync();
             }
         }
 
