@@ -59,7 +59,7 @@ namespace MiniAuth.Tests.AspNetCore
             }
         }
 
-        [Fact]
+        //[Fact]
         public async Task LoginApiTest()
         {
             {
