@@ -442,7 +442,12 @@ LIMIT @pageSize OFFSET @offset;
             {
                 var user = _userManer.GetUser(userName);
                 var roles = user["roles"] as string[];
-                var newToken = _jwtManager.GetToken(userName, userName, _options.ExpirationMinuteTime, roles);
+                var newToken = _jwtManager.GetToken(userName, userName, _options.ExpirationMinuteTime, roles
+                    ,first_name: user["first_name"]?.ToString()
+                    ,last_name: user["last_name"]?.ToString()
+                    ,mail: user["mail"]?.ToString()
+                    ,emp_no: user["emp_no"]?.ToString()
+                );
                 context.Response.Headers.Add("X-MiniAuth-Token", newToken);
 
 

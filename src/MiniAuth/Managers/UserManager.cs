@@ -86,7 +86,8 @@ values (@id,@username,@enable,@Roles,@First_name,@Last_name,@Mail,@newpassword)"
         {
             using (var connection = _db.GetConnection())
             {
-                string sql = "SELECT * FROM Users WHERE Username = @username and enable = 1;";
+                string sql = @"SELECT id,username,roles,enable,first_name,last_name,mail,emp_no,type
+FROM Users WHERE Username = @username and enable = 1;";
                 var command = connection.CreateCommand();
                 command.CommandText = sql;
                 command.AddParameters(new Dictionary<string, object>
@@ -100,7 +101,13 @@ values (@id,@username,@enable,@Roles,@First_name,@Last_name,@Mail,@newpassword)"
                     {
                         { "id", reader["id"] },
                         { "username", reader["username"] },
-                        { "roles", reader["roles"]?.ToString().Split(',') }
+                        { "roles", reader["roles"]?.ToString()?.Split(',') },
+                        { "enable", reader["enable"] },
+                        { "first_name", reader["first_name"] },
+                        { "last_name", reader["last_name"] },
+                        { "mail", reader["mail"] },
+                        { "emp_no", reader["emp_no"] },
+                        { "type", reader["type"] }
                     };
                 }
                 return null;

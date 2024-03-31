@@ -12,7 +12,7 @@ namespace MiniAuth.Managers
     public interface IJWTManager
     {
         string DecodeToken(string token);
-        string GetToken(string sub, string name, int expMins, IEnumerable<string> roles);
+        string GetToken(string sub, string name, int expMins, IEnumerable<string> roles, string first_name = null, string last_name = null, string mail = null, string emp_no = null);
     }
 
     public class JWTManager : IJWTManager
@@ -51,13 +51,18 @@ namespace MiniAuth.Managers
             }
         }
 
-        public string GetToken(string sub, string name, int expMins, IEnumerable<string> roles)
+        public string GetToken(string sub, string name, int expMins, IEnumerable<string> roles,string first_name=null,string last_name=null,
+            string mail=null,string emp_no=null)
         {
             var id = Helpers.IdHelper.NewId();
             var payload = new Dictionary<string, object>
             {
                 { "sub", sub },
                 { "name", name },
+                { "first_name", first_name },
+                { "last_name", last_name },
+                { "mail", mail },
+                { "emp_no", emp_no },
                 { "iss", "miniauth"},
                 { "roles", roles},
                 { "jti", id},
