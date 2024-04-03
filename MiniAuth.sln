@@ -9,8 +9,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MiniAuth.Web", "tests\MiniA
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Readme", "Readme", "{0896AF4C-F6A2-4CBE-95AA-1A11B623599B}"
 	ProjectSection(SolutionItems) = preProject
+		README.es.md = README.es.md
+		README.jp.md = README.jp.md
+		README.ko.md = README.ko.md
 		README.md = README.md
 		README.zh-CN.md = README.zh-CN.md
+		README.zh-Hant.md = README.zh-Hant.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Releases", "Releases", "{0FF62372-13BC-4520-8749-AAE3E5BE3B0D}"

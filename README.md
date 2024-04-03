@@ -7,7 +7,9 @@
 ---
 
 <div align="center">
-<p><strong><a href="README.md">English</a> | <a href="README.zh-CN.md">简体中文</a> </strong></p>
+<p><strong>
+    <a href="README.md">English</a> | <a href="README.zh-CN.md">简体中文</a> | <a href="README.zh-Hant">繁體中文</a> | <a href="README.ja">日本語</a> | <a href="README.ko">한국어</a> | <a href="README.es">Español</a>  
+</strong></p>
 </div>
 
 
@@ -58,6 +60,13 @@ app.UseMiniAuth();
 
 The default admin account "miniauth"  and  password "miniauth" `(remember to change the password)`.
 The admin page:  `http(s)://yourhost/miniauth/index.html`.
+
+Note : Please put UseMiniAuth after route creating for system get endpoint data, e.g.
+
+```c#
+app.UseRouting();
+app.UseMiniAuth();
+```
 
 #### Login
 

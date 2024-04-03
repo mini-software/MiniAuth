@@ -70,7 +70,16 @@ app.UseMiniAuth();
 预设 admin 管理账号为 miniauth 密码为 miniauth (注意记得修改密码)
 管理页面为 `http(s)://yourhost/miniauth/index.html`
 
-#### 登入
+注意 : 请将 UseMiniAuth 放在路由生成之后，否则系统无法获取路由数据作权限判断，如 :
+
+```c#
+app.UseRouting();
+app.UseMiniAuth();
+```
+
+
+
+#### 登录
 
 api 接口 `Post /MiniAuth/login` 
 传入 json body
@@ -89,7 +98,7 @@ api 接口 `Post /MiniAuth/login`
 
 删除 Cookie X-MiniAuth-Token 系统即可登出
 
-也可以使用 api 接口 `Get /MiniAuth/logout` 删除 cookie 跟跳转到登入页面
+也可以使用 api 接口 `Get /MiniAuth/logout` 删除 cookie 跟跳转到登录页面
 
 #### 获取当前用户数据
 
@@ -173,14 +182,14 @@ builder.Services.AddSingleton<IMiniAuthDB>(
 #### 预设模式
 
 - MiniAuth 预设模式为IT Admin 集中用户管理，用户注册、密码重置等操作需要 Admin 权限账号操作。
-- 第一次会将现有所有的 endpoint 加入系统权限管控，预设需要登入后才能访问。
+- 第一次会将现有所有的 endpoint 加入系统权限管控，预设需要登录后才能访问。
 - 新的 endpoint 系统会在重新启动时检查并添加。
 - 用户密码预设以点击重置按钮得到随机密码
 - 创建完用户后请记得按重置密码
 
-#### 登入、用户验证
-非 ApiController 预设登入导向 login.html 页面
-ApiController 的 Controller 预设不会导向登入页面，而是返回 401 status code
+#### 登录、用户验证
+非 ApiController 预设登录导向 login.html 页面
+ApiController 的 Controller 预设不会导向登录页面，而是返回 401 status code
 
 #### 预设过期时间
 
