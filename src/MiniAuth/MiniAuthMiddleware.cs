@@ -17,6 +17,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -59,7 +60,7 @@ namespace MiniAuth
         {
             var host = Environment.GetEnvironmentVariable("ASPNETCORE_URLS") ?? "http://localhost:5000";
             this._logger = logger;
-            this._logger.LogInformation($"MiniAuth management page : {host}/miniauth/index.html");
+            _logger.LogInformation($"MiniAuth management page : {host}/miniauth/index.html");
             this._next = next;
             if (db == null)
                 this._db = new MiniAuthDB<SQLiteConnection>("Data Source=miniauth.db;Version=3;Journal Mode=WAL;");
@@ -84,7 +85,7 @@ namespace MiniAuth
             this._endpointSources = endpointSources;
             this._staticFileMiddleware = CreateStaticFileMiddleware(next, loggerFactory, hostingEnv); ;
 
- 
+
         }
 
         private StaticFileMiddleware CreateStaticFileMiddleware(RequestDelegate next, ILoggerFactory loggerFactory, IWebHostEnvironment hostingEnv)
@@ -101,7 +102,9 @@ namespace MiniAuth
         {
             try
             {
-                if (_endpointCache.Count==0) // avoid init error to shut down app
+
+
+                if (_endpointCache.Count == 0) // avoid init error to shut down app
                 {
                     {
                         var systemEndpoints = _endpointManager.GetAndInitEndpointsAsync(_endpointSources).GetAwaiter().GetResult();
@@ -115,6 +118,12 @@ namespace MiniAuth
                 _isMiniAuthPath = context.Request.Path.StartsWithSegments($"/{_options.RoutePrefix}", out PathString subPath);
 
                 _routeEndpoint = GetEndpoint(context);
+
+#if DEBUG
+                Debug.WriteLine("================================================");
+                Debug.WriteLine($"{DateTime.Now.ToString("HH:mm:ss")}, Path: {context.Request.Path}, _isMiniAuthPath: {_isMiniAuthPath}, _routeEndpoint: {_routeEndpoint?.Id} {_routeEndpoint?.Name} {_routeEndpoint?.Route} {_routeEndpoint?.Type}");
+#endif
+
                 if (_routeEndpoint == null && !_isMiniAuthPath)
                 {
                     await _next(context);
@@ -126,7 +135,7 @@ namespace MiniAuth
                     return;
 
 #if DEBUG
-                _logger.LogInformation($"{DateTime.Now.ToString("HH:mm:ss")}, Path: {context.Request.Path}, isAuth: {isAuth}, _isMiniAuthPath: {_isMiniAuthPath}, _routeEndpoint: {_routeEndpoint?.Id} {_routeEndpoint?.Name} {_routeEndpoint?.Route} {_routeEndpoint?.Type}");
+                Debug.WriteLine($"isAuth: {isAuth}");
 #endif
 
                 if (_isMiniAuthPath)
@@ -158,7 +167,7 @@ namespace MiniAuth
                     }
                     if (subPath.StartsWithSegments("/api/getAllEndpoints"))
                     {
-                        await OkResult(context, _endpointCache.Values.OrderByDescending(o=>o.Id).ToJson());
+                        await OkResult(context, _endpointCache.Values.OrderByDescending(o => o.Id).ToJson());
                         return;
                     }
                     if (subPath.StartsWithSegments("/api/getRoles"))
@@ -401,7 +410,7 @@ LIMIT @pageSize OFFSET @offset;
 ";
                             break;
                     }
-                    
+
                     command.AddParameters(new Dictionary<string, object>()
                     {
                         { "@pageSize", pageSize },
@@ -427,7 +436,7 @@ LIMIT @pageSize OFFSET @offset;
                         }
                     }
                 }
-                if(_db.GetCurrentDBType()==DBType.SQLite)
+                if (_db.GetCurrentDBType() == DBType.SQLite)
                     totalItems = cn.ExecuteScalar<long>("select count(*) from users");
                 else if (_db.GetCurrentDBType() == DBType.SQLServer)
                     totalItems = cn.ExecuteScalar<int>("select count(*) from users");
@@ -484,10 +493,10 @@ LIMIT @pageSize OFFSET @offset;
                 var user = _userManer.GetUser(userName);
                 var roles = user["roles"] as string[];
                 var newToken = _jwtManager.GetToken(userName, userName, _options.ExpirationMinuteTime, roles
-                    ,first_name: user["first_name"]?.ToString()
-                    ,last_name: user["last_name"]?.ToString()
-                    ,mail: user["mail"]?.ToString()
-                    ,emp_no: user["emp_no"]?.ToString()
+                    , first_name: user["first_name"]?.ToString()
+                    , last_name: user["last_name"]?.ToString()
+                    , mail: user["mail"]?.ToString()
+                    , emp_no: user["emp_no"]?.ToString()
                 );
                 context.Response.Headers.Add("X-MiniAuth-Token", newToken);
 
@@ -580,7 +589,7 @@ where id = @id";
         private async Task<JsonDocument> GetBodyJson(HttpContext context)
         {
             var reader = new StreamReader(context.Request.Body);
-            var body = await reader.ReadToEndAsync(); 
+            var body = await reader.ReadToEndAsync();
             var bodyJson = JsonDocument.Parse(body);
             return bodyJson;
         }
@@ -621,12 +630,12 @@ where id = @id";
                             message = "Unauthorized";
                         }
 #if DEBUG
-                        _logger.LogInformation($"hasRole: {hasRole}");
+                        Debug.WriteLine($"hasRole: {hasRole}");
 #endif
                     }
 #if DEBUG
-                    _logger.LogInformation($"Endpoint.Roles {JsonConvert.SerializeObject(new { _routeEndpoint.Roles })}");
-                    _logger.LogInformation($"JWT User {JsonConvert.SerializeObject(user)}");
+                    Debug.WriteLine($"Endpoint.Roles {JsonConvert.SerializeObject(new { _routeEndpoint.Roles })}");
+                    Debug.WriteLine($"JWT User {JsonConvert.SerializeObject(user)}");
 #endif
                 }
                 catch (TokenNotYetValidException)
@@ -653,7 +662,7 @@ where id = @id";
             if (!isAuth)
                 DeniedEndpoint(context, new ResponseVo { code = messageCode, message = message });
 #if DEBUG
-            _logger.LogInformation($"messageCode: {messageCode} message: {message}");
+            Debug.WriteLine($"messageCode: {messageCode} message: {message}");
 #endif
             return isAuth;
         }
@@ -667,9 +676,21 @@ where id = @id";
                 else
                     return null;
             }
+
+
+            var route = context.GetRouteData();
+#if DEBUG
+            Debug.WriteLine($"routedata : {JsonConvert.SerializeObject(route)}");
+#endif
             var ctxEndpoint = context.GetEndpoint();
+#if DEBUG
+            Debug.WriteLine($"ctxEndpoint: {ctxEndpoint?.DisplayName}");
+#endif
             if (ctxEndpoint != null)
             {
+#if DEBUG
+                Debug.WriteLine($"_endpointCache[ctxEndpoint.DisplayName]: {_endpointCache[ctxEndpoint.DisplayName]}");
+#endif
                 return _endpointCache[ctxEndpoint.DisplayName];
             }
             return null;

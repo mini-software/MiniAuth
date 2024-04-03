@@ -1,15 +1,13 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
+using MiniAuth;
 using System;
 
-namespace MiniAuth
+public static class MiniAuthBuilderExtensions
 {
-    public static class MiniAuthBuilderExtensions
+    public static IApplicationBuilder UseMiniAuth(this IApplicationBuilder builder)
     {
-        public static IApplicationBuilder UseMiniAuth(this IApplicationBuilder builder)
-        {
-            _ = builder ?? throw new ArgumentNullException(nameof(builder));
-            return builder.UseMiddleware<MiniAuthMiddleware>();
-        }
+        _ = builder ?? throw new ArgumentNullException(nameof(builder));
+        return builder.UseMiddleware<MiniAuthMiddleware>();
     }
 }
+

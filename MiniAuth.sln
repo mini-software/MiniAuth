@@ -36,6 +36,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{4957
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MiniAuth.AOT", "src\MiniAuth.AOT\MiniAuth.AOT.csproj", "{EE6E08F1-CA2E-45D8-BF29-7AC5BF5E24DE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiniAuthTest.AspNetCoreMVC", "tests\MiniAuthTest.AspNetCoreMVC\MiniAuthTest.AspNetCoreMVC.csproj", "{A157FDAB-D26E-4DAB-96D0-869032EAE898}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -58,6 +60,10 @@ Global
 		{EE6E08F1-CA2E-45D8-BF29-7AC5BF5E24DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EE6E08F1-CA2E-45D8-BF29-7AC5BF5E24DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EE6E08F1-CA2E-45D8-BF29-7AC5BF5E24DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A157FDAB-D26E-4DAB-96D0-869032EAE898}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A157FDAB-D26E-4DAB-96D0-869032EAE898}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A157FDAB-D26E-4DAB-96D0-869032EAE898}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A157FDAB-D26E-4DAB-96D0-869032EAE898}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -68,6 +74,7 @@ Global
 		{F49D7CE6-7FB0-4A2F-B20A-4D11F99F8BCF} = {119A6AF1-E780-4B91-A26A-EA6647E1C1D4}
 		{D14A76BB-35FE-4E58-8243-582552DC531E} = {A09BB832-5386-4D43-BA9A-3F78DD06E19E}
 		{EE6E08F1-CA2E-45D8-BF29-7AC5BF5E24DE} = {F97A714F-28E9-40E4-AA78-2238B8E4A05D}
+		{A157FDAB-D26E-4DAB-96D0-869032EAE898} = {119A6AF1-E780-4B91-A26A-EA6647E1C1D4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {823332EF-B62C-41B2-9730-7D7E555A9D1C}
