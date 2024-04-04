@@ -41,7 +41,57 @@ emitter.on('closeLoading', () => {
   loadingFlag.value = false
 })
 
-i18n.global.locale.value = localStorage.getItem('lang')?.toString() ?? 'en_us'
+const setLanguage = () => {
+  const browserLang = navigator.language || navigator.userLanguage;
+  const storedLang = localStorage.getItem('lang');
+  const defaultLang = 'en_us';
+  const browserLangCode = browserLang.toLowerCase().replace('-', '_');
+  const langCode = browserLangCode.split('_')[0];
+  if (storedLang) {
+    switchLang(storedLang);
+    return;
+  }
+
+  if (browserLangCode === 'zh_cn') {
+    switchLang('zh_cn');
+    return;
+  }
+  if (langCode === 'zh') {
+    switchLang('zh_hant');
+    return;
+  }
+  if (langCode === 'en') {
+    switchLang('en_us');
+    return;
+  }
+  if (langCode === 'ja') {
+    switchLang('ja');
+    return;
+  }
+  if (langCode === 'ko') {
+    switchLang('ko');
+    return;
+  }
+  if (langCode === 'es') {
+    switchLang('es');
+    return;
+  }
+  if (langCode === 'fr') {
+    switchLang('fr');
+    return;
+  }
+  if (langCode === 'ru') {
+    switchLang('ru');
+    return;
+  }
+
+  switchLang(defaultLang);
+}
+
+onMounted(() => {
+  setLanguage();
+});
+
 
 </script>
 
@@ -71,7 +121,7 @@ i18n.global.locale.value = localStorage.getItem('lang')?.toString() ?? 'en_us'
                   </li>
                 </ul>
                 <div class="navbar-nav ms-auto">
-                  <ul class="navbar-nav"> 
+                  <ul class="navbar-nav">
                     <li class="nav-item dropdown">
                       <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button"
                         data-bs-toggle="dropdown" aria-expanded="false">
@@ -85,6 +135,7 @@ i18n.global.locale.value = localStorage.getItem('lang')?.toString() ?? 'en_us'
                         <li><a class="btn dropdown-item" @click="switchLang('ko')">한국어</a></li>
                         <li><a class="btn dropdown-item" @click="switchLang('es')">Español</a></li>
                         <li><a class="btn dropdown-item" @click="switchLang('fr')">Français</a></li>
+                        <li><a class="btn dropdown-item" @click="switchLang('ru')">Русский</a></li>
                       </ul>
                     </li>
                   </ul>
