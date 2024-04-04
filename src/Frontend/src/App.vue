@@ -52,7 +52,7 @@ const setLanguage = () => {
     return;
   }
 
-  if (browserLangCode === 'zh_cn' || browserLangCode==='zh_hans') {
+  if (browserLangCode === 'zh_cn' || browserLangCode === 'zh_hans') {
     switchLang('zh_cn');
     return;
   }
@@ -174,6 +174,22 @@ onMounted(() => {
 </template>
 
 <style>
+.role_checkbox {
+  border: 1px solid #000;
+  appearance: none;
+  position: relative;
+}
+
+.role_checkbox:checked::after {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+}
+
+
 /* scrollable-container */
 .scrollable-container {
   overflow-x: auto;

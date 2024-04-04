@@ -167,7 +167,7 @@ namespace MiniAuth
                     }
                     if (subPath.StartsWithSegments("/api/getAllEndpoints"))
                     {
-                        await OkResult(context, _endpointCache.Values.OrderByDescending(o => o.Id).ToJson());
+                        await getAllEndpoints(context);
                         return;
                     }
                     if (subPath.StartsWithSegments("/api/getRoles"))
@@ -232,6 +232,11 @@ namespace MiniAuth
 #endif
                 return;
             }
+        }
+
+        private async Task getAllEndpoints(HttpContext context)
+        {
+            await OkResult(context, _endpointCache.Values.OrderByDescending(o => o.Id).ToJson());
         }
 
         private async Task SaveEndpoint(HttpContext context)

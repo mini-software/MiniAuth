@@ -36,11 +36,14 @@
             </div>
           </td>
           <td>
-            <select :disabled="item.Type == 'miniauth'" multiple v-model="item.Roles" class="resizable"
-              style="height: 25px;">
-              <option></option>
-              <option v-for="(role, index) in roles" :value="role.Id" :key="index">{{ role.Name }}</option>
-            </select>
+            <div class="resizable" style="height: 25px;scroll-behavior: smooth;overflow-y: auto;">
+              <div class=" form-check" v-for="(role, index) in roles" :key="index">
+                <input :disabled="item.Type == 'miniauth'" class="role_checkbox form-check-input" type="checkbox" 
+                :value="role.Id"
+                  v-model="item.Roles">
+                <label class="form-check-label" :for="'role_' + index">{{ role.Name }}</label>
+              </div>
+            </div>
           </td>
           <td>
             <button :disabled="item.Type == 'miniauth'" class="btn" @click="saveEndpoint(item)">
@@ -69,8 +72,6 @@
 .resizable:hover {
   height: 130px !important;
 }
-
-
 </style>
 
 <script setup>
@@ -78,7 +79,7 @@ import { onMounted, ref } from 'vue'
 import service from '@/axios/service.ts';
 import { i18n } from '@/i18n'
 import { useI18n } from 'vue-i18n';
-const {t}  = useI18n();
+const { t } = useI18n();
 
 
 const pageTitle = ref('EndPoints')

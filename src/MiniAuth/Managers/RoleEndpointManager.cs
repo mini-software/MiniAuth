@@ -249,7 +249,7 @@ FROM endpoints p";
                             Enable = reader.GetInt32(4) == 1,
                             RedirectToLoginPage = reader.GetInt32(5) == 1,
                             Type = reader.GetString(6),
-                            Roles = reader.IsDBNull(7)?null:reader.GetString(7)?.Split(',')
+                            Roles = reader.IsDBNull(7) ? new string[0] { } :reader.GetString(7)?.Split(',')
                         };
                         dbEndpoints.Add(endpoint);
                     }

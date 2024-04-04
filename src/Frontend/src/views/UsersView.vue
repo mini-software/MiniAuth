@@ -41,11 +41,14 @@
             <input type="text" v-model="item.Username">
           </td>
           <td>
-            <select multiple v-model="item.Roles" class="resizable" style="height: 25px;">
-              <option></option>
-              <option v-for="(role, index) in roles" :value="role.Id" :key="index">{{ role.Name }}</option>
-            </select>
-            
+            <div class="resizable" style="height: 25px;scroll-behavior: smooth;overflow-y: auto;">
+              <div class=" form-check" v-for="(role, index) in roles" :key="index">
+                <input :disabled="item.Type == 'miniauth'" class="role_checkbox form-check-input" type="checkbox" 
+                :value="role.Id"
+                  v-model="item.Roles">
+                <label class="form-check-label" :for="'role_' + index">{{ role.Name }}</label>
+              </div>
+            </div>
           </td>
           <td>
             <input type="text" v-model="item.First_name">
