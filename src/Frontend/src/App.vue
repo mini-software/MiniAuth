@@ -5,13 +5,13 @@ import { emitter } from '@/helpers/emitter'
 import { useRoute } from 'vue-router';
 import { i18n } from '@/i18n'
 import { useI18n } from 'vue-i18n';
-const {t}  = useI18n();
+const { t } = useI18n();
 
 const route = useRoute();
 const routeName = ref("");
 
 onMounted(() => {
-  routeName.value = (route.name ?? '').toString();
+  routeName.value = (route.meta.title ?? '').toString();
 });
 
 watch(() => route.name, (newVal) => {
@@ -20,7 +20,7 @@ watch(() => route.name, (newVal) => {
 
 
 const logout = () => {
-  if(!confirm(t('LogoutMessage'))) {
+  if (!confirm(t('LogoutMessage'))) {
     return;
   }
   localStorage.removeItem('X-MiniAuth-Token')
@@ -28,8 +28,8 @@ const logout = () => {
   window.location.href = '/miniauth/login.html'
 }
 
-const switchLang = () => {
-  i18n.global.locale.value = i18n.global.locale.value === 'en_us' ? 'zh_cn' : 'en_us'
+const switchLang = (lang) => {
+  i18n.global.locale.value = lang ?? 'en_us';
   localStorage.setItem('lang', i18n.global.locale.value)
 }
 
@@ -52,7 +52,7 @@ i18n.global.locale.value = localStorage.getItem('lang')?.toString() ?? 'en_us'
       <div>
         <div>
           <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-            <div class="container scrollable-container">
+            <div class="container ">
               <router-link class="navbar-brand" to="/"> MiniAuth </router-link>
               <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,7 +61,7 @@ i18n.global.locale.value = localStorage.getItem('lang')?.toString() ?? 'en_us'
               <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
                   <li class="nav-item">
-                    <router-link class="nav-link" to="/Endpoints"> {{ $t("Endpoints") }} </router-link>
+                    <router-link class="nav-link" to="/"> {{ $t("Endpoints") }} </router-link>
                   </li>
                   <li class="nav-item">
                     <router-link class="nav-link " to="/Users"> {{ $t("Users") }} </router-link>
@@ -71,14 +71,30 @@ i18n.global.locale.value = localStorage.getItem('lang')?.toString() ?? 'en_us'
                   </li>
                 </ul>
                 <div class="navbar-nav ms-auto">
-                  <div @click="switchLang" class="btn nav-item nav-link">
-                    {{ $t("Lang") }}
-                  </div>
-                  <div @click="logout" class="btn nav-item nav-link">
+                  <ul class="navbar-nav"> 
+                    <li class="nav-item dropdown">
+                      <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        {{ $t("Lang") }}
+                      </a>
+                      <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                        <li><a class="btn dropdown-item" @click="switchLang('en_us')">English</a></li>
+                        <li><a class="btn dropdown-item" @click="switchLang('zh_cn')">简体中文</a></li>
+                        <li><a class="btn dropdown-item" @click="switchLang('zh_hant')">繁體中文</a></li>
+                        <li><a class="btn dropdown-item" @click="switchLang('ja')">日本語</a></li>
+                        <li><a class="btn dropdown-item" @click="switchLang('ko')">한국어</a></li>
+                        <li><a class="btn dropdown-item" @click="switchLang('es')">Español</a></li>
+                        <li><a class="btn dropdown-item" @click="switchLang('fr')">Français</a></li>
+                      </ul>
+                    </li>
+                  </ul>
+
+                  <div @click="logout" class="nav-item nav-link" style="cursor: pointer;">
                     {{ $t("Logout") }}
                   </div>
                 </div>
               </div>
+
             </div>
           </nav>
         </div>

@@ -17,13 +17,13 @@ window.onload = function () {
         'zh-TW': {
             username: '帳號',
             password: '密碼',
-            login: '登入',
+            login: '登录',
             remember: '記住我'
         },
         'zh-HK': {
             username: '帳號',
             password: '密碼',
-            login: '登入',
+            login: '登录',
             remember: '記住我'
         },
         'ko': {

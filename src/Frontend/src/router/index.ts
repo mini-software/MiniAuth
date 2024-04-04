@@ -3,14 +3,6 @@ import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: () => import('@/views/EndpointsView.vue'),
-    meta: {
-      title: 'Endpoints'
-    }
-  },
-  {
-    path: '/endpoints',
     name: 'Endpoints',
     component: () => import('@/views/EndpointsView.vue'),
     meta: {
