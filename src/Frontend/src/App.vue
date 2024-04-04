@@ -52,7 +52,7 @@ const setLanguage = () => {
     return;
   }
 
-  if (browserLangCode === 'zh_cn') {
+  if (browserLangCode === 'zh_cn' || browserLangCode==='zh_hans') {
     switchLang('zh_cn');
     return;
   }
