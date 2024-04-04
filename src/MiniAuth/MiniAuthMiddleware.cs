@@ -718,6 +718,7 @@ where id = @id";
 
         private static void JsonResponse(HttpContext context, ResponseVo messageInfo, int status)
         {
+            messageInfo.ok = messageInfo.code == 200;
             var message = messageInfo != null ? JsonConvert.SerializeObject(messageInfo) : "Unauthorized";
             if (status == StatusCodes.Status401Unauthorized)
             {
