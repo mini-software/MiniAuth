@@ -12,11 +12,13 @@
 </strong></p>
 </div>
 
+
 ---
 
 <div align="center">
-<p> 您的 <a href="https://github.com/mini-software/miniauth">Star</a>、<a href="https://miniexcel.github.io">赞助</a>、<a href="https://edu.51cto.com/course/32914.html">购买视频</a>、<a href="https://www.linkedin.com/in/itweihan/">Linkedin 推荐</a> 能帮助 MiniAuth 成长 </p>
+<p> 您的 <a href="https://github.com/mini-software/miniauth">Star</a>、<a href="https://miniexcel.github.io">赞助</a>、<a href="https://edu.51cto.com/course/32914.html">购买视频</a>、<a href="https://www.linkedin.com/in/itweihan/">推荐</a> 能帮助 MiniAuth 成长 </p>
 </div>
+
 
 ---
 
@@ -49,8 +51,8 @@
 
 ### 特点
 
-- 简单、拔插设计 : SPA、SSR、API、MVC、Razor Page 开箱即用，不使用注解代码即可
-- 多平台 : 支持 Linux, macos
+- 简单、拔插设计 : SPA、SSR、API、MVC、Razor Page 开箱即用
+- 多平台 : 支持 linux, macos
 - 动态 : 运行时动态路由权限设置
 - 渐进式 : 可按照业务需求配置功能
 - 兼容 : 不对现有系统做侵入式修改，能搭配其他权限框架使用
