@@ -33,11 +33,11 @@
 <table>
     <tr>
         <td><img src="https://github.com/mini-software/MiniExcel/assets/12729184/fd26b9d8-f0e9-48eb-87c7-9d54beb56256" alt="Image 1"></td>
-        <td><img src="https://github.com/mini-software/MiniExcel/assets/12729184/3c7e8b76-d16b-4f35-a8a3-5a47b9540db9" alt="Image 2"></td>
+        <td><img src="https://github.com/mini-software/MiniAuth/assets/12729184/74d4b089-355c-49af-a532-54796b5d2cac" alt="Image 2"></td>
     </tr>
     <tr>
-        <td><img src="https://github.com/mini-software/MiniExcel/assets/12729184/dc2069ef-96df-47d9-8ea7-5d10b337d2d5" alt="Image 3"></td>
-        <td><img src="https://github.com/mini-software/MiniExcel/assets/12729184/08d2404a-c494-43f4-9ce8-d563cd063ab5" alt="Image 4"></td>
+        <td><img src="https://github.com/mini-software/MiniAuth/assets/12729184/523b0b92-b896-4bc5-8984-06488bb15525" alt="Image 3"></td>
+        <td><img src="https://github.com/mini-software/MiniAuth/assets/12729184/c6e49ab1-b1cf-4042-a430-edf86518175d" alt="Image 4"></td>
     </tr>
 </table>
 

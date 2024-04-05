@@ -38,14 +38,15 @@
 
 <table>
     <tr>
-        <td><img src="https://github.com/mini-software/MiniExcel/assets/12729184/fd26b9d8-f0e9-48eb-87c7-9d54beb56256" alt="Image 1"></td>
-        <td><img src="https://github.com/mini-software/MiniExcel/assets/12729184/3c7e8b76-d16b-4f35-a8a3-5a47b9540db9" alt="Image 2"></td>
+        <td><img src="https://github.com/mini-software/MiniAuth/assets/12729184/c5eccb8f-ed12-4a8d-8e61-73fc2d96ce9f" alt="Image 1"></td>
+        <td><img src="https://github.com/mini-software/MiniAuth/assets/12729184/f5377c42-98e9-4a12-b4df-3852bef01a3a" alt="Image 2"></td>
     </tr>
     <tr>
-        <td><img src="https://github.com/mini-software/MiniExcel/assets/12729184/dc2069ef-96df-47d9-8ea7-5d10b337d2d5" alt="Image 3"></td>
-        <td><img src="https://github.com/mini-software/MiniExcel/assets/12729184/08d2404a-c494-43f4-9ce8-d563cd063ab5" alt="Image 4"></td>
+        <td><img src="https://github.com/mini-software/MiniAuth/assets/12729184/af7b445a-2ebb-4ed6-9d0c-376c06a00fb5" alt="Image 3"></td>
+        <td><img src="https://github.com/mini-software/MiniAuth/assets/12729184/26007b39-7ec5-4f72-b714-4e5a8a4e124a" alt="Image 4"></td>
     </tr>
 </table>
+
 
 
 

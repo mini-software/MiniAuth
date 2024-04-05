@@ -31,13 +31,14 @@
 <table>
     <tr>
         <td><img src="https://github.com/mini-software/MiniExcel/assets/12729184/d2aec694-158d-4ebc-bd8b-0e9ae1f855ac" alt="Image 1"></td>
-        <td><img src="https://github.com/mini-software/MiniExcel/assets/12729184/fc141e95-502f-4d27-a47a-1943c815a7d0" alt="Image 2"></td>
+        <td><img src="https://github.com/mini-software/MiniAuth/assets/12729184/2f791e25-9158-495e-9383-4fbedf9b982b" alt="Image 2"></td>
     </tr>
     <tr>
-        <td><img src="https://github.com/mini-software/MiniExcel/assets/12729184/c24b4a70-1e5e-4d00-ac6e-cfd0685eeee9" alt="Image 3"></td>
-        <td><img src="https://github.com/mini-software/MiniExcel/assets/12729184/072d86c4-4a0f-4573-aad6-c7e6680af4f3" alt="Image 4"></td>
+        <td><img src="https://github.com/mini-software/MiniAuth/assets/12729184/03d72ed7-8fb9-465f-9093-24b00279eeb2" alt="Image 3"></td>
+        <td><img src="https://github.com/mini-software/MiniAuth/assets/12729184/841df179-7e5f-481a-9039-46738b20aa2e" alt="Image 4"></td>
     </tr>
 </table>
+
 
 ### Features
 
