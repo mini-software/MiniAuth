@@ -629,7 +629,7 @@ where id = @id";
                     var roles = user["roles"] as string[];
                     if (this._routeEndpoint.Roles != null && !(this._routeEndpoint.Roles.Length == 0))
                     {
-                        bool hasRole = roles.Any(value => this._routeEndpoint.Roles.Contains(value));
+                        bool hasRole = roles.Any(value => !string.IsNullOrEmpty(value) && this._routeEndpoint.Roles.Contains(value));
                         if (!hasRole)
                         {
                             isAuth = false;
