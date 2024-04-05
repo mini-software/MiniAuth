@@ -26,7 +26,7 @@
     <table class="table table-hover">
       <thead>
         <tr class="table-dark">
-          <th>ID</th>
+          <th>#</th>
           <th>{{ $t("Name") }}</th>
           <th>{{ $t("Enable") }}</th>
           <th>{{ $t("Action") }}</th>
