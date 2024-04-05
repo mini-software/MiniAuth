@@ -52,6 +52,10 @@
 
 Install the package from [NuGet](https://www.nuget.org/packages/MiniAuth).
 
+### Quick Start - Video
+
+[Video Link](https://www.youtube.com/watch?v=MBaDJVZI-ik)
+
 ### Quick Start
 
 Add one line of code to Startup and run the project:
