@@ -43,7 +43,7 @@
           <td>
             <div class="resizable" style="height: 25px;scroll-behavior: smooth;overflow-y: auto;">
               <div class=" form-check" v-for="(role, index) in roles" :key="index">
-                <input :disabled="item.Type == 'miniauth'" class="role_checkbox form-check-input" type="checkbox"
+                <input :disabled="item.Type == 'miniauth' || role.Enable==false" class="role_checkbox form-check-input" type="checkbox"
                   :value="role.Id" v-model="item.Roles">
                 <label class="form-check-label" :for="'role_' + index">{{ role.Name }}</label>
               </div>
@@ -146,7 +146,7 @@
                 <label for="roles">{{ $t("Roles") }}:</label>
                 <div style="height: 100px;scroll-behavior: smooth;overflow-y: auto;">
                   <div class=" form-check" v-for="(role, index) in roles" :key="index">
-                    <input :disabled="editedUser.Type == 'miniauth'" class="role_checkbox form-check-input"
+                    <input :disabled="editedUser.Type == 'miniauth' || role.Enable==false" class="role_checkbox form-check-input"
                       type="checkbox" :value="role.Id" v-model="editedUser.Roles">
                     <label class="form-check-label" :for="'role_' + index">{{ role.Name }}</label>
                   </div>
