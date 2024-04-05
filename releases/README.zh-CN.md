@@ -23,7 +23,17 @@
 
 ---
 
-### 0.1.0-0.7.0
+
+### 0.8.0
+- New: auto language switch by browser language #126
+- New: Multiple Checkbox #128
+- New: Update table styling in EndpointsView, RolesView, and UsersView
+- New: Support i18n language switch #125
+- New: Edit modal #129
+- New: NuGet Icon #56
+- Fix: Count type SQLite long and sql server int #122
+
+### 0.1.0-0.7.01
 - Feat: Support sql server #21
 - Fix: endpoint roles null exception #116
 - Fix: Avoid init error to shut down app #115
