@@ -23,6 +23,9 @@ namespace MiniAuth.Web
             app.UseMiniAuth();
             app.MapControllers();
             app.MapGet("/miniapi/get", () => "Hello MiniAuth!");
+
+
+
             app.Run();
         }
     }
@@ -33,6 +36,7 @@ namespace MiniAuth.Web
         [HttpPost]
         [Route("/")]
         public ActionResult Home() => Content("This's homepage");
+        [HttpGet]
         [Route("/About")]
         public ActionResult About() => Content("This's About");
         [Route("/UserInfo")]
@@ -44,27 +48,208 @@ namespace MiniAuth.Web
     }
 
     [ApiController]
-    [Route("[controller]/[action]")]
-    public class ProductsController : ControllerBase
+    [Route("api/[controller]")]
+    public class OrderController : ControllerBase
     {
+        private static List<Order> orders = new List<Order>
+        {
+            new Order { Id = 1, Product = "Apple", Quantity = 2 },
+            new Order { Id = 2, Product = "Orange", Quantity = 3 }
+        };
+
         [HttpGet]
+        public ActionResult<IEnumerable<Order>> GetAll()
+        {
+            return Ok(orders);
+        }
+
+        [HttpGet("{id}")]
+        public ActionResult<Order> GetById(int id)
+        {
+            var order = orders.Find(o => o.Id == id);
+            if (order == null)
+            {
+                return NotFound();
+            }
+            return Ok(order);
+        }
+
         [HttpPost]
-        public IEnumerable<dynamic> GetAll() => new[] { new { id = "1", name = "apple" }, new { id = "2", name = "orange" }, };
+        public ActionResult<Order> Create(Order order)
+        {
+            order.Id = orders.Count + 1;
+            orders.Add(order);
+            return CreatedAtAction(nameof(GetById), new { id = order.Id }, order);
+        }
+
+        [HttpPut("{id}")]
+        public IActionResult Update(int id, Order updatedOrder)
+        {
+            var order = orders.Find(o => o.Id == id);
+            if (order == null)
+            {
+                return NotFound();
+            }
+            order.Product = updatedOrder.Product;
+            order.Quantity = updatedOrder.Quantity;
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult Delete(int id)
+        {
+            var order = orders.Find(o => o.Id == id);
+            if (order == null)
+            {
+                return NotFound();
+            }
+            orders.Remove(order);
+            return NoContent();
+        }
+
+        public class Order
+        {
+            public int Id { get; set; }
+            public string Product { get; set; }
+            public int Quantity { get; set; }
+        }
+    }
+
+
+
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ProductController : ControllerBase
+    {
+        private static List<Product> products = new List<Product>
+        {
+            new Product { Id = 1, Name = "Apple", Price = 1.99 },
+            new Product { Id = 2, Name = "Orange", Price = 0.99 }
+        };
+
         [HttpGet]
-        public dynamic Get(string id) => new { id = "1", name = "apple" };
+        public ActionResult<IEnumerable<Product>> GetAll()
+        {
+            return Ok(products);
+        }
+
+        [HttpGet("{id}")]
+        public ActionResult<Product> GetById(int id)
+        {
+            var product = products.Find(p => p.Id == id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+            return Ok(product);
+        }
+
         [HttpPost]
-        public dynamic Post(string id) => new { data = "demo" };
+        public ActionResult<Product> Create(Product product)
+        {
+            product.Id = products.Count + 1;
+            products.Add(product);
+            return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
+        }
+
+        [HttpPut("{id}")]
+        public IActionResult Update(int id, Product updatedProduct)
+        {
+            var product = products.Find(p => p.Id == id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+            product.Name = updatedProduct.Name;
+            product.Price = updatedProduct.Price;
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult Delete(int id)
+        {
+            var product = products.Find(p => p.Id == id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+            products.Remove(product);
+            return NoContent();
+        }
+
+        public class Product
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public double Price { get; set; }
+        }
     }
 
     [ApiController]
-    [Route("[controller]/[action]")]
-    public class ProductStockController : ControllerBase
+    [Route("api/[controller]")]
+    public class StockController : ControllerBase
     {
+        private static List<Stock> stocks = new List<Stock>
+        {
+            new Stock { Id = 1, Symbol = "AAPL", Price = 150.50 },
+            new Stock { Id = 2, Symbol = "GOOGL", Price = 2500.75 }
+        };
+
         [HttpGet]
+        public ActionResult<IEnumerable<Stock>> GetAll()
+        {
+            return Ok(stocks);
+        }
+
+        [HttpGet("{id}")]
+        public ActionResult<Stock> GetById(int id)
+        {
+            var stock = stocks.Find(s => s.Id == id);
+            if (stock == null)
+            {
+                return NotFound();
+            }
+            return Ok(stock);
+        }
+
         [HttpPost]
-        public IEnumerable<dynamic> GetAll() => new[] { new { id = "1", name = "apple", stock = 100 }, new { id = "2", name = "orange", stock = 200 }, };
+        public ActionResult<Stock> Create(Stock stock)
+        {
+            stock.Id = stocks.Count + 1;
+            stocks.Add(stock);
+            return CreatedAtAction(nameof(GetById), new { id = stock.Id }, stock);
+        }
 
-        public dynamic Get(string id) => new { id = "1", name = "apple", stock = 100 };
+        [HttpPut("{id}")]
+        public IActionResult Update(int id, Stock updatedStock)
+        {
+            var stock = stocks.Find(s => s.Id == id);
+            if (stock == null)
+            {
+                return NotFound();
+            }
+            stock.Symbol = updatedStock.Symbol;
+            stock.Price = updatedStock.Price;
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult Delete(int id)
+        {
+            var stock = stocks.Find(s => s.Id == id);
+            if (stock == null)
+            {
+                return NotFound();
+            }
+            stocks.Remove(stock);
+            return NoContent();
+        }
+
+        public class Stock
+        {
+            public int Id { get; set; }
+            public string Symbol { get; set; }
+            public double Price { get; set; }
+        }
     }
-
 }
