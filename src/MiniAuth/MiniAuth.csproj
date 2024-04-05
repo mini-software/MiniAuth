@@ -14,7 +14,7 @@
 		<PackageProjectUrl>https://github.com/mini-software/MiniAuth</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/mini-software/MiniAuth</RepositoryUrl>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
-		<!--<PackageIcon>icon.png</PackageIcon>-->
+		<PackageIcon>icon.png</PackageIcon>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<IncludeSymbols>true</IncludeSymbols>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -25,9 +25,9 @@
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
 	<ItemGroup>
-		<None Update="icon.png">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
+		<None Include="icon.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+	<ItemGroup>
 		<None Update="minisoftware.snk">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
