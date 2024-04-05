@@ -36,7 +36,7 @@ values (@id,@username,@enable,@Roles,@First_name,@Last_name,@Mail,@newpassword,@
                         { "@id", Helpers.IdHelper.NewId() },
                         { "@username", username },
                         { "@enable", true },
-                        { "@Roles", roles == null ? null : string.Join(",", roles) },
+                        { "@Roles", roles == null ? new string[0] : string.Join(",", roles) },
                         { "@First_name", first_name },
                         { "@Last_name", last_name },
                         { "@Mail", mail },
