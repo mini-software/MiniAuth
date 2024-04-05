@@ -17,13 +17,13 @@ window.onload = function () {
         'zh-TW': {
             username: '帳號',
             password: '密碼',
-            login: '登录',
+            login: '登入',
             remember: '記住我'
         },
         'zh-HK': {
             username: '帳號',
             password: '密碼',
-            login: '登录',
+            login: '登入',
             remember: '記住我'
         },
         'ko': {
@@ -83,7 +83,7 @@ window.onload = function () {
     var usernameInput = document.getElementById('username');
     var passwordInput = document.getElementById('password');
     var loginButton = loginForm.querySelector('button');
-    var rememberCheckbox = document.getElementById('remember');
+    var rememberCheckbox = document.getElementById('rememberCheckbox');
 
     usernameInput.placeholder = langSpecific.username;
     passwordInput.placeholder = langSpecific.password;
