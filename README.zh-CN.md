@@ -38,7 +38,7 @@
 
 <table>
     <tr>
-        <td><img src="https://github.com/mini-software/MiniAuth/assets/12729184/c5eccb8f-ed12-4a8d-8e61-73fc2d96ce9f" alt="Image 1"></td>
+        <td><img src="https://github.com/mini-software/MiniAuth/assets/12729184/bd744b76-6a7d-4cc4-95fa-2400c81ada00" alt="Image 1"></td>
         <td><img src="https://github.com/mini-software/MiniAuth/assets/12729184/f5377c42-98e9-4a12-b4df-3852bef01a3a" alt="Image 2"></td>
     </tr>
     <tr>
@@ -66,7 +66,7 @@
 
 ### 快速开始
 
-在 Startup 添加一行代码并运行项目即可
+在 Startup 添加一行代码并运行项目
 
 ```csharp
 app.UseMiniAuth();    
