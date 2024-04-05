@@ -23,7 +23,7 @@
 
       </div>
     </div>
-    <table class="table">
+    <table class="table table-hover">
       <thead>
         <tr class="table-dark">
           <th>{{ $t("UserName") }}</th>

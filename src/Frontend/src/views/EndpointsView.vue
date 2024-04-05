@@ -1,8 +1,8 @@
 <template>
   <div class="scrollable-container">
-    <table class="table">
+    <table class="table  table-hover">
       <thead>
-        <tr>
+        <tr class="table-dark">
           <th>
             {{ $t("Name") }}
           </th>
