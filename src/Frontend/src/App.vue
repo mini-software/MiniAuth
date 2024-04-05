@@ -175,7 +175,20 @@ onMounted(() => {
 
 <style>
 
-/*  */
+/* ---- */
+.resizable {
+  height: 25px !important;
+  scroll-behavior: smooth;
+  overflow-y: auto;
+  transition: height 0.3s ease;
+  overflow: auto;
+}
+
+.resizable:hover {
+  height: 130px !important;
+}
+
+/* ---- */
 
 .input_no_border {
   widows: 100%;
@@ -183,7 +196,7 @@ onMounted(() => {
   outline: 0;
 }
 
-/*  */
+/* ---- */
 .role_checkbox {
   border: 1px solid #000;
   appearance: none;

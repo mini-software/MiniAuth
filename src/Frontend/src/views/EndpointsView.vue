@@ -36,7 +36,7 @@
             </div>
           </td>
           <td>
-            <div class="resizable" style="height: 25px;scroll-behavior: smooth;overflow-y: auto;">
+            <div class="resizable" >
               <div class=" form-check" v-for="(role, index) in roles" :key="index">
                 <input :disabled="item.Type == 'miniauth' || role.Enable==false" class="role_checkbox form-check-input" type="checkbox" 
                 :value="role.Id"
@@ -63,15 +63,7 @@
 </template>
 
 <style scoped>
-.resizable {
-  height: 27px !important;
-  transition: height 0.3s ease;
-  overflow: hidden;
-}
 
-.resizable:hover {
-  height: 130px !important;
-}
 </style>
 
 <script setup>

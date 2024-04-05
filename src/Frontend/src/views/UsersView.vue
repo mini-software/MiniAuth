@@ -211,16 +211,6 @@ input[type="mail"] {
   background-color: rgba(226, 226, 226, 0.744);
 }
 
-.resizable {
-  height: 26px !important;
-  transition: height 0.3s ease;
-  border: 0;
-  border-bottom: 1px solid black;
-}
-
-.resizable:hover {
-  height: 100% !important;
-}
 </style>
 
 <script setup>
