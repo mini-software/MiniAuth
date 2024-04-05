@@ -23,6 +23,9 @@ const messages = {
         please_confirm: 'Please confirm this operation',
         resetPasswordConfirm: "Are you sure you want to reset password?",
         new_password: 'New Password {0} and copied to clipboard',
+        Employee_Number: 'Employee Number',
+        Cancel: 'Cancel',
+        Save: 'Save',
     },
     zh_cn: {
         UserName: '用户名',
@@ -46,6 +49,9 @@ const messages = {
         please_confirm: '请确认此次操作',
         resetPasswordConfirm: "确定要重置密码吗？",
         new_password: '新密码 {0} (已复制到剪贴板)',
+        Employee_Number: '员工编号',
+        Cancel: '取消',
+        Save: '保存',
     },
     zh_hant: {
         "UserName": "使用者名稱",
@@ -68,7 +74,10 @@ const messages = {
         "updated_successfully": "更新成功",
         "please_confirm": "請確認此次操作",
         "resetPasswordConfirm": "確定要重設密碼嗎？",
-        "new_password": "新密碼 {0} (已複製到剪貼簿)"
+        "new_password": "新密碼 {0} (已複製到剪貼簿)",
+        "Employee_Number": "員工編號",
+        "Cancel": "取消",
+        "Save": "保存"
     },
     es: {
         "UserName": "Nombre de usuario",
@@ -91,7 +100,10 @@ const messages = {
         "updated_successfully": "Actualización exitosa",
         "please_confirm": "Por favor, confirme esta acción",
         "resetPasswordConfirm": "¿Está seguro de que quiere restablecer la contraseña?",
-        "new_password": "Nueva contraseña {0} (ya se ha copiado al portapapeles)"
+        "new_password": "Nueva contraseña {0} (ya se ha copiado al portapapeles)",
+        "Employee_Number": "Número de empleado",
+        "Cancel": "Cancelar",
+        "Save": "Guardar"
     },
     ko: {
         "UserName": "사용자 이름",
@@ -114,7 +126,10 @@ const messages = {
         "updated_successfully": "업데이트 성공",
         "please_confirm": "이 조작을 확인해 주세요",
         "resetPasswordConfirm": "비밀번호를 재설정하시겠습니까?",
-        "new_password": "새 비밀번호 {0} (클립보드에 복사됨)"
+        "new_password": "새 비밀번호 {0} (클립보드에 복사됨)",
+        "Employee_Number": "직원 번호",
+        "Cancel": "취소",
+        "Save": "저장"
     },
     ja: {
         "UserName": "ユーザー名",
@@ -137,7 +152,10 @@ const messages = {
         "updated_successfully": "更新に成功しました",
         "please_confirm": "この操作を確認してください",
         "resetPasswordConfirm": "パスワードをリセットしますか？",
-        "new_password": "新しいパスワード {0} (クリップボードにコピーされました)"
+        "new_password": "新しいパスワード {0} (クリップボードにコピーされました)",
+        "Employee_Number": "社員番号",
+        "Cancel": "キャンセル",
+        "Save": "保存"
     }, ru: {
         "UserName": "Имя пользователя",
         "Next": "Следующая страница",
@@ -159,7 +177,10 @@ const messages = {
         "updated_successfully": "Обновление успешно",
         "please_confirm": "Пожалуйста, подтвердите это действие",
         "resetPasswordConfirm": "Вы уверены, что хотите сбросить пароль?",
-        "new_password": "Новый пароль {0} (уже скопирован в буфер обмена)"
+        "new_password": "Новый пароль {0} (уже скопирован в буфер обмена)",
+        "Employee_Number": "Табельный номер",
+        "Cancel": "Отмена",
+        "Save": "Сохранить"
     }, fr: {
         "UserName": "Nom d'utilisateur",
         "Next": "Page suivante",
@@ -181,7 +202,10 @@ const messages = {
         "updated_successfully": "Mise à jour réussie",
         "please_confirm": "Veuillez confirmer cette opération",
         "resetPasswordConfirm": "Êtes-vous sûr de vouloir réinitialiser le mot de passe?",
-        "new_password": "Nouveau mot de passe {0} (déjà copié dans le presse-papier)"
+        "new_password": "Nouveau mot de passe {0} (déjà copié dans le presse-papier)",
+        "Employee_Number": "Numéro d'employé",
+        "Cancel": "Annuler",
+        "Save": "Enregistrer"
     }
 };
 export const i18n = createI18n({

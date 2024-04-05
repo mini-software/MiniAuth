@@ -38,7 +38,7 @@
             {{ index+1 }}
           </td>
           <td>
-            <input :disabled="item.Type=='miniauth'" type="text" v-model="item.Name">
+            <input class="input_no_border" :disabled="item.Type=='miniauth'" type="text" v-model="item.Name">
           </td>
           <td>
             <div class="form-check form-switch">
@@ -73,20 +73,7 @@
 </template>
 
 <style scoped>
-input[type="text"] {
-  widows: 100%;
-  border: 0;
-  border-bottom: 2px solid black;
-  outline: 0;
-  background-color: rgba(226, 226, 226, 0.744);
-}
-input[type="mail"] {
-  widows: 100%;
-  border: 0;
-  border-bottom: 2px solid black;
-  outline: 0;
-  background-color: rgba(226, 226, 226, 0.744);
-}
+
 </style>
 <script setup>
 import { onMounted, ref } from 'vue'

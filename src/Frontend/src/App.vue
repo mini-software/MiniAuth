@@ -174,6 +174,16 @@ onMounted(() => {
 </template>
 
 <style>
+
+/*  */
+
+.input_no_border {
+  widows: 100%;
+  border: 0;
+  outline: 0;
+}
+
+/*  */
 .role_checkbox {
   border: 1px solid #000;
   appearance: none;

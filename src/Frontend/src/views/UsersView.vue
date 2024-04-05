@@ -38,33 +38,39 @@
       <tbody>
         <tr v-for="(item, index) in users" :key="index">
           <td>
-            <input type="text" v-model="item.Username">
+            <input class="input_no_border" type="text" v-model="item.Username">
           </td>
           <td>
             <div class="resizable" style="height: 25px;scroll-behavior: smooth;overflow-y: auto;">
               <div class=" form-check" v-for="(role, index) in roles" :key="index">
-                <input :disabled="item.Type == 'miniauth'" class="role_checkbox form-check-input" type="checkbox" 
-                :value="role.Id"
-                  v-model="item.Roles">
+                <input :disabled="item.Type == 'miniauth'" class="role_checkbox form-check-input" type="checkbox"
+                  :value="role.Id" v-model="item.Roles">
                 <label class="form-check-label" :for="'role_' + index">{{ role.Name }}</label>
               </div>
             </div>
           </td>
           <td>
-            <input type="text" v-model="item.First_name">
+            <input class="input_no_border" type="text" v-model="item.First_name">
           </td>
           <td>
-            <input type="text" v-model="item.Last_name">
-          </td>
-          <td hidden>
-            <input type="mail" v-model="item.Mail">
+            <input class="input_no_border" type="text" v-model="item.Last_name">
           </td>
           <td>
             <div class="form-check form-switch">
-              <input :disabled="item.Type=='miniauth'" class="form-check-input" type="checkbox" v-model="item.Enable">
+              <input :disabled="item.Type == 'miniauth'" class="form-check-input" type="checkbox" v-model="item.Enable">
             </div>
           </td>
           <td>
+            <button class="btn" @click="openEditModal(item)">
+              <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M21.2799 6.40005L11.7399 15.94C10.7899 16.89 7.96987 17.33 7.33987 16.7C6.70987 16.07 7.13987 13.25 8.08987 12.3L17.6399 2.75002C17.8754 2.49308 18.1605 2.28654 18.4781 2.14284C18.7956 1.99914 19.139 1.92124 19.4875 1.9139C19.8359 1.90657 20.1823 1.96991 20.5056 2.10012C20.8289 2.23033 21.1225 2.42473 21.3686 2.67153C21.6147 2.91833 21.8083 3.21243 21.9376 3.53609C22.0669 3.85976 22.1294 4.20626 22.1211 4.55471C22.1128 4.90316 22.0339 5.24635 21.8894 5.5635C21.7448 5.88065 21.5375 6.16524 21.2799 6.40005V6.40005Z"
+                  stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                <path
+                  d="M11 4H6C4.93913 4 3.92178 4.42142 3.17163 5.17157C2.42149 5.92172 2 6.93913 2 8V18C2 19.0609 2.42149 20.0783 3.17163 20.8284C3.92178 21.5786 4.93913 22 6 22H17C19.21 22 20 20.2 20 18V13"
+                  stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
             <button class="btn" @click="resetPassword(item)">
               <svg fill="#000000" xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 52 52"
                 enable-background="new 0 0 52 52" xml:space="preserve">
@@ -88,8 +94,8 @@
                 </g>
               </svg>
             </button>
-            <button :disabled="item.Type=='miniauth'" class="btn" @click="deleteUser(item.Id)"><svg width="20px" height="20px" viewBox="0 0 24 24"
-                fill="none" xmlns="http://www.w3.org/2000/svg">
+            <button :disabled="item?.Type == 'miniauth'" class="btn" @click="deleteUser(item.Id)"><svg width="20px"
+                height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M10 12V17" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 <path d="M14 12V17" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 <path d="M4 7H20" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -103,19 +109,76 @@
       </tbody>
     </table>
 
-    <nav aria-label="Page navigation">  
-      <ul class="pagination justify-content-center">  
-        <li class="page-item" :class="{ 'disabled': pageIndex === 0 }">  
-          <button class="page-link" @click.prevent="goToPage(pageIndex - 1)">{{ $t("Previous") }}</button>  
-        </li>  
-        <li class="page-item" :class="{ 'active': pageIndex === currentIndex }" v-for="(page, currentIndex) in computedPages" :key="currentIndex">  
-          <button class="page-link" @click.prevent="goToPage(currentIndex)">{{ currentIndex + 1 }}</button>  
-        </li>  
-        <li class="page-item" :class="{ 'disabled': pageIndex >= (Math.ceil(totalItems / pageSize) - 1) }">  
-          <button class="page-link" @click.prevent="goToPage(pageIndex + 1)">{{ $t("Next") }}</button>  
-        </li>  
-      </ul>  
-    </nav>  
+    <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-center">
+        <li class="page-item" :class="{ 'disabled': pageIndex === 0 }">
+          <button class="page-link" @click.prevent="goToPage(pageIndex - 1)">{{ $t("Previous") }}</button>
+        </li>
+        <li class="page-item" :class="{ 'active': pageIndex === currentIndex }"
+          v-for="(page, currentIndex) in computedPages" :key="currentIndex">
+          <button class="page-link" @click.prevent="goToPage(currentIndex)">{{ currentIndex + 1 }}</button>
+        </li>
+        <li class="page-item" :class="{ 'disabled': pageIndex >= (Math.ceil(totalItems / pageSize) - 1) }">
+          <button class="page-link" @click.prevent="goToPage(pageIndex + 1)">{{ $t("Next") }}</button>
+        </li>
+      </ul>
+    </nav>
+
+    <div>
+      <div class="modal fade" id="editmodal" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog  modal-dialog-centered">
+          <div class="modal-content ">
+            <div class="modal-header bg-white">
+              <h5 class="modal-title ">
+                <svg width="40px" height="40px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M11 15C10.1183 15 9.28093 14.8098 8.52682 14.4682C8.00429 14.2315 7.74302 14.1131 7.59797 14.0722C7.4472 14.0297 7.35983 14.0143 7.20361 14.0026C7.05331 13.9914 6.94079 14 6.71575 14.0172C6.6237 14.0242 6.5425 14.0341 6.46558 14.048C5.23442 14.2709 4.27087 15.2344 4.04798 16.4656C4 16.7306 4 17.0485 4 17.6841V19.4C4 19.9601 4 20.2401 4.10899 20.454C4.20487 20.6422 4.35785 20.7951 4.54601 20.891C4.75992 21 5.03995 21 5.6 21H8.4M15 7C15 9.20914 13.2091 11 11 11C8.79086 11 7 9.20914 7 7C7 4.79086 8.79086 3 11 3C13.2091 3 15 4.79086 15 7ZM12.5898 21L14.6148 20.595C14.7914 20.5597 14.8797 20.542 14.962 20.5097C15.0351 20.4811 15.1045 20.4439 15.1689 20.399C15.2414 20.3484 15.3051 20.2848 15.4324 20.1574L19.5898 16C20.1421 15.4477 20.1421 14.5523 19.5898 14C19.0376 13.4477 18.1421 13.4477 17.5898 14L13.4324 18.1574C13.3051 18.2848 13.2414 18.3484 13.1908 18.421C13.1459 18.4853 13.1088 18.5548 13.0801 18.6279C13.0478 18.7102 13.0302 18.7985 12.9948 18.975L12.5898 21Z"
+                    stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form v-if="isModalOpen">
+                <label for="firstName">{{ $t("UserName") }}:</label>
+                <input class="form-control" type="text" v-model="editedUser.Username" id="firstName" required>
+
+                <label for="roles">{{ $t("Roles") }}:</label>
+                <div style="height: 100px;scroll-behavior: smooth;overflow-y: auto;">
+                  <div class=" form-check" v-for="(role, index) in roles" :key="index">
+                    <input :disabled="editedUser.Type == 'miniauth'" class="role_checkbox form-check-input"
+                      type="checkbox" :value="role.Id" v-model="editedUser.Roles">
+                    <label class="form-check-label" :for="'role_' + index">{{ role.Name }}</label>
+                  </div>
+                </div>
+
+                <label for="firstName">{{ $t("FirstName") }}:</label>
+                <input class="form-control" type="text" v-model="editedUser.First_name" id="firstName" required>
+                <label for="lastName">{{ $t("LastName") }}:</label>
+                <input class="form-control" type="text" v-model="editedUser.Last_name" id="lastName" required>
+                <label for="email">Email:</label>
+                <input class="form-control" type="email" v-model="editedUser.Mail" id="email" required>
+                <label for="empNo">{{ $t("Employee_Number") }}:</label>
+                <input class="form-control" type="text" v-model="editedUser.Emp_no" id="empNo" required>
+
+                <label for="enable">{{ $t("Enable") }}:</label>
+                <div class="form-check form-switch">
+                  <input :disabled="editedUser.Type == 'miniauth'" class="form-check-input" type="checkbox"
+                    v-model="editedUser.Enable">
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                {{ $t("Cancel") }}
+              </button>
+              <button type="button" @click="save(editedUser)" class="btn btn-primary">{{$t("Save")}}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 </template>
 
@@ -125,19 +188,14 @@
   background: black !important;
   --bs-pagination-active-border-color: black;
 }
+
 .page-link {
   color: black !important;
 }
 
-input[type="text"] {
-  widows: 100%;
-  border: 0;
-  border-bottom: 1px solid black;
-  outline: 0;
-  background-color: rgba(226, 226, 226, 0.744);
-}
 
-input[type="password"] {
+
+.password {
   widows: 100%;
   border: 0;
   border-bottom: 1px solid black;
@@ -166,11 +224,11 @@ input[type="mail"] {
 </style>
 
 <script setup>
-import { computed,onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import service from '@/axios/service.ts';
 import { i18n } from '@/i18n'
 import { useI18n } from 'vue-i18n';
-const {t}  = useI18n();
+const { t } = useI18n();
 
 const pageTitle = ref('Users')
 const users = ref([])
@@ -184,23 +242,45 @@ const goToPage = (index) => {
   fetchData()
 }
 const computedPages = computed(() => {
-  const totalPages = Math.ceil(totalItems.value / pageSize.value);  
-  return Array.from({ length: totalPages }, (_, index) => index);  
+  const totalPages = Math.ceil(totalItems.value / pageSize.value);
+  return Array.from({ length: totalPages }, (_, index) => index);
 })
 const fetchData = async () => {
-  await service.post('api/getUsers',{pageSize:pageSize.value,pageIndex:pageIndex.value}).then(res=>{
+  await service.post('api/getUsers', { pageSize: pageSize.value, pageIndex: pageIndex.value }).then(res => {
     totalItems.value = res.totalItems
     users.value = res.users
     return res.users
   })
   roles.value = await service.get('api/getRoles')
 }
+
+const isModalOpen = ref(false)
+const editedUser = ref(null)
+var editModal = null;
+const openEditModal = (user) => {
+  editedUser.value = { ...user }
+  isModalOpen.value = true
+  if (editModal == null) {
+    editModal = new bootstrap.Modal(document.getElementById('editmodal'), {
+      keyboard: false
+    })
+  }
+  editModal.show()
+}
+
+const closeEditModal = () => {
+  editedUser.value = null
+  isModalOpen.value = false
+  editModal.hide();
+}
+
 const insert = async () => {
   if (!confirm("Are you sure you want to insert?")) {
     return;
   }
   users.value.push({ Id: null, Enable: true })
 }
+
 const deleteUser = async (Id) => {
   if (!confirm("Are you sure you want to delete?")) {
     return;

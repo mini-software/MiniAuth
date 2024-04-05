@@ -552,7 +552,8 @@ LIMIT @pageSize OFFSET @offset;
                     roles: roles,
                     first_name: root.GetProperty<string>("First_name"),
                     last_name: root.GetProperty<string>("Last_name"),
-                    mail: root.GetProperty<string>("Mail")
+                    mail: root.GetProperty<string>("Mail"),
+                    emp_no: root.GetProperty<string>("Emp_no")
                 );
             }
             else
@@ -566,13 +567,14 @@ LIMIT @pageSize OFFSET @offset;
                     { "@Last_name", root.GetProperty<string>("Last_name") },
                     { "@Mail", root.GetProperty<string>("Mail") },
                     { "@Roles", roles==null?null:string.Join(",",roles) },
+                    { "@emp_no", root.GetProperty<string>("Emp_no") }
                 };
                 using (var cn = this._db.GetConnection())
                 {
                     using (var command = cn.CreateCommand())
                     {
                         command.CommandText = @"update users set username = @username,
-enable=@enable , Roles=@Roles,First_name=@First_name,Last_name=@Last_name,Mail=@Mail
+enable=@enable , Roles=@Roles,First_name=@First_name,Last_name=@Last_name,Mail=@Mail,emp_no=@emp_no
 where id = @id";
                         command.AddParameters(parameters);
                         var newPassword = string.Empty;

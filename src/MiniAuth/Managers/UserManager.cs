@@ -7,7 +7,7 @@ namespace MiniAuth.Managers
 {
     public interface IUserManager
     {
-        void CreateUser(string username, string password, string[] roles = null, string first_name = null, string last_name = null, string mail = null);
+        void CreateUser(string username, string password, string[] roles = null, string first_name = null, string last_name = null, string mail = null, string emp_no = null);
         Dictionary<string, object> GetUser(string userName);
         void UpdatePassword(string username, string newPassword);
         bool ValidateUser(string username, string password);
@@ -22,13 +22,13 @@ namespace MiniAuth.Managers
             _db = db;
         }
         public void CreateUser(string username, string password, string[] roles = null,
-            string first_name = null, string last_name = null, string mail = null)
+            string first_name = null, string last_name = null, string mail = null, string emp_no = null)
         {
 
             using (var connection = _db.GetConnection())
             {
-                string sql = @"insert into users (id,username,enable,Roles,First_name,Last_name,Mail,password) 
-values (@id,@username,@enable,@Roles,@First_name,@Last_name,@Mail,@newpassword)";
+                string sql = @"insert into users (id,username,enable,Roles,First_name,Last_name,Mail,password,emp_no) 
+values (@id,@username,@enable,@Roles,@First_name,@Last_name,@Mail,@newpassword,@emp_no)";
                 var command = connection.CreateCommand();
                 command.CommandText = sql;
                 command.AddParameters(new Dictionary<string, object>
@@ -41,6 +41,7 @@ values (@id,@username,@enable,@Roles,@First_name,@Last_name,@Mail,@newpassword)"
                         { "@Last_name", last_name },
                         { "@Mail", mail },
                         { "@newpassword", HashGenerator.GetHashPassword(password) },
+                        { "@emp_no", emp_no }
                     });
                 command.ExecuteNonQuery();
             }
