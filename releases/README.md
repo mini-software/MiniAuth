@@ -20,6 +20,12 @@
 ---
 
 
+### 0.8.3
+- Bug: Fix transaction issue #133
+- Bug: Add Roles property to inserted user object
+- Bug: table header in RolesView.vue
+- Refactor: password reset after creating user
+
 ### 0.8.0
 - New: auto language switch by browser language #126
 - New: Multiple Checkbox #128

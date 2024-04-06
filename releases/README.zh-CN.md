@@ -23,6 +23,11 @@
 
 ---
 
+### 0.8.3
+- Bug: 修正 transaction issue #133
+- Bug: 添加 Roles property to inserted user object
+- Bug: 修改 table header in RolesView.vue
+- Refactor: 创建用户后重置密码
 
 ### 0.8.0
 - New: auto language switch by browser language #126
