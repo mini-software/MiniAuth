@@ -268,7 +268,7 @@ const insert = async () => {
   if (!confirm("Are you sure you want to insert?")) {
     return;
   }
-  users.value.push({ Id: null, Enable: true })
+  users.value.push({ Id: null, Enable: true, Roles: []})
 }
 
 const deleteUser = async (Id) => {
