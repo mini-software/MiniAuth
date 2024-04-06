@@ -43,8 +43,8 @@
           <td>
             <div class="resizable" style="height: 25px;scroll-behavior: smooth;overflow-y: auto;">
               <div class=" form-check" v-for="(role, index) in roles" :key="index">
-                <input :disabled="item.Type == 'miniauth' || role.Enable==false" class="role_checkbox form-check-input" type="checkbox"
-                  :value="role.Id" v-model="item.Roles">
+                <input :disabled="item.Type == 'miniauth' || role.Enable == false" class="role_checkbox form-check-input"
+                  type="checkbox" :value="role.Id" v-model="item.Roles">
                 <label class="form-check-label" :for="'role_' + index">{{ role.Name }}</label>
               </div>
             </div>
@@ -146,8 +146,9 @@
                 <label for="roles">{{ $t("Roles") }}:</label>
                 <div style="height: 100px;scroll-behavior: smooth;overflow-y: auto;">
                   <div class=" form-check" v-for="(role, index) in roles" :key="index">
-                    <input :disabled="editedUser.Type == 'miniauth' || role.Enable==false" class="role_checkbox form-check-input"
-                      type="checkbox" :value="role.Id" v-model="editedUser.Roles">
+                    <input :disabled="editedUser.Type == 'miniauth' || role.Enable == false"
+                      class="role_checkbox form-check-input" type="checkbox" :value="role.Id"
+                      v-model="editedUser.Roles">
                     <label class="form-check-label" :for="'role_' + index">{{ role.Name }}</label>
                   </div>
                 </div>
@@ -172,7 +173,7 @@
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                 {{ $t("Cancel") }}
               </button>
-              <button type="button" @click="save(editedUser)" class="btn btn-primary">{{$t("Save")}}</button>
+              <button type="button" @click="save(editedUser)" class="btn btn-primary">{{ $t("Save") }}</button>
             </div>
           </div>
         </div>
@@ -210,7 +211,6 @@ input[type="mail"] {
   outline: 0;
   background-color: rgba(226, 226, 226, 0.744);
 }
-
 </style>
 
 <script setup>
@@ -268,7 +268,7 @@ const insert = async () => {
   if (!confirm("Are you sure you want to insert?")) {
     return;
   }
-  users.value.push({ Id: null, Enable: true, Roles: []})
+  users.value.push({ Id: null, Enable: true, Roles: [] })
 }
 
 const deleteUser = async (Id) => {
@@ -286,6 +286,10 @@ const save = async (data) => {
   }
   await service.post('api/saveUser', data).then(async () => {
     alert(t("updated_successfully"))
+    await service.post('api/resetPassword', data).then(async (res) => {
+      alert(t("new_password", [res.newPassword]))
+      navigator.clipboard.writeText(res.newPassword)
+    })
     await fetchData();
   })
 }
