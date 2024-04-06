@@ -63,6 +63,10 @@
 
 从 [NuGet](https://www.nuget.org/packages/MiniAuth) 安装套件
 
+### 快速开始 - 视频 : 
+
+#### [视频链接](https://www.bilibili.com/video/BV1ht421n7i9/?share_source=copy_web&vd_source=0f38adeab321d806d9f26c31c53679b7)
+
 
 ### 快速开始
 
