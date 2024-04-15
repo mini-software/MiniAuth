@@ -6,7 +6,7 @@ namespace MiniAuth.Identity
         {
             var builder = WebApplication.CreateBuilder(args);
             var app = builder.Build();
-
+            app.UseMiniIdentityAuth();
             app.MapGet("/", () => "Hello World!");
 
             app.Run();
