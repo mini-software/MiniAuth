@@ -5,18 +5,14 @@ namespace MiniAuth.Identity
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            builder.Services.AddMiniIdentityAuth(o =>
-            {
-                o.Password.RequireDigit = false;
-                o.Password.RequireLowercase = false;
-                o.Password.RequireUppercase = false;
-                o.Password.RequireNonAlphanumeric = false;
-                o.Password.RequiredLength = 3;
-            });
+            builder.Services.AddCors(options => options.AddPolicy("AllowAll", builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+            //builder.Services.AddControllers();
+            builder.Services.AddMiniIdentityAuth();
             var app = builder.Build();
-            app.UseMiniIdentityAuth();
+            app.UseCors("AllowAll");
             app.MapGet("/", () => "Hello World!");
-
+            //app.MapControllers();
+            app.UseMiniIdentityAuth();
             app.Run();
         }
     }
