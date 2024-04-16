@@ -1,8 +1,17 @@
 ﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MiniAuth.IdentityAuth.Models;
+using System.Reflection;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace MiniAuth.Identity
 {
@@ -20,18 +29,30 @@ namespace MiniAuth.Identity
             // if services AddAuthentication not already added then call AddAuthentication
             if (services.All(o => o.ServiceType != typeof(IAuthenticationService)))
             {
-                services.AddAuthorization();
+                services.AddAuthorization(options =>
+                {
+                    options.AddPolicy("miniauth_admin", policy =>
+                    {
+                        policy.RequireClaim("role", "miniauth_admin");
+                    });
+                });
                 services.AddAuthentication(o =>
                 {
                     o.DefaultScheme = IdentityConstants.ApplicationScheme;
                     o.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-                }).AddIdentityCookies(o => { });
+                }).AddIdentityCookies(o => { 
+                    o.ApplicationCookie.Configure(o => o.LoginPath = "/miniauth/login.html");
+                });
 
                 services.AddIdentityCore<MiniAuthIdentityUser>(o =>
                 {
                     o.SignIn.RequireConfirmedAccount = false;
                 }).AddDefaultTokenProviders()
                   .AddEntityFrameworkStores<MiniAuthIdentityDbContext>();
+
+
+
+
             }
             return services;
         }

@@ -23,9 +23,11 @@ namespace MiniAuth.Identity
                 ) =>
                 {
                     await OkResult(context, _endpointCache.Values.OrderByDescending(o => o.Id).ToJson());
-                }).RequireAuthorization("miniauth_admin");
+                })
+                .RequireAuthorization("miniauth_admin");
             });
             InitEndpointsCache(builder);
+            
         }
         private static void InitEndpointsCache(IApplicationBuilder builder)
         {

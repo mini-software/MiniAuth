@@ -1,9 +1,15 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MiniAuth.IdentityAuth.Models;
+using System.Reflection;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace MiniAuth.Identity
 {
@@ -54,6 +60,13 @@ namespace MiniAuth.Identity
                 }
 
             }
+
+            var option = new StaticFileOptions
+            {
+                RequestPath = string.IsNullOrEmpty("MiniAuth") ? string.Empty : $"/MiniAuth",
+                FileProvider = new EmbeddedFileProvider(typeof(MiniAuthIdentityServiceExtensions).GetTypeInfo().Assembly, "MiniAuth.IdentityAuth.wwwroot"),
+            };
+            builder.UseStaticFiles(option);
 
             return builder;
         }

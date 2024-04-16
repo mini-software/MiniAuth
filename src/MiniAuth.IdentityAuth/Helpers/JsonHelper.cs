@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using MiniAuth.Identity;
+using MiniAuth.IdentityAuth.Models;
 
 namespace MiniAuth.IdentityAuth.Helpers
 {
