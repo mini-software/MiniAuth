@@ -1,15 +1,9 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.AspNetCore.StaticFiles;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using MiniAuth.IdentityAuth.Models;
 using System.Reflection;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace MiniAuth.Identity
 {
@@ -21,13 +15,11 @@ namespace MiniAuth.Identity
 
             builder.UseMiddleware<MiniAuthIdentityMiddleware>();
 
-            if (!builder.Properties.TryGetValue("__UseRouting",out var _))
+            if (!builder.Properties.TryGetValue("__UseRouting", out var _))
                 builder.UseRouting();
-            if (!builder.Properties.TryGetValue("__UseAuthorization", out var _)) 
+            if (!builder.Properties.TryGetValue("__UseAuthorization", out var _))
                 builder.UseAuthorization();
-           
 
-            // builder.UseEndpoints by class MiniAuthIdentityEndpoints
             var miniauthEndpoints = new MiniAuthIdentityEndpoints();
             miniauthEndpoints.MapEndpoints(builder);
 
@@ -36,29 +28,12 @@ namespace MiniAuth.Identity
                 var ctx = scope.ServiceProvider.GetRequiredService<MiniAuthIdentityDbContext>();
                 if (ctx.Database.EnsureCreated())
                 {
-                    var user = new MiniAuthIdentityUser
-                    {
-                        UserName = "miniauth",
-                        Email = "",
-                        EmailConfirmed = true,
-                        PhoneNumber = "",
-                        PhoneNumberConfirmed = true,
-                        TwoFactorEnabled = false,
-                        LockoutEnabled = false,
-                        AccessFailedCount = 0,
-                    };
-                    // Add default password
-                    var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<MiniAuthIdentityUser>>();
-                    user.PasswordHash = hasher.HashPassword(user, "miniauth");
-
-                    // add IdentityUserRole and IdentityRole
-                    ctx.Add(new IdentityRole { Id = "miniauth_admin", Name = "miniauth_admin", NormalizedName = "miniauth_admin" });
-                    ctx.Add(new IdentityUserRole<string> { UserId = user.Id, RoleId = "miniauth_admin" });
-
-                    ctx.Add(user);
-                    ctx.SaveChanges();
+                    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<MiniAuthIdentityUser>>();
+                    var user = Activator.CreateInstance<MiniAuthIdentityUser>();
+                    var userStore = scope.ServiceProvider.GetRequiredService<IUserStore<MiniAuthIdentityUser>>();
+                    userStore.SetUserNameAsync(user, "miniauth", CancellationToken.None).GetAwaiter().GetResult();
+                    userManager.CreateAsync(user, "E7c4f679-f379-42bf-b547-684d456bc37f").GetAwaiter().GetResult();
                 }
-
             }
 
             var option = new StaticFileOptions
