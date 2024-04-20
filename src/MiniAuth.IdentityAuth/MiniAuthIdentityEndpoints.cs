@@ -60,8 +60,7 @@ namespace MiniAuth.Identity
                 var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserName == userName);
                 if (user != null)
                     await userManager.AddClaimAsync(user, new Claim("role", "miniauth_admin")); //TODO
-                await OkResult(context, $"{{\"X-MiniAuth-Token\":\"{newToken}\"}}").ConfigureAwait(false);
-
+                await OkResult(context, $"{{\"X-MiniAuth-Token\":\"{newToken}\"}}");
                 return;
             }
             else

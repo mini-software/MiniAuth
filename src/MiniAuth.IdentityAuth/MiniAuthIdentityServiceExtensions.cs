@@ -36,7 +36,7 @@ namespace MiniAuth.Identity
                 {
                     options.AddPolicy("miniauth_admin", policy =>
                     {
-                        policy.RequireClaim("role", "miniauth_admin");
+                        policy.RequireRole("miniauth_admin");
                     });
                 });
                 services

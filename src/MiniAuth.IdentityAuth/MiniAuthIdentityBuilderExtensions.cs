@@ -23,18 +23,25 @@ namespace MiniAuth.Identity
             var miniauthEndpoints = new MiniAuthIdentityEndpoints();
             miniauthEndpoints.MapEndpoints(builder);
 
-            using (var scope = builder.ApplicationServices.CreateScope())
+            Task.Run(async () =>
             {
-                var ctx = scope.ServiceProvider.GetRequiredService<MiniAuthIdentityDbContext>();
-                if (ctx.Database.EnsureCreated())
+                using (var scope = builder.ApplicationServices.CreateScope())
                 {
-                    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<MiniAuthIdentityUser>>();
-                    var user = Activator.CreateInstance<MiniAuthIdentityUser>();
-                    var userStore = scope.ServiceProvider.GetRequiredService<IUserStore<MiniAuthIdentityUser>>();
-                    userStore.SetUserNameAsync(user, "miniauth", CancellationToken.None).GetAwaiter().GetResult();
-                    userManager.CreateAsync(user, "E7c4f679-f379-42bf-b547-684d456bc37f").GetAwaiter().GetResult();
+                    var ctx = scope.ServiceProvider.GetRequiredService<MiniAuthIdentityDbContext>();
+                    if (ctx.Database.EnsureCreated())
+                    {
+                        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<MiniAuthIdentityUser>>();
+                        var user = Activator.CreateInstance<MiniAuthIdentityUser>();
+                        var userStore = scope.ServiceProvider.GetRequiredService<IUserStore<MiniAuthIdentityUser>>();
+                        await userStore.SetUserNameAsync(user, "miniauth", CancellationToken.None);
+                        await userManager.CreateAsync(user, "E7c4f679-f379-42bf-b547-684d456bc37f");
+                        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+                        await roleManager.CreateAsync(new IdentityRole("miniauth_admin"));
+                        await userManager.AddToRoleAsync(user, "miniauth_admin");
+                    }
                 }
-            }
+            }).GetAwaiter().GetResult();
+
 
             var option = new StaticFileOptions
             {
