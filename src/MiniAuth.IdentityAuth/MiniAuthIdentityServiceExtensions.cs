@@ -34,13 +34,13 @@ namespace MiniAuth.Identity
             {
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy("miniauth_admin", policy =>
+                    options.AddPolicy("miniauth-admin", policy =>
                     {
-                        policy.RequireRole("miniauth_admin");
+                        policy.RequireRole("miniauth-admin");
                     });
                 });
                 services
-                    .AddMiniAuthIdentity<MiniAuthIdentityUser, IdentityRole>()
+                    .AddMiniAuthIdentity<MiniAuthIdentityUser, MiniAuthIdentityRole>()
                     .AddDefaultTokenProviders()
                     .AddEntityFrameworkStores<MiniAuthIdentityDbContext>();
             }

@@ -31,13 +31,26 @@ namespace MiniAuth.Identity
                     if (ctx.Database.EnsureCreated())
                     {
                         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<MiniAuthIdentityUser>>();
-                        var user = Activator.CreateInstance<MiniAuthIdentityUser>();
+                        
                         var userStore = scope.ServiceProvider.GetRequiredService<IUserStore<MiniAuthIdentityUser>>();
-                        await userStore.SetUserNameAsync(user, "miniauth", CancellationToken.None);
-                        await userManager.CreateAsync(user, "E7c4f679-f379-42bf-b547-684d456bc37f");
-                        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-                        await roleManager.CreateAsync(new IdentityRole("miniauth_admin"));
-                        await userManager.AddToRoleAsync(user, "miniauth_admin");
+                        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<MiniAuthIdentityRole>>();
+                        {
+                            var user = Activator.CreateInstance<MiniAuthIdentityUser>();
+                            await userStore.SetUserNameAsync(user, "miniauth", CancellationToken.None);
+                            await userManager.CreateAsync(user, "E7c4f679-f379-42bf-b547-684d456bc37f");
+                            await roleManager.CreateAsync(new MiniAuthIdentityRole("miniauth-admin") { Type = "miniauth" });
+                            await userManager.AddToRoleAsync(user, "miniauth-admin");
+                        }
+#if DEBUG
+                        foreach (var item in new[] { "HR","IT","RD"})
+                        {
+                            var user = Activator.CreateInstance<MiniAuthIdentityUser>();
+                            await userStore.SetUserNameAsync(user, $"miniauth-{item.ToLower()}", CancellationToken.None);
+                            await userManager.CreateAsync(user, "E7c4f679-f379-42bf-b547-684d456bc37f");
+                            await roleManager.CreateAsync(new MiniAuthIdentityRole(item) { Type = null });
+                            await userManager.AddToRoleAsync(user, item);
+                        }   
+#endif
                     }
                 }
             }).GetAwaiter().GetResult();

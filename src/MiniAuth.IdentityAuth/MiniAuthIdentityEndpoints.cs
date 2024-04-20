@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using MiniAuth.IdentityAuth.Helpers;
 using MiniAuth.IdentityAuth.Models;
 using System.Collections.Concurrent;
+using System.Reflection.PortableExecutable;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -28,8 +29,9 @@ namespace MiniAuth.Identity
                 {
                     await OkResult(context, _endpointCache.Values.OrderByDescending<RoleEndpointEntity, string>(o => o.Id).ToJson());
                 })
-                .RequireAuthorization("miniauth_admin")
+                .RequireAuthorization("miniauth-admin")
                 ;
+
                 endpoints.MapPost("/miniauth/login", async (HttpContext context
                     , ILogger<MiniAuthIdentityEndpoints> _logger
                     , MiniAuthIdentityDbContext _dbContext
@@ -39,6 +41,24 @@ namespace MiniAuth.Identity
                 {
                     await Login(context, _logger, _dbContext, signInManager, userManager).ConfigureAwait(false);
                 });
+
+                endpoints.MapGet("/miniauth/api/getRoles", async (HttpContext context
+                    , ILogger<MiniAuthIdentityEndpoints> _logger
+                    , MiniAuthIdentityDbContext _dbContext
+                    , SignInManager<MiniAuthIdentityUser> signInManager
+                    , UserManager<MiniAuthIdentityUser> userManager
+                ) =>
+                {
+                    var roles = (await _dbContext.Roles.ToArrayAsync()).Select(
+                        s => new 
+                        {
+                            Id = s.Id,
+                            Name = s.Name,
+                            Enable = s.Enable,
+                            Type = s.Type
+                        });
+                    await OkResult(context, roles.ToJson());
+                }).RequireAuthorization("miniauth-admin");
             });
             InitEndpointsCache(builder);
             
@@ -56,10 +76,7 @@ namespace MiniAuth.Identity
             {
                 _logger.LogInformation("User logged in.");
                 var newToken = Guid.NewGuid().ToString();
-
-                var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserName == userName);
-                if (user != null)
-                    await userManager.AddClaimAsync(user, new Claim("role", "miniauth_admin")); //TODO
+                context.Response.Cookies.Append("X-MiniAuth-Token", newToken);
                 await OkResult(context, $"{{\"X-MiniAuth-Token\":\"{newToken}\"}}");
                 return;
             }
