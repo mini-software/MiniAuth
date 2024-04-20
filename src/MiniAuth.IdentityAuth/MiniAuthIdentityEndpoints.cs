@@ -50,7 +50,7 @@ namespace MiniAuth.Identity
                 ) =>
                 {
                     var roles = (await _dbContext.Roles.ToArrayAsync()).Select(
-                        s => new 
+                        s => new
                         {
                             Id = s.Id,
                             Name = s.Name,
@@ -59,9 +59,42 @@ namespace MiniAuth.Identity
                         });
                     await OkResult(context, roles.ToJson());
                 }).RequireAuthorization("miniauth-admin");
+
+                endpoints.MapPost("/miniauth/api/saveRole", async (HttpContext context
+                    , ILogger<MiniAuthIdentityEndpoints> _logger
+                    , MiniAuthIdentityDbContext _dbContext
+                    , SignInManager<MiniAuthIdentityUser> signInManager
+                    , UserManager<MiniAuthIdentityUser> userManager
+                ) =>
+                {
+                    JsonDocument bodyJson = await GetBodyJson(context);
+                    var root = bodyJson.RootElement;
+                    var id = root.GetProperty<string>("Id");
+                    var name = root.GetProperty<string>("Name");
+                    var enable = root.GetProperty<bool>("Enable");
+                    var type = root.GetProperty<string>("Type");
+                    var role = await _dbContext.Roles.FindAsync(id);
+                    if (role == null)
+                    {
+                        role = new MiniAuthIdentityRole(name);
+                        role.Id = id;
+                        role.Enable = enable;
+                        role.Type = type;
+                        await _dbContext.Roles.AddAsync(role);
+                    }
+                    else
+                    {
+                        role.Name = name;
+                        role.Enable = enable;
+                        role.Type = type;
+                    }
+                    await _dbContext.SaveChangesAsync();
+                    await OkResult(context, "".ToJson(code: 200, message: ""));
+                }).RequireAuthorization("miniauth-admin");
+
             });
             InitEndpointsCache(builder);
-            
+
         }
 
         private async Task Login(HttpContext context, ILogger<MiniAuthIdentityEndpoints> _logger, MiniAuthIdentityDbContext _dbContext, SignInManager<MiniAuthIdentityUser> signInManager, UserManager<MiniAuthIdentityUser> userManager)
