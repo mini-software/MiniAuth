@@ -82,31 +82,104 @@ namespace MiniAuth.Identity
                     , UserManager<MiniAuthIdentityUser> userManager
                 ) =>
                 {
-                    JsonDocument bodyJson = await GetBodyJson(context);
-                    var root = bodyJson.RootElement;
-                    var pageIndex = root.GetProperty<int>("pageIndex");
-                    var pageSize = root.GetProperty<int>("pageSize");
-                    var offset = pageIndex * pageSize;
-                    var users = _dbContext.Users.Skip(offset).Take(pageSize)
-                        .Select(s=> new MiniAuthUserVo
-                        {
-                            Id = s.Id,
-                            Username = s.UserName,
-                            First_name = s.First_name,
-                            Last_name = s.Last_name,
-                            Emp_no = s.Emp_no,
-                            Mail = s.Email,
-                            Enable = s.Enable,
-                            Roles = _dbContext.UserRoles.Where(w => w.UserId == s.Id).Select(s => s.RoleId).ToArray(),
-                            Type = s.Type
-                        });
-                    var totalItems = _dbContext.Users.Count();
-                    await OkResult(context, new { users, totalItems }.ToJson());
+                    await GetUsers(context, _dbContext);
+                }).RequireAuthorization("miniauth-admin");
+
+                endpoints.MapPost("/miniauth/api/saveUser", async (HttpContext context
+                    , ILogger<MiniAuthIdentityEndpoints> _logger
+                    , MiniAuthIdentityDbContext _dbContext
+                    , SignInManager<MiniAuthIdentityUser> signInManager
+                    , UserManager<MiniAuthIdentityUser> userManager
+                ) =>
+                {
+                    await SaveUser(context, _dbContext);
                 }).RequireAuthorization("miniauth-admin");
 
             });
             InitEndpointsCache(builder);
 
+        }
+
+        private async Task SaveUser(HttpContext context, MiniAuthIdentityDbContext _dbContext)
+        {
+            JsonDocument bodyJson = await GetBodyJson(context);
+            var root = bodyJson.RootElement;
+            var id = root.GetProperty<string>("Id");
+            var username = root.GetProperty<string>("Username");
+            var first_name = root.GetProperty<string>("First_name");
+            var last_name = root.GetProperty<string>("Last_name");
+            var emp_no = root.GetProperty<string>("Emp_no");
+            var mail = root.GetProperty<string>("Mail");
+            var enable = root.GetProperty<bool>("Enable");
+            var roles = root.GetProperty<string[]>("Roles");
+            var type = root.GetProperty<string>("Type");
+            var user = await _dbContext.Users.FindAsync(id);
+            if (user == null)
+            {
+                user = new MiniAuthIdentityUser
+                {
+                    UserName = username,
+                    First_name = first_name,
+                    Last_name = last_name,
+                    Emp_no = emp_no,
+                    Email = mail,
+                    Enable = enable,
+                    Type = type
+                };
+                await _dbContext.Users.AddAsync(user);
+            }
+            else
+            {
+                user.UserName = username;
+                user.First_name = first_name;
+                user.Last_name = last_name;
+                user.Emp_no = emp_no;
+                user.Email = mail;
+                user.Enable = enable;
+                user.Type = type;
+            }
+            await _dbContext.SaveChangesAsync();
+            var userRoles = _dbContext.UserRoles.Where(w => w.UserId == user.Id).ToArray();
+            foreach (var userRole in userRoles)
+            {
+                _dbContext.UserRoles.Remove(userRole);
+            }
+            foreach (var role in roles)
+            {
+                var userRole = new IdentityUserRole<string>
+                {
+                    UserId = user.Id,
+                    RoleId = role
+                };
+                await _dbContext.UserRoles.AddAsync(userRole);
+            }
+            await _dbContext.SaveChangesAsync();
+            await OkResult(context, "".ToJson(code: 200, message: ""));
+        }
+
+
+        private async Task GetUsers(HttpContext context, MiniAuthIdentityDbContext _dbContext)
+        {
+            JsonDocument bodyJson = await GetBodyJson(context);
+            var root = bodyJson.RootElement;
+            var pageIndex = root.GetProperty<int>("pageIndex");
+            var pageSize = root.GetProperty<int>("pageSize");
+            var offset = pageIndex * pageSize;
+            var users = _dbContext.Users.Skip(offset).Take(pageSize)
+                .Select(s => new MiniAuthUserVo
+                {
+                    Id = s.Id,
+                    Username = s.UserName,
+                    First_name = s.First_name,
+                    Last_name = s.Last_name,
+                    Emp_no = s.Emp_no,
+                    Mail = s.Email,
+                    Enable = s.Enable,
+                    Roles = _dbContext.UserRoles.Where(w => w.UserId == s.Id).Select(s => s.RoleId).ToArray(),
+                    Type = s.Type
+                });
+            var totalItems = _dbContext.Users.Count();
+            await OkResult(context, new { users, totalItems }.ToJson());
         }
 
         private async Task deleteRole(HttpContext context, MiniAuthIdentityDbContext _dbContext)
