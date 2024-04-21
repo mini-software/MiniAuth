@@ -95,9 +95,58 @@ namespace MiniAuth.Identity
                     await SaveUser(context, _dbContext);
                 }).RequireAuthorization("miniauth-admin");
 
+                // /api/resetPassword
+                endpoints.MapPost("/miniauth/api/resetPassword", async (HttpContext context
+                    , ILogger<MiniAuthIdentityEndpoints> _logger
+                    , MiniAuthIdentityDbContext _dbContext
+                    , SignInManager<MiniAuthIdentityUser> signInManager
+                    , UserManager<MiniAuthIdentityUser> userManager
+                ) =>
+                {
+                    await ResetPassword(context, _dbContext, userManager);
+                }).RequireAuthorization("miniauth-admin");
+
             });
             InitEndpointsCache(builder);
 
+        }
+
+        private static string GetNewPassword()
+        {
+            return $"MiniAuth@{Guid.NewGuid().ToString().Substring(0, 10)}";
+        }
+        private async Task ResetPassword(HttpContext context, MiniAuthIdentityDbContext _dbContext, UserManager<MiniAuthIdentityUser> userManager)
+        {
+            JsonDocument bodyJson = await GetBodyJson(context);
+            var root = bodyJson.RootElement;
+            var id = root.GetProperty<string>("Id");
+            var password = root.GetProperty<string>("Password");
+            var user = await _dbContext.Users.FindAsync(id);
+            if (user != null)
+            {
+                string newPassword = GetNewPassword();
+                var result = await userManager.RemovePasswordAsync(user);
+                if (result.Succeeded)
+                {
+                    result = await userManager.AddPasswordAsync(user, newPassword);
+                    if (result.Succeeded)
+                    {
+                        await OkResult(context, new { newPassword }.ToJson(code: 200, message: ""));
+                    }
+                    else
+                    {
+                        await OkResult(context, "".ToJson(code: 500, message: result.Errors.Select(s => s.Description).ToJson()));
+                    }
+                }
+                else
+                {
+                    await OkResult(context, "".ToJson(code: 500, message: result.Errors.Select(s => s.Description).ToJson()));
+                }
+            }
+            else
+            {
+                await OkResult(context, "".ToJson(code: 404, message: "User not found"));
+            }
         }
 
         private async Task SaveUser(HttpContext context, MiniAuthIdentityDbContext _dbContext)
