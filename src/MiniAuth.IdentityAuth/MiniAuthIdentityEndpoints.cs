@@ -74,6 +74,36 @@ namespace MiniAuth.Identity
                     await deleteRole(context, _dbContext);
                 }).RequireAuthorization("miniauth-admin");
 
+
+                endpoints.MapPost("/miniauth/api/getUsers", async (HttpContext context
+                    , ILogger<MiniAuthIdentityEndpoints> _logger
+                    , MiniAuthIdentityDbContext _dbContext
+                    , SignInManager<MiniAuthIdentityUser> signInManager
+                    , UserManager<MiniAuthIdentityUser> userManager
+                ) =>
+                {
+                    JsonDocument bodyJson = await GetBodyJson(context);
+                    var root = bodyJson.RootElement;
+                    var pageIndex = root.GetProperty<int>("pageIndex");
+                    var pageSize = root.GetProperty<int>("pageSize");
+                    var offset = pageIndex * pageSize;
+                    var users = _dbContext.Users.Skip(offset).Take(pageSize)
+                        .Select(s=> new MiniAuthUserVo
+                        {
+                            Id = s.Id,
+                            Username = s.UserName,
+                            First_name = s.First_name,
+                            Last_name = s.Last_name,
+                            Emp_no = s.Emp_no,
+                            Mail = s.Email,
+                            Enable = s.Enable,
+                            Roles = _dbContext.UserRoles.Where(w => w.UserId == s.Id).Select(s => s.RoleId).ToArray(),
+                            Type = s.Type
+                        });
+                    var totalItems = _dbContext.Users.Count();
+                    await OkResult(context, new { users, totalItems }.ToJson());
+                }).RequireAuthorization("miniauth-admin");
+
             });
             InitEndpointsCache(builder);
 
