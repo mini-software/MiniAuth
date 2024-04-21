@@ -9,7 +9,7 @@ export default defineConfig({
   base: '/miniauth/', 
   build: {  
     emptyOutDir: true,
-    outDir: '../MiniAuth/wwwroot/',
+    outDir: '../MiniAuth.IdentityAuth/wwwroot/', 
   },  
   plugins: [
     vue(),

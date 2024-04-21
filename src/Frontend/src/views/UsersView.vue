@@ -286,10 +286,10 @@ const save = async (data) => {
   }
   await service.post('api/saveUser', data).then(async () => {
     alert(t("updated_successfully"))
-    await service.post('api/resetPassword', data).then(async (res) => {
-      alert(t("new_password", [res.newPassword]))
-      navigator.clipboard.writeText(res.newPassword)
-    })
+
+    if (data.Id == null || data.Id == undefined) {
+      await resetPassword(data);
+    }
     await fetchData();
   })
 }
