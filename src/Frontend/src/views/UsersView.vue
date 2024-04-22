@@ -284,11 +284,12 @@ const save = async (data) => {
   if (!confirm(t("please_confirm"))) {
     return;
   }
-  await service.post('api/saveUser', data).then(async () => {
+  await service.post('api/saveUser', data).then(async (res) => {
     alert(t("updated_successfully"))
 
     if (data.Id == null || data.Id == undefined) {
-      await resetPassword(data);
+      alert(t("new_password", [res.newPassword]))
+      navigator.clipboard.writeText(res.newPassword)
     }
     await fetchData();
   })

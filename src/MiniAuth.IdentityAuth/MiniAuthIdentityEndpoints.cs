@@ -8,8 +8,6 @@ using Microsoft.Extensions.Logging;
 using MiniAuth.IdentityAuth.Helpers;
 using MiniAuth.IdentityAuth.Models;
 using System.Collections.Concurrent;
-using System.Reflection.PortableExecutable;
-using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 
@@ -92,7 +90,7 @@ namespace MiniAuth.Identity
                     , UserManager<MiniAuthIdentityUser> userManager
                 ) =>
                 {
-                    await SaveUser(context, _dbContext);
+                    await SaveUser(context, _dbContext, userManager);
                 }).RequireAuthorization("miniauth-admin");
 
                 // /api/resetPassword
@@ -149,7 +147,7 @@ namespace MiniAuth.Identity
             }
         }
 
-        private async Task SaveUser(HttpContext context, MiniAuthIdentityDbContext _dbContext)
+        private async Task SaveUser(HttpContext context, MiniAuthIdentityDbContext _dbContext, UserManager<MiniAuthIdentityUser> userManager)
         {
             JsonDocument bodyJson = await GetBodyJson(context);
             var root = bodyJson.RootElement;
@@ -163,7 +161,8 @@ namespace MiniAuth.Identity
             var roles = root.GetProperty<string[]>("Roles");
             var type = root.GetProperty<string>("Type");
             var user = await _dbContext.Users.FindAsync(id);
-            if (user == null)
+            var isUserExist = user == null;
+            if (isUserExist)
             {
                 user = new MiniAuthIdentityUser
                 {
@@ -202,8 +201,19 @@ namespace MiniAuth.Identity
                 };
                 await _dbContext.UserRoles.AddAsync(userRole);
             }
-            await _dbContext.SaveChangesAsync();
-            await OkResult(context, "".ToJson(code: 200, message: ""));
+            
+            if (isUserExist)
+            {
+                string newPassword = GetNewPassword();
+                await userManager.AddPasswordAsync(user, newPassword);
+                await _dbContext.SaveChangesAsync();
+                await OkResult(context, new { newPassword }.ToJson(code: 200, message: ""));
+            }
+            else
+            {
+                await _dbContext.SaveChangesAsync();
+                await OkResult(context, "".ToJson(code: 200, message: ""));
+            }
         }
 
 
