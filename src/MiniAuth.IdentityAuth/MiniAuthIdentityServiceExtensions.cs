@@ -1,20 +1,16 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MiniAuth.IdentityAuth.Models;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace MiniAuth.Identity
 {
@@ -29,7 +25,6 @@ namespace MiniAuth.Identity
                 options.UseSqlite(connectionString);
             });
 
-            // if services AddAuthentication not already added then call AddAuthentication
             if (services.All(o => o.ServiceType != typeof(IAuthenticationService)))
             {
                 services.AddAuthorization(options =>
@@ -64,8 +59,31 @@ namespace MiniAuth.Identity
                 options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
                 options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
             })
-            .AddIdentityCookies(o => {
-                o.ApplicationCookie.Configure(o => o.LoginPath = "/miniauth/login.html");
+            .AddMiniAuthIdentityCookies(o =>
+            {
+                o.ApplicationCookie.Configure(o =>
+                {
+                    o.LoginPath = "/miniauth/login.html";
+                    o.Events = new CookieAuthenticationEvents
+                    {
+                        OnRedirectToLogin = ctx =>
+                        {
+                            if (ctx.Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                            {
+#if DEBUG   
+                                Debug.WriteLine($"IsXMLHttpRequest Path: {ctx.Request.Path}");
+#endif
+                                ctx.Response.StatusCode = 401;
+                            }
+                            else
+                            {
+                                ctx.Response.Redirect(ctx.RedirectUri);
+                            }
+
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
             });
             //.AddCookie(IdentityConstants.ApplicationScheme, o =>
             //{
@@ -124,7 +142,28 @@ namespace MiniAuth.Identity
 
             return new IdentityBuilder(typeof(TUser), typeof(TRole), services);
         }
-
+        private static IdentityCookiesBuilder AddMiniAuthIdentityCookies(this AuthenticationBuilder builder, Action<IdentityCookiesBuilder> configureCookies)
+        {
+            var cookieBuilder = new IdentityCookiesBuilder();
+            cookieBuilder.ApplicationCookie = builder.AddMiniAuthApplicationCookie();
+            cookieBuilder.ExternalCookie = builder.AddExternalCookie();
+            cookieBuilder.TwoFactorRememberMeCookie = builder.AddTwoFactorRememberMeCookie();
+            cookieBuilder.TwoFactorUserIdCookie = builder.AddTwoFactorUserIdCookie();
+            configureCookies?.Invoke(cookieBuilder);
+            return cookieBuilder;
+        }
+        private static OptionsBuilder<CookieAuthenticationOptions> AddMiniAuthApplicationCookie(this AuthenticationBuilder builder)
+        {
+            builder.AddCookie(IdentityConstants.ApplicationScheme, o =>
+            {
+                o.LoginPath = new PathString("/Account/Login");
+                o.Events = new CookieAuthenticationEvents
+                {
+                    OnValidatePrincipal = SecurityStampValidator.ValidatePrincipalAsync
+                };
+            });
+            return new OptionsBuilder<CookieAuthenticationOptions>(builder.Services, IdentityConstants.ApplicationScheme);
+        }
         private sealed class PostConfigureSecurityStampValidatorOptions : IPostConfigureOptions<SecurityStampValidatorOptions>
         {
             public PostConfigureSecurityStampValidatorOptions(TimeProvider timeProvider)

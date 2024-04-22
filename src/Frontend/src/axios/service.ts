@@ -6,7 +6,8 @@ const service = axios.create({
   baseURL: ViteEnv.VITE_APP_BASE_API,  
   timeout: 50000 ,
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
   }
 });  
 
