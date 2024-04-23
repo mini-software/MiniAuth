@@ -12,7 +12,7 @@ namespace MiniAuth.Identity
             app.UseCors("AllowAll");
             app.MapGet("/", () => "Hello World!");
             //app.MapControllers();
-            app.UseMiniIdentityAuth();
+            //app.UseMiniIdentityAuth();
             app.Run();
         }
     }
