@@ -16,9 +16,10 @@ namespace MiniAuth.Identity
 {
     public static class MiniAuthIdentityServiceExtensions
     {
-        public static IServiceCollection AddMiniIdentityAuth(this IServiceCollection services)
+        public static IServiceCollection AddMiniIdentityAuth(this IServiceCollection services,bool isAutoUse=true)
         {
             _ = services ?? throw new ArgumentNullException(nameof(services));
+
             var connectionString = "Data Source=miniauth_identity.db";
             services.AddDbContext<MiniAuthIdentityDbContext>(options =>
             {
@@ -39,6 +40,10 @@ namespace MiniAuth.Identity
                     .AddDefaultTokenProviders()
                     .AddEntityFrameworkStores<MiniAuthIdentityDbContext>();
             }
+
+            if(isAutoUse)
+                services.AddTransient<IStartupFilter, MiniAuthStartupFilter>(); 
+
             return services;
         }
         public static IdentityBuilder AddMiniAuthIdentity<TUser, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TRole>(
@@ -68,6 +73,7 @@ namespace MiniAuth.Identity
                     {
                         OnRedirectToLogin = ctx =>
                         {
+                            
                             if (ctx.Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                             {
 #if DEBUG   
