@@ -93,7 +93,6 @@ namespace MiniAuth.Identity
                     await SaveUser(context, _dbContext, userManager);
                 }).RequireAuthorization("miniauth-admin");
 
-                // /api/resetPassword
                 endpoints.MapPost("/miniauth/api/resetPassword", async (HttpContext context
                     , ILogger<MiniAuthIdentityEndpoints> _logger
                     , MiniAuthIdentityDbContext _dbContext
@@ -111,7 +110,7 @@ namespace MiniAuth.Identity
 
         private static string GetNewPassword()
         {
-            return $"MiniAuth@{Guid.NewGuid().ToString().Substring(0, 10)}";
+            return $"{Guid.NewGuid().ToString().Substring(0, 10).ToUpper()}@{Guid.NewGuid().ToString().Substring(0, 5)}";
         }
         private async Task ResetPassword(HttpContext context, MiniAuthIdentityDbContext _dbContext, UserManager<MiniAuthIdentityUser> userManager)
         {
@@ -294,7 +293,7 @@ namespace MiniAuth.Identity
             {
                 _logger.LogInformation("User logged in.");
                 var newToken = Guid.NewGuid().ToString();
-                context.Response.Cookies.Append("X-MiniAuth-Token", newToken);
+                //context.Response.Cookies.Append("X-MiniAuth-Token", newToken);
                 await OkResult(context, $"{{\"X-MiniAuth-Token\":\"{newToken}\"}}");
                 return;
             }

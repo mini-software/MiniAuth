@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -73,12 +74,12 @@ namespace MiniAuth.Identity
                     {
                         OnRedirectToLogin = ctx =>
                         {
-                            
-                            if (ctx.Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                            var routeEndpoint = ctx.HttpContext.GetEndpoint();
+                            var isJsonApi = ctx.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+                                routeEndpoint.Metadata?.GetMetadata<Microsoft.AspNetCore.Mvc.ApiControllerAttribute>() != null;
+                            if (isJsonApi)
                             {
-#if DEBUG   
                                 Debug.WriteLine($"IsXMLHttpRequest Path: {ctx.Request.Path}");
-#endif
                                 ctx.Response.StatusCode = 401;
                             }
                             else

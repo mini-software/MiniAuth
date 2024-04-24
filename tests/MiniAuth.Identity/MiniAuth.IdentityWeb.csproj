@@ -7,9 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+	  
     <ProjectReference Include="..\..\src\MiniAuth.IdentityAuth\MiniAuth.IdentityAuth.csproj" />
   </ItemGroup>
-
+	<ItemGroup>
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+	</ItemGroup>
 
 
 </Project>
