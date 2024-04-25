@@ -14,6 +14,7 @@ namespace MiniAuth.Identity
 #if DEBUG
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            //builder.Services.AddIdentityApiEndpoints<IdentityUser>();
 #endif
 
             var app = builder.Build();

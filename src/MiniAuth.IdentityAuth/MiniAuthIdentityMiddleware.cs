@@ -37,7 +37,6 @@ namespace MiniAuth
         public async Task Invoke(HttpContext context)
         {
 #if DEBUG
-            Debug.WriteLine("================================================");
             Debug.WriteLine($"{DateTime.Now.ToString("HH:mm:ss")}, Path: {context.Request.Path}");
 #endif
             await _next(context);

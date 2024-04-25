@@ -4,7 +4,7 @@ using MiniAuth.IdentityAuth.Models;
 
 namespace MiniAuth.Identity
 {
-    public class MiniAuthIdentityDbContext : IdentityDbContext<MiniAuthIdentityUser, MiniAuthIdentityRole,string>
+    public class MiniAuthIdentityDbContext : IdentityDbContext
     {
         public MiniAuthIdentityDbContext(DbContextOptions<MiniAuthIdentityDbContext> options) : base(options)
         {

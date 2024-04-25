@@ -3,13 +3,12 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using MiniAuth.IdentityAuth.Models;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
@@ -17,15 +16,21 @@ namespace MiniAuth.Identity
 {
     public static class MiniAuthIdentityServiceExtensions
     {
-        public static IServiceCollection AddMiniIdentityAuth(this IServiceCollection services,bool isAutoUse=true)
+        public static IServiceCollection AddMiniIdentityAuth(this IServiceCollection services, bool isAutoUse = true)
         {
             _ = services ?? throw new ArgumentNullException(nameof(services));
-
             var connectionString = "Data Source=miniauth_identity.db";
             services.AddDbContext<MiniAuthIdentityDbContext>(options =>
             {
                 options.UseSqlite(connectionString);
             });
+            services.AddMiniIdentityAuth<MiniAuthIdentityDbContext>(isAutoUse);
+            return services;
+        }
+        public static IServiceCollection AddMiniIdentityAuth<TDbContext>(this IServiceCollection services, bool isAutoUse = true)
+            where TDbContext : IdentityDbContext
+        {
+            _ = services ?? throw new ArgumentNullException(nameof(services));
 
             if (services.All(o => o.ServiceType != typeof(IAuthenticationService)))
             {
@@ -37,13 +42,13 @@ namespace MiniAuth.Identity
                     });
                 });
                 services
-                    .AddMiniAuthIdentity<MiniAuthIdentityUser, MiniAuthIdentityRole>()
+                    .AddMiniAuthIdentity<IdentityUser, IdentityRole>()
                     .AddDefaultTokenProviders()
                     .AddEntityFrameworkStores<MiniAuthIdentityDbContext>();
             }
 
-            if(isAutoUse)
-                services.AddTransient<IStartupFilter, MiniAuthStartupFilter>(); 
+            if (isAutoUse)
+                services.AddTransient<IStartupFilter, MiniAuthStartupFilter>();
 
             return services;
         }

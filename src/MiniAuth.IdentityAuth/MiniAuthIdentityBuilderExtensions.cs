@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using MiniAuth.IdentityAuth.Models;
@@ -12,6 +14,14 @@ namespace MiniAuth.Identity
         public static IApplicationBuilder UseMiniIdentityAuth(this IApplicationBuilder builder)
         {
             _ = builder ?? throw new ArgumentNullException(nameof(builder));
+            builder.UseMiniIdentityAuth<MiniAuthIdentityDbContext>();
+            return builder;
+        }
+        public static IApplicationBuilder UseMiniIdentityAuth<TDbContext> 
+            (this IApplicationBuilder builder) 
+            where TDbContext : IdentityDbContext
+        {
+            _ = builder ?? throw new ArgumentNullException(nameof(builder));
 
             builder.UseMiddleware<MiniAuthIdentityMiddleware>();
 
@@ -20,7 +30,7 @@ namespace MiniAuth.Identity
             if (!builder.Properties.TryGetValue("__UseAuthorization", out var _))
                 builder.UseAuthorization();
 
-            var miniauthEndpoints = new MiniAuthIdentityEndpoints();
+            var miniauthEndpoints = new MiniAuthIdentityEndpoints<TDbContext>();
             miniauthEndpoints.MapEndpoints(builder);
 
             Task.Run(async () =>
@@ -30,24 +40,24 @@ namespace MiniAuth.Identity
                     var ctx = scope.ServiceProvider.GetRequiredService<MiniAuthIdentityDbContext>();
                     if (ctx.Database.EnsureCreated())
                     {
-                        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<MiniAuthIdentityUser>>();
+                        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
                         
-                        var userStore = scope.ServiceProvider.GetRequiredService<IUserStore<MiniAuthIdentityUser>>();
-                        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<MiniAuthIdentityRole>>();
+                        var userStore = scope.ServiceProvider.GetRequiredService<IUserStore<IdentityUser>>();
+                        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
                         {
-                            var user = Activator.CreateInstance<MiniAuthIdentityUser>();
+                            var user = Activator.CreateInstance<IdentityUser>();
                             await userStore.SetUserNameAsync(user, "miniauth", CancellationToken.None);
                             await userManager.CreateAsync(user, "E7c4f679-f379-42bf-b547-684d456bc37f");
-                            await roleManager.CreateAsync(new MiniAuthIdentityRole("miniauth-admin") { Type = "miniauth" });
+                            await roleManager.CreateAsync(new IdentityRole("miniauth-admin") );
                             await userManager.AddToRoleAsync(user, "miniauth-admin");
                         }
 #if DEBUG
                         foreach (var item in new[] { "HR","IT","RD"})
                         {
-                            var user = Activator.CreateInstance<MiniAuthIdentityUser>();
+                            var user = Activator.CreateInstance<IdentityUser>();
                             await userStore.SetUserNameAsync(user, $"miniauth-{item.ToLower()}", CancellationToken.None);
                             await userManager.CreateAsync(user, "E7c4f679-f379-42bf-b547-684d456bc37f");
-                            await roleManager.CreateAsync(new MiniAuthIdentityRole(item) { Type = null });
+                            await roleManager.CreateAsync(new IdentityRole(item) );
                             await userManager.AddToRoleAsync(user, item);
                         }   
 #endif

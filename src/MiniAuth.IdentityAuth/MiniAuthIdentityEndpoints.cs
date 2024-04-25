@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,7 +14,8 @@ using System.Text.Json;
 
 namespace MiniAuth.Identity
 {
-    public class MiniAuthIdentityEndpoints
+    public class MiniAuthIdentityEndpoints<TDbContext>
+        where TDbContext: IdentityDbContext
     {
         public static ConcurrentDictionary<string, RoleEndpointEntity> _endpointCache = new ConcurrentDictionary<string, RoleEndpointEntity>();
         public void MapEndpoints(IApplicationBuilder builder)
@@ -21,7 +23,6 @@ namespace MiniAuth.Identity
             builder.UseEndpoints(endpoints =>
             {
                 endpoints.MapGet("/miniauth/api/getAllEndpoints", async (HttpContext context,
-                    ILogger<object> _logger,
                     MiniAuthIdentityDbContext _dbContext
                 ) =>
                 {
@@ -31,31 +32,28 @@ namespace MiniAuth.Identity
                 ;
 
                 endpoints.MapPost("/miniauth/login", async (HttpContext context
-                    , ILogger<MiniAuthIdentityEndpoints> _logger
                     , MiniAuthIdentityDbContext _dbContext
-                    , SignInManager<MiniAuthIdentityUser> signInManager
-                    , UserManager<MiniAuthIdentityUser> userManager
+                    , SignInManager<IdentityUser> signInManager
+                    , UserManager<IdentityUser> userManager
                 ) =>
                 {
-                    await Login(context, _logger, _dbContext, signInManager, userManager).ConfigureAwait(false);
+                    await Login(context, _dbContext, signInManager, userManager).ConfigureAwait(false);
                 });
 
                 endpoints.MapGet("/miniauth/api/getRoles", async (HttpContext context
-                    , ILogger<MiniAuthIdentityEndpoints> _logger
                     , MiniAuthIdentityDbContext _dbContext
-                    , SignInManager<MiniAuthIdentityUser> signInManager
-                    , UserManager<MiniAuthIdentityUser> userManager
+                    , SignInManager<IdentityUser> signInManager
+                    , UserManager<IdentityUser> userManager
                 ) =>
                 {
-                    var roles = (_dbContext.Roles.ToArray<MiniAuthIdentityRole>());
+                    var roles = (_dbContext.Roles.ToArray());
                     await OkResult(context, roles.ToJson());
                 }).RequireAuthorization("miniauth-admin");
 
                 endpoints.MapPost("/miniauth/api/saveRole", async (HttpContext context
-                    , ILogger<MiniAuthIdentityEndpoints> _logger
                     , MiniAuthIdentityDbContext _dbContext
-                    , SignInManager<MiniAuthIdentityUser> signInManager
-                    , UserManager<MiniAuthIdentityUser> userManager
+                    , SignInManager<IdentityUser> signInManager
+                    , UserManager<IdentityUser> userManager
                 ) =>
                 {
                     await SaveRole(context, _dbContext);
@@ -63,10 +61,9 @@ namespace MiniAuth.Identity
 
 
                 endpoints.MapPost("/miniauth/api/deleteRole", async (HttpContext context
-                    , ILogger<MiniAuthIdentityEndpoints> _logger
                     , MiniAuthIdentityDbContext _dbContext
-                    , SignInManager<MiniAuthIdentityUser> signInManager
-                    , UserManager<MiniAuthIdentityUser> userManager
+                    , SignInManager<IdentityUser> signInManager
+                    , UserManager<IdentityUser> userManager
                 ) =>
                 {
                     await deleteRole(context, _dbContext);
@@ -74,45 +71,66 @@ namespace MiniAuth.Identity
 
 
                 endpoints.MapPost("/miniauth/api/getUsers", async (HttpContext context
-                    , ILogger<MiniAuthIdentityEndpoints> _logger
                     , MiniAuthIdentityDbContext _dbContext
-                    , SignInManager<MiniAuthIdentityUser> signInManager
-                    , UserManager<MiniAuthIdentityUser> userManager
+                    , SignInManager<IdentityUser> signInManager
+                    , UserManager<IdentityUser> userManager
                 ) =>
                 {
                     await GetUsers(context, _dbContext);
                 }).RequireAuthorization("miniauth-admin");
 
                 endpoints.MapPost("/miniauth/api/saveUser", async (HttpContext context
-                    , ILogger<MiniAuthIdentityEndpoints> _logger
                     , MiniAuthIdentityDbContext _dbContext
-                    , SignInManager<MiniAuthIdentityUser> signInManager
-                    , UserManager<MiniAuthIdentityUser> userManager
+                    , SignInManager<IdentityUser> signInManager
+                    , UserManager<IdentityUser> userManager
                 ) =>
                 {
                     await SaveUser(context, _dbContext, userManager);
                 }).RequireAuthorization("miniauth-admin");
 
                 endpoints.MapPost("/miniauth/api/resetPassword", async (HttpContext context
-                    , ILogger<MiniAuthIdentityEndpoints> _logger
                     , MiniAuthIdentityDbContext _dbContext
-                    , SignInManager<MiniAuthIdentityUser> signInManager
-                    , UserManager<MiniAuthIdentityUser> userManager
+                    , SignInManager<IdentityUser> signInManager
+                    , UserManager<IdentityUser> userManager
                 ) =>
                 {
                     await ResetPassword(context, _dbContext, userManager);
                 }).RequireAuthorization("miniauth-admin");
 
             });
-            InitEndpointsCache(builder);
 
+            // init cache
+            var endpointDataSource = builder.ApplicationServices.GetRequiredService<EndpointDataSource>();
+            var endpoints = endpointDataSource.Endpoints;
+            foreach (var endpoint in endpoints)
+            {
+                var routeEndpoint = endpoint as RouteEndpoint;
+                if (routeEndpoint != null)
+                {
+                    var id = routeEndpoint.DisplayName; //TODO
+                    var methods = routeEndpoint.Metadata?.GetMetadata<HttpMethodMetadata>()?.HttpMethods.ToArray();
+                    var route = routeEndpoint?.RoutePattern.RawText;
+                    var isApi = routeEndpoint.Metadata?.GetMetadata<Microsoft.AspNetCore.Mvc.ApiControllerAttribute>() != null;
+                    var roleEndpoint = new RoleEndpointEntity
+                    {
+                        Id = routeEndpoint.DisplayName,
+                        Type = "system",
+                        Name = routeEndpoint.DisplayName,
+                        Route = route,
+                        Methods = methods,
+                        Enable = true,
+                        RedirectToLoginPage = !isApi
+                    };
+                    MiniAuthIdentityEndpoints<TDbContext>._endpointCache.TryAdd(id, roleEndpoint);
+                }
+            }
         }
 
         private static string GetNewPassword()
         {
             return $"{Guid.NewGuid().ToString().Substring(0, 10).ToUpper()}@{Guid.NewGuid().ToString().Substring(0, 5)}";
         }
-        private async Task ResetPassword(HttpContext context, MiniAuthIdentityDbContext _dbContext, UserManager<MiniAuthIdentityUser> userManager)
+        private async Task ResetPassword(HttpContext context, MiniAuthIdentityDbContext _dbContext, UserManager<IdentityUser> userManager)
         {
             JsonDocument bodyJson = await GetBodyJson(context);
             var root = bodyJson.RootElement;
@@ -146,7 +164,7 @@ namespace MiniAuth.Identity
             }
         }
 
-        private async Task SaveUser(HttpContext context, MiniAuthIdentityDbContext _dbContext, UserManager<MiniAuthIdentityUser> userManager)
+        private async Task SaveUser(HttpContext context, MiniAuthIdentityDbContext _dbContext, UserManager<IdentityUser> userManager)
         {
             JsonDocument bodyJson = await GetBodyJson(context);
             var root = bodyJson.RootElement;
@@ -163,27 +181,17 @@ namespace MiniAuth.Identity
             var isUserExist = user == null;
             if (isUserExist)
             {
-                user = new MiniAuthIdentityUser
+                user = new IdentityUser
                 {
                     UserName = username,
-                    First_name = first_name,
-                    Last_name = last_name,
-                    Emp_no = emp_no,
                     Email = mail,
-                    Enable = enable,
-                    Type = type
                 };
                 await _dbContext.Users.AddAsync(user);
             }
             else
             {
                 user.UserName = username;
-                user.First_name = first_name;
-                user.Last_name = last_name;
-                user.Emp_no = emp_no;
                 user.Email = mail;
-                user.Enable = enable;
-                user.Type = type;
             }
             await _dbContext.SaveChangesAsync();
             var userRoles = _dbContext.UserRoles.Where(w => w.UserId == user.Id).ToArray();
@@ -224,17 +232,12 @@ namespace MiniAuth.Identity
             var pageSize = root.GetProperty<int>("pageSize");
             var offset = pageIndex * pageSize;
             var users = _dbContext.Users.Skip(offset).Take(pageSize)
-                .Select(s => new MiniAuthUserVo
+                .Select(s => new 
                 {
                     Id = s.Id,
                     Username = s.UserName,
-                    First_name = s.First_name,
-                    Last_name = s.Last_name,
-                    Emp_no = s.Emp_no,
                     Mail = s.Email,
-                    Enable = s.Enable,
                     Roles = _dbContext.UserRoles.Where(w => w.UserId == s.Id).Select(s => s.RoleId).ToArray(),
-                    Type = s.Type
                 });
             var totalItems = _dbContext.Users.Count();
             await OkResult(context, new { users, totalItems }.ToJson());
@@ -265,23 +268,19 @@ namespace MiniAuth.Identity
             var role = await _dbContext.Roles.FindAsync(id);
             if (role == null)
             {
-                role = new MiniAuthIdentityRole(name);
+                role = new IdentityRole(name);
                 role.Id = id;
-                role.Enable = enable;
-                role.Type = type;
                 await _dbContext.Roles.AddAsync(role);
             }
             else
             {
                 role.Name = name;
-                role.Enable = enable;
-                role.Type = type;
             }
             await _dbContext.SaveChangesAsync();
             await OkResult(context, "".ToJson(code: 200, message: ""));
         }
 
-        private async Task Login(HttpContext context, ILogger<MiniAuthIdentityEndpoints> _logger, MiniAuthIdentityDbContext _dbContext, SignInManager<MiniAuthIdentityUser> signInManager, UserManager<MiniAuthIdentityUser> userManager)
+        private async Task Login(HttpContext context, MiniAuthIdentityDbContext _dbContext, SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager)
         {
             JsonDocument bodyJson = await GetBodyJson(context);
             var root = bodyJson.RootElement;
@@ -291,7 +290,6 @@ namespace MiniAuth.Identity
             var result = await signInManager.PasswordSignInAsync(userName, password, remember, lockoutOnFailure: false);
             if (result.Succeeded)
             {
-                _logger.LogInformation("User logged in.");
                 var newToken = Guid.NewGuid().ToString();
                 //context.Response.Cookies.Append("X-MiniAuth-Token", newToken);
                 await OkResult(context, $"{{\"X-MiniAuth-Token\":\"{newToken}\"}}");
@@ -312,33 +310,7 @@ namespace MiniAuth.Identity
             return bodyJson;
         }
 
-        private static void InitEndpointsCache(IApplicationBuilder builder)
-        {
-            var endpointDataSource = builder.ApplicationServices.GetRequiredService<EndpointDataSource>();
-            var endpoints = endpointDataSource.Endpoints;
-            foreach (var endpoint in endpoints)
-            {
-                var routeEndpoint = endpoint as RouteEndpoint;
-                if (routeEndpoint != null)
-                {
-                    var id = routeEndpoint.DisplayName; //TODO
-                    var methods = routeEndpoint.Metadata?.GetMetadata<HttpMethodMetadata>()?.HttpMethods.ToArray();
-                    var route = routeEndpoint?.RoutePattern.RawText;
-                    var isApi = routeEndpoint.Metadata?.GetMetadata<Microsoft.AspNetCore.Mvc.ApiControllerAttribute>() != null;
-                    var roleEndpoint = new RoleEndpointEntity
-                    {
-                        Id = routeEndpoint.DisplayName,
-                        Type = "system",
-                        Name = routeEndpoint.DisplayName,
-                        Route = route,
-                        Methods = methods,
-                        Enable = true,
-                        RedirectToLoginPage = !isApi
-                    };
-                    MiniAuthIdentityEndpoints._endpointCache.TryAdd(id, roleEndpoint);
-                }
-            }
-        }
+
         private static async Task OkResult(HttpContext context, string result, string contentType = "application/json")
         {
             context.Response.StatusCode = StatusCodes.Status200OK;
