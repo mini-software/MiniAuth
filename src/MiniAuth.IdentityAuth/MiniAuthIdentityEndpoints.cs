@@ -14,8 +14,10 @@ using System.Text.Json;
 
 namespace MiniAuth.Identity
 {
-    public class MiniAuthIdentityEndpoints<TDbContext>
-        where TDbContext: IdentityDbContext
+    public class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRole>
+        where TDbContext : IdentityDbContext
+        where TIdentityUser : IdentityUser,new()
+        where TIdentityRole : IdentityRole,new()
     {
         public static ConcurrentDictionary<string, RoleEndpointEntity> _endpointCache = new ConcurrentDictionary<string, RoleEndpointEntity>();
         public void MapEndpoints(IApplicationBuilder builder)
@@ -23,7 +25,7 @@ namespace MiniAuth.Identity
             builder.UseEndpoints(endpoints =>
             {
                 endpoints.MapGet("/miniauth/api/getAllEndpoints", async (HttpContext context,
-                    MiniAuthIdentityDbContext _dbContext
+                    TDbContext _dbContext
                 ) =>
                 {
                     await OkResult(context, _endpointCache.Values.OrderByDescending<RoleEndpointEntity, string>(o => o.Id).ToJson());
@@ -32,18 +34,32 @@ namespace MiniAuth.Identity
                 ;
 
                 endpoints.MapPost("/miniauth/login", async (HttpContext context
-                    , MiniAuthIdentityDbContext _dbContext
-                    , SignInManager<IdentityUser> signInManager
-                    , UserManager<IdentityUser> userManager
+                    , TDbContext _dbContext
+                    , SignInManager<TIdentityUser> signInManager
                 ) =>
                 {
-                    await Login(context, _dbContext, signInManager, userManager).ConfigureAwait(false);
+                    JsonDocument bodyJson = await GetBodyJson(context);
+                    var root = bodyJson.RootElement;
+                    var userName = root.GetProperty<string>("username");
+                    var password = root.GetProperty<string>("password");
+                    var remember = root.GetProperty<bool>("remember");
+                    var result = await signInManager.PasswordSignInAsync(userName, password, remember, lockoutOnFailure: false);
+                    if (result.Succeeded)
+                    {
+                        var newToken = Guid.NewGuid().ToString();
+                        //context.Response.Cookies.Append("X-MiniAuth-Token", newToken);
+                        await OkResult(context, $"{{\"X-MiniAuth-Token\":\"{newToken}\"}}");
+                        return;
+                    }
+                    else
+                    {
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        return;
+                    }
                 });
 
                 endpoints.MapGet("/miniauth/api/getRoles", async (HttpContext context
-                    , MiniAuthIdentityDbContext _dbContext
-                    , SignInManager<IdentityUser> signInManager
-                    , UserManager<IdentityUser> userManager
+                    , TDbContext _dbContext
                 ) =>
                 {
                     var roles = (_dbContext.Roles.ToArray());
@@ -51,50 +67,166 @@ namespace MiniAuth.Identity
                 }).RequireAuthorization("miniauth-admin");
 
                 endpoints.MapPost("/miniauth/api/saveRole", async (HttpContext context
-                    , MiniAuthIdentityDbContext _dbContext
-                    , SignInManager<IdentityUser> signInManager
-                    , UserManager<IdentityUser> userManager
+                    , TDbContext _dbContext
                 ) =>
                 {
-                    await SaveRole(context, _dbContext);
+                    JsonDocument bodyJson = await GetBodyJson(context);
+                    var root = bodyJson.RootElement;
+                    var id = root.GetProperty<string>("Id");
+                    var name = root.GetProperty<string>("Name");
+                    var enable = root.GetProperty<bool>("Enable");
+                    var type = root.GetProperty<string>("Type");
+                    var role = await _dbContext.Roles.FindAsync(id);
+                    if (role == null)
+                    {
+                        role = new TIdentityRole() { Name= name };
+                        role.Id = id;
+                        await _dbContext.Roles.AddAsync(role);
+                    }
+                    else
+                    {
+                        role.Name = name;
+                    }
+                    await _dbContext.SaveChangesAsync();
+                    await OkResult(context, "".ToJson(code: 200, message: ""));
                 }).RequireAuthorization("miniauth-admin");
 
 
                 endpoints.MapPost("/miniauth/api/deleteRole", async (HttpContext context
-                    , MiniAuthIdentityDbContext _dbContext
-                    , SignInManager<IdentityUser> signInManager
-                    , UserManager<IdentityUser> userManager
+                    , TDbContext _dbContext
                 ) =>
                 {
-                    await deleteRole(context, _dbContext);
+                    JsonDocument bodyJson = await GetBodyJson(context);
+                    var root = bodyJson.RootElement;
+                    var id = root.GetProperty<string>("Id");
+                    var role = await _dbContext.Roles.FindAsync(id);
+                    if (role != null)
+                    {
+                        _dbContext.Roles.Remove(role);
+                        await _dbContext.SaveChangesAsync();
+                    }
+                    await OkResult(context, "".ToJson(code: 200, message: ""));
                 }).RequireAuthorization("miniauth-admin");
 
 
                 endpoints.MapPost("/miniauth/api/getUsers", async (HttpContext context
-                    , MiniAuthIdentityDbContext _dbContext
-                    , SignInManager<IdentityUser> signInManager
-                    , UserManager<IdentityUser> userManager
+                    , TDbContext _dbContext
                 ) =>
                 {
-                    await GetUsers(context, _dbContext);
+                    JsonDocument bodyJson = await GetBodyJson(context);
+                    var root = bodyJson.RootElement;
+                    var pageIndex = root.GetProperty<int>("pageIndex");
+                    var pageSize = root.GetProperty<int>("pageSize");
+                    var offset = pageIndex * pageSize;
+                    var users = _dbContext.Users.Skip(offset).Take(pageSize)
+                        .Select(s => new
+                        {
+                            Id = s.Id,
+                            Username = s.UserName,
+                            Mail = s.Email,
+                            Roles = _dbContext.UserRoles.Where(w => w.UserId == s.Id).Select(s => s.RoleId).ToArray(),
+                        });
+                    var totalItems = _dbContext.Users.Count();
+                    await OkResult(context, new { users, totalItems }.ToJson());
                 }).RequireAuthorization("miniauth-admin");
 
                 endpoints.MapPost("/miniauth/api/saveUser", async (HttpContext context
-                    , MiniAuthIdentityDbContext _dbContext
-                    , SignInManager<IdentityUser> signInManager
-                    , UserManager<IdentityUser> userManager
+                    , TDbContext _dbContext
+                    , UserManager<TIdentityUser> userManager
                 ) =>
                 {
-                    await SaveUser(context, _dbContext, userManager);
+                    JsonDocument bodyJson = await GetBodyJson(context);
+                    var root = bodyJson.RootElement;
+                    var id = root.GetProperty<string>("Id");
+                    var username = root.GetProperty<string>("Username");
+                    var first_name = root.GetProperty<string>("First_name");
+                    var last_name = root.GetProperty<string>("Last_name");
+                    var emp_no = root.GetProperty<string>("Emp_no");
+                    var mail = root.GetProperty<string>("Mail");
+                    var enable = root.GetProperty<bool>("Enable");
+                    var roles = root.GetProperty<string[]>("Roles");
+                    var type = root.GetProperty<string>("Type");
+                    TIdentityUser user = (TIdentityUser)await _dbContext.Users.FindAsync(id);
+                    var isUserExist = user == null;
+                    if (isUserExist)
+                    {
+                        user = new TIdentityUser
+                        {
+                            UserName = username,
+                            Email = mail,
+                        };
+                        await _dbContext.Users.AddAsync(user);
+                    }
+                    else
+                    {
+                        user.UserName = username;
+                        user.Email = mail;
+                    }
+                    await _dbContext.SaveChangesAsync();
+                    var userRoles = _dbContext.UserRoles.Where(w => w.UserId == user.Id).ToArray();
+                    foreach (var userRole in userRoles)
+                    {
+                        _dbContext.UserRoles.Remove(userRole);
+                    }
+                    foreach (var role in roles)
+                    {
+                        var userRole = new IdentityUserRole<string>
+                        {
+                            UserId = user.Id,
+                            RoleId = role
+                        };
+                        await _dbContext.UserRoles.AddAsync(userRole);
+                    }
+
+                    if (isUserExist)
+                    {
+                        string newPassword = GetNewPassword();
+                        await userManager.AddPasswordAsync(user, newPassword);
+                        await _dbContext.SaveChangesAsync();
+                        await OkResult(context, new { newPassword }.ToJson(code: 200, message: ""));
+                    }
+                    else
+                    {
+                        await _dbContext.SaveChangesAsync();
+                        await OkResult(context, "".ToJson(code: 200, message: ""));
+                    }
                 }).RequireAuthorization("miniauth-admin");
 
                 endpoints.MapPost("/miniauth/api/resetPassword", async (HttpContext context
-                    , MiniAuthIdentityDbContext _dbContext
-                    , SignInManager<IdentityUser> signInManager
-                    , UserManager<IdentityUser> userManager
+                    , TDbContext _dbContext
+                    , UserManager<TIdentityUser> userManager
                 ) =>
                 {
-                    await ResetPassword(context, _dbContext, userManager);
+                    JsonDocument bodyJson = await GetBodyJson(context);
+                    var root = bodyJson.RootElement;
+                    var id = root.GetProperty<string>("Id");
+                    var password = root.GetProperty<string>("Password");
+                    TIdentityUser user = (TIdentityUser)await _dbContext.Users.FindAsync(id);
+                    if (user != null)
+                    {
+                        string newPassword = GetNewPassword();
+                        var result = await userManager.RemovePasswordAsync(user);
+                        if (result.Succeeded)
+                        {
+                            result = await userManager.AddPasswordAsync(user, newPassword);
+                            if (result.Succeeded)
+                            {
+                                await OkResult(context, new { newPassword }.ToJson(code: 200, message: ""));
+                            }
+                            else
+                            {
+                                await OkResult(context, "".ToJson(code: 500, message: result.Errors.Select(s => s.Description).ToJson()));
+                            }
+                        }
+                        else
+                        {
+                            await OkResult(context, "".ToJson(code: 500, message: result.Errors.Select(s => s.Description).ToJson()));
+                        }
+                    }
+                    else
+                    {
+                        await OkResult(context, "".ToJson(code: 404, message: "User not found"));
+                    }
                 }).RequireAuthorization("miniauth-admin");
 
             });
@@ -121,7 +253,7 @@ namespace MiniAuth.Identity
                         Enable = true,
                         RedirectToLoginPage = !isApi
                     };
-                    MiniAuthIdentityEndpoints<TDbContext>._endpointCache.TryAdd(id, roleEndpoint);
+                    MiniAuthIdentityEndpoints<TDbContext,TIdentityUser,TIdentityRole>._endpointCache.TryAdd(id, roleEndpoint);
                 }
             }
         }
@@ -129,177 +261,6 @@ namespace MiniAuth.Identity
         private static string GetNewPassword()
         {
             return $"{Guid.NewGuid().ToString().Substring(0, 10).ToUpper()}@{Guid.NewGuid().ToString().Substring(0, 5)}";
-        }
-        private async Task ResetPassword(HttpContext context, MiniAuthIdentityDbContext _dbContext, UserManager<IdentityUser> userManager)
-        {
-            JsonDocument bodyJson = await GetBodyJson(context);
-            var root = bodyJson.RootElement;
-            var id = root.GetProperty<string>("Id");
-            var password = root.GetProperty<string>("Password");
-            var user = await _dbContext.Users.FindAsync(id);
-            if (user != null)
-            {
-                string newPassword = GetNewPassword();
-                var result = await userManager.RemovePasswordAsync(user);
-                if (result.Succeeded)
-                {
-                    result = await userManager.AddPasswordAsync(user, newPassword);
-                    if (result.Succeeded)
-                    {
-                        await OkResult(context, new { newPassword }.ToJson(code: 200, message: ""));
-                    }
-                    else
-                    {
-                        await OkResult(context, "".ToJson(code: 500, message: result.Errors.Select(s => s.Description).ToJson()));
-                    }
-                }
-                else
-                {
-                    await OkResult(context, "".ToJson(code: 500, message: result.Errors.Select(s => s.Description).ToJson()));
-                }
-            }
-            else
-            {
-                await OkResult(context, "".ToJson(code: 404, message: "User not found"));
-            }
-        }
-
-        private async Task SaveUser(HttpContext context, MiniAuthIdentityDbContext _dbContext, UserManager<IdentityUser> userManager)
-        {
-            JsonDocument bodyJson = await GetBodyJson(context);
-            var root = bodyJson.RootElement;
-            var id = root.GetProperty<string>("Id");
-            var username = root.GetProperty<string>("Username");
-            var first_name = root.GetProperty<string>("First_name");
-            var last_name = root.GetProperty<string>("Last_name");
-            var emp_no = root.GetProperty<string>("Emp_no");
-            var mail = root.GetProperty<string>("Mail");
-            var enable = root.GetProperty<bool>("Enable");
-            var roles = root.GetProperty<string[]>("Roles");
-            var type = root.GetProperty<string>("Type");
-            var user = await _dbContext.Users.FindAsync(id);
-            var isUserExist = user == null;
-            if (isUserExist)
-            {
-                user = new IdentityUser
-                {
-                    UserName = username,
-                    Email = mail,
-                };
-                await _dbContext.Users.AddAsync(user);
-            }
-            else
-            {
-                user.UserName = username;
-                user.Email = mail;
-            }
-            await _dbContext.SaveChangesAsync();
-            var userRoles = _dbContext.UserRoles.Where(w => w.UserId == user.Id).ToArray();
-            foreach (var userRole in userRoles)
-            {
-                _dbContext.UserRoles.Remove(userRole);
-            }
-            foreach (var role in roles)
-            {
-                var userRole = new IdentityUserRole<string>
-                {
-                    UserId = user.Id,
-                    RoleId = role
-                };
-                await _dbContext.UserRoles.AddAsync(userRole);
-            }
-            
-            if (isUserExist)
-            {
-                string newPassword = GetNewPassword();
-                await userManager.AddPasswordAsync(user, newPassword);
-                await _dbContext.SaveChangesAsync();
-                await OkResult(context, new { newPassword }.ToJson(code: 200, message: ""));
-            }
-            else
-            {
-                await _dbContext.SaveChangesAsync();
-                await OkResult(context, "".ToJson(code: 200, message: ""));
-            }
-        }
-
-
-        private async Task GetUsers(HttpContext context, MiniAuthIdentityDbContext _dbContext)
-        {
-            JsonDocument bodyJson = await GetBodyJson(context);
-            var root = bodyJson.RootElement;
-            var pageIndex = root.GetProperty<int>("pageIndex");
-            var pageSize = root.GetProperty<int>("pageSize");
-            var offset = pageIndex * pageSize;
-            var users = _dbContext.Users.Skip(offset).Take(pageSize)
-                .Select(s => new 
-                {
-                    Id = s.Id,
-                    Username = s.UserName,
-                    Mail = s.Email,
-                    Roles = _dbContext.UserRoles.Where(w => w.UserId == s.Id).Select(s => s.RoleId).ToArray(),
-                });
-            var totalItems = _dbContext.Users.Count();
-            await OkResult(context, new { users, totalItems }.ToJson());
-        }
-
-        private async Task deleteRole(HttpContext context, MiniAuthIdentityDbContext _dbContext)
-        {
-            JsonDocument bodyJson = await GetBodyJson(context);
-            var root = bodyJson.RootElement;
-            var id = root.GetProperty<string>("Id");
-            var role = await _dbContext.Roles.FindAsync(id);
-            if (role != null)
-            {
-                _dbContext.Roles.Remove(role);
-                await _dbContext.SaveChangesAsync();
-            }
-            await OkResult(context, "".ToJson(code: 200, message: ""));
-        }
-
-        private async Task SaveRole(HttpContext context, MiniAuthIdentityDbContext _dbContext)
-        {
-            JsonDocument bodyJson = await GetBodyJson(context);
-            var root = bodyJson.RootElement;
-            var id = root.GetProperty<string>("Id");
-            var name = root.GetProperty<string>("Name");
-            var enable = root.GetProperty<bool>("Enable");
-            var type = root.GetProperty<string>("Type");
-            var role = await _dbContext.Roles.FindAsync(id);
-            if (role == null)
-            {
-                role = new IdentityRole(name);
-                role.Id = id;
-                await _dbContext.Roles.AddAsync(role);
-            }
-            else
-            {
-                role.Name = name;
-            }
-            await _dbContext.SaveChangesAsync();
-            await OkResult(context, "".ToJson(code: 200, message: ""));
-        }
-
-        private async Task Login(HttpContext context, MiniAuthIdentityDbContext _dbContext, SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager)
-        {
-            JsonDocument bodyJson = await GetBodyJson(context);
-            var root = bodyJson.RootElement;
-            var userName = root.GetProperty<string>("username");
-            var password = root.GetProperty<string>("password");
-            var remember = root.GetProperty<bool>("remember");
-            var result = await signInManager.PasswordSignInAsync(userName, password, remember, lockoutOnFailure: false);
-            if (result.Succeeded)
-            {
-                var newToken = Guid.NewGuid().ToString();
-                //context.Response.Cookies.Append("X-MiniAuth-Token", newToken);
-                await OkResult(context, $"{{\"X-MiniAuth-Token\":\"{newToken}\"}}");
-                return;
-            }
-            else
-            {
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                return;
-            }
         }
 
         private async Task<JsonDocument> GetBodyJson(HttpContext context)
@@ -309,7 +270,6 @@ namespace MiniAuth.Identity
             var bodyJson = JsonDocument.Parse(body);
             return bodyJson;
         }
-
 
         private static async Task OkResult(HttpContext context, string result, string contentType = "application/json")
         {

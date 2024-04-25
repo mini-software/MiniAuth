@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
-using MiniAuth.IdentityAuth.Models;
 using System.Reflection;
 
 namespace MiniAuth.Identity
@@ -14,12 +12,14 @@ namespace MiniAuth.Identity
         public static IApplicationBuilder UseMiniIdentityAuth(this IApplicationBuilder builder)
         {
             _ = builder ?? throw new ArgumentNullException(nameof(builder));
-            builder.UseMiniIdentityAuth<MiniAuthIdentityDbContext>();
+            builder.UseMiniIdentityAuth<MiniAuthIdentityDbContext, IdentityUser, IdentityRole>();
             return builder;
         }
-        public static IApplicationBuilder UseMiniIdentityAuth<TDbContext> 
-            (this IApplicationBuilder builder) 
+        public static IApplicationBuilder UseMiniIdentityAuth<TDbContext, TIdentityUser, TIdentityRole>
+            (this IApplicationBuilder builder)
             where TDbContext : IdentityDbContext
+            where TIdentityUser : IdentityUser,new()
+            where TIdentityRole : IdentityRole, new()
         {
             _ = builder ?? throw new ArgumentNullException(nameof(builder));
 
@@ -30,36 +30,38 @@ namespace MiniAuth.Identity
             if (!builder.Properties.TryGetValue("__UseAuthorization", out var _))
                 builder.UseAuthorization();
 
-            var miniauthEndpoints = new MiniAuthIdentityEndpoints<TDbContext>();
+            var miniauthEndpoints = new MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRole>();
             miniauthEndpoints.MapEndpoints(builder);
 
+
+            //TODO: only for testing to create default user and roles
             Task.Run(async () =>
             {
                 using (var scope = builder.ApplicationServices.CreateScope())
                 {
-                    var ctx = scope.ServiceProvider.GetRequiredService<MiniAuthIdentityDbContext>();
+                    var ctx = scope.ServiceProvider.GetRequiredService<TDbContext>();
                     if (ctx.Database.EnsureCreated())
                     {
-                        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
-                        
-                        var userStore = scope.ServiceProvider.GetRequiredService<IUserStore<IdentityUser>>();
-                        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+                        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TIdentityUser>>();
+
+                        var userStore = scope.ServiceProvider.GetRequiredService<IUserStore<TIdentityUser>>();
+                        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<TIdentityRole>>();
                         {
-                            var user = Activator.CreateInstance<IdentityUser>();
+                            var user = Activator.CreateInstance<TIdentityUser>();
                             await userStore.SetUserNameAsync(user, "miniauth", CancellationToken.None);
                             await userManager.CreateAsync(user, "E7c4f679-f379-42bf-b547-684d456bc37f");
-                            await roleManager.CreateAsync(new IdentityRole("miniauth-admin") );
+                            await roleManager.CreateAsync(new TIdentityRole() { Name= "miniauth-admin"  });
                             await userManager.AddToRoleAsync(user, "miniauth-admin");
                         }
 #if DEBUG
-                        foreach (var item in new[] { "HR","IT","RD"})
+                        foreach (var item in new[] { "HR", "IT", "RD" })
                         {
-                            var user = Activator.CreateInstance<IdentityUser>();
+                            var user = Activator.CreateInstance<TIdentityUser>();
                             await userStore.SetUserNameAsync(user, $"miniauth-{item.ToLower()}", CancellationToken.None);
                             await userManager.CreateAsync(user, "E7c4f679-f379-42bf-b547-684d456bc37f");
-                            await roleManager.CreateAsync(new IdentityRole(item) );
+                            await roleManager.CreateAsync(new TIdentityRole() { Name= item });
                             await userManager.AddToRoleAsync(user, item);
-                        }   
+                        }
 #endif
                     }
                 }

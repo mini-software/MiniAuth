@@ -24,27 +24,30 @@ namespace MiniAuth.Identity
             {
                 options.UseSqlite(connectionString);
             });
-            services.AddMiniIdentityAuth<MiniAuthIdentityDbContext>(isAutoUse);
+            services.AddMiniIdentityAuth<MiniAuthIdentityDbContext, IdentityUser, IdentityRole>(isAutoUse);
             return services;
         }
-        public static IServiceCollection AddMiniIdentityAuth<TDbContext>(this IServiceCollection services, bool isAutoUse = true)
+        public static IServiceCollection AddMiniIdentityAuth<TDbContext, TIdentityUser, TIdentityRole>(this IServiceCollection services, bool isAutoUse = true)
             where TDbContext : IdentityDbContext
+            where TIdentityUser : IdentityUser
+            where TIdentityRole : IdentityRole
         {
             _ = services ?? throw new ArgumentNullException(nameof(services));
 
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("miniauth-admin", policy =>
+                {
+                    policy.RequireRole("miniauth-admin");
+                });
+            });
+
             if (services.All(o => o.ServiceType != typeof(IAuthenticationService)))
             {
-                services.AddAuthorization(options =>
-                {
-                    options.AddPolicy("miniauth-admin", policy =>
-                    {
-                        policy.RequireRole("miniauth-admin");
-                    });
-                });
                 services
-                    .AddMiniAuthIdentity<IdentityUser, IdentityRole>()
+                    .AddMiniAuthIdentity<TIdentityUser, TIdentityRole>()
                     .AddDefaultTokenProviders()
-                    .AddEntityFrameworkStores<MiniAuthIdentityDbContext>();
+                    .AddEntityFrameworkStores<TDbContext>();
             }
 
             if (isAutoUse)
