@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using MiniAuth.IdentityAuth.Helpers;
 using MiniAuth.IdentityAuth.Models;
 using System.Collections.Concurrent;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 
@@ -228,6 +229,20 @@ namespace MiniAuth.Identity
                         await OkResult(context, "".ToJson(code: 404, message: "User not found"));
                     }
                 }).RequireAuthorization("miniauth-admin");
+
+                endpoints.MapGet("/miniauth/api/getUserInfo", async (HttpContext context
+                , TDbContext _dbContext
+                ) =>
+                {
+                    var user = context.User;
+                    if (!user.Identity.IsAuthenticated)
+                    {
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        return;
+                    }
+                    var userEntity = await _dbContext.Users.FindAsync(user.FindFirst(ClaimTypes.NameIdentifier).Value);
+                    await OkResult(context, userEntity.ToJson());
+                });
 
             });
 
