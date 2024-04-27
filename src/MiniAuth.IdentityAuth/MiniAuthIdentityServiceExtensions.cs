@@ -16,7 +16,7 @@ namespace MiniAuth.Identity
 {
     public static class MiniAuthIdentityServiceExtensions
     {
-        public static IServiceCollection AddMiniIdentityAuth(this IServiceCollection services, bool isAutoUse = true)
+        private static IServiceCollection AddMiniIdentityAuth(this IServiceCollection services, bool isAutoUse )
         {
             _ = services ?? throw new ArgumentNullException(nameof(services));
             var connectionString = "Data Source=miniauth_identity.db";
@@ -25,6 +25,12 @@ namespace MiniAuth.Identity
                 options.UseSqlite(connectionString);
             });
             services.AddMiniIdentityAuth<MiniAuthIdentityDbContext, IdentityUser, IdentityRole>(isAutoUse);
+            return services;
+        }
+        public static IServiceCollection AddMiniIdentityAuth(this IServiceCollection services)
+        {
+            _ = services ?? throw new ArgumentNullException(nameof(services));
+            services.AddMiniIdentityAuth(false);  //TODO: auto use issue : https://github.com/mini-software/MiniAuth/issues/151         
             return services;
         }
         public static IServiceCollection AddMiniIdentityAuth<TDbContext, TIdentityUser, TIdentityRole>(this IServiceCollection services, bool isAutoUse = true)
@@ -51,7 +57,9 @@ namespace MiniAuth.Identity
             }
 
             if (isAutoUse)
-                services.AddTransient<IStartupFilter, MiniAuthStartupFilter>();
+                services.AddTransient<IStartupFilter, MiniAuthStartupFilter>(); 
+            else
+                services.AddTransient<IStartupFilter, EmptyStartupFilter>();
 
             return services;
         }

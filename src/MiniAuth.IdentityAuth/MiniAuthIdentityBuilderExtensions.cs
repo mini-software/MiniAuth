@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace MiniAuth.Identity
@@ -11,6 +12,7 @@ namespace MiniAuth.Identity
     {
         public static IApplicationBuilder UseMiniIdentityAuth(this IApplicationBuilder builder)
         {
+            Debug.WriteLine("* start UseMiniIdentityAuth");
             _ = builder ?? throw new ArgumentNullException(nameof(builder));
             builder.UseMiniIdentityAuth<MiniAuthIdentityDbContext, IdentityUser, IdentityRole>();
             return builder;
