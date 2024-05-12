@@ -81,7 +81,7 @@ namespace MiniAuth.Identity
                     if (role == null)
                     {
                         role = new TIdentityRole() { Name= name };
-                        role.Id = id;
+                        role.Id = Guid.NewGuid().ToString();
                         await _dbContext.Roles.AddAsync(role);
                     }
                     else
