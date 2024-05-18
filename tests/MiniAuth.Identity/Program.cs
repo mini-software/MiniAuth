@@ -11,8 +11,17 @@ namespace MiniAuth.Identity
         {
             var builder = WebApplication.CreateBuilder(args);
             Debug.WriteLine("* start Services add");
-            builder.Services.AddCors(options => options.AddPolicy("AllowAll", builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
-            builder.Services.AddMiniIdentityAuth();
+            builder.Services.AddCors(options => 
+            options.AddPolicy("AllowAll", 
+            builder => builder
+                .WithOrigins(
+                    "http://localhost:5173"
+                )
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials()
+            ));
+            builder.Services.AddMiniAuth();
             builder.Services.AddControllers();
 #if DEBUG
             builder.Services.AddEndpointsApiExplorer();
@@ -31,7 +40,7 @@ namespace MiniAuth.Identity
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-            app.UseMiniIdentityAuth();
+            app.UseMiniAuth();
             app.Run();
         }
     }

@@ -27,7 +27,7 @@ namespace MiniAuth.Identity
             services.AddMiniIdentityAuth<MiniAuthIdentityDbContext, IdentityUser, IdentityRole>(isAutoUse);
             return services;
         }
-        public static IServiceCollection AddMiniIdentityAuth(this IServiceCollection services)
+        public static IServiceCollection AddMiniAuth(this IServiceCollection services)
         {
             _ = services ?? throw new ArgumentNullException(nameof(services));
             services.AddMiniIdentityAuth(false);  //TODO: auto use issue : https://github.com/mini-software/MiniAuth/issues/151         
@@ -179,6 +179,14 @@ namespace MiniAuth.Identity
         {
             builder.AddCookie(IdentityConstants.ApplicationScheme, o =>
             {
+          
+#if DEBUG 
+                //o.Cookie.SameSite = SameSiteMode.None;
+                //o.Cookie.Path = "/";
+                //o.Cookie.SecurePolicy = CookieSecurePolicy.None;
+                //o.Cookie.SameSite = SameSiteMode.None;
+                //o.Cookie.HttpOnly = false;
+#endif
                 o.LoginPath = new PathString("/Account/Login");
                 o.Events = new CookieAuthenticationEvents
                 {

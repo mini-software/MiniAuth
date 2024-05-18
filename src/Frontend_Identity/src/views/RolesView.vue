@@ -28,7 +28,7 @@
         <tr class="table-dark">
           <th>#</th>
           <th>{{ $t("Name") }}</th>
-          <th>{{ $t("Enable") }}</th>
+          <!-- <th>{{ $t("Enable") }}</th> -->
           <th>{{ $t("Action") }}</th>
         </tr>
       </thead>
@@ -40,11 +40,11 @@
           <td>
             <input class="input_no_border" :disabled="item.Type=='miniauth'" type="text" v-model="item.Name">
           </td>
-          <td>
+          <!-- <td>
             <div class="form-check form-switch">
               <input :disabled="item.Type=='miniauth'" class="form-check-input" type="checkbox" v-model="item.Enable">
             </div>
-          </td>
+          </td> -->
           <td>
             <button :disabled="item.Type=='miniauth'" class="btn" @click="save(item)">
               <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

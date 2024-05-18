@@ -11,7 +11,7 @@ namespace MiniAuth.Identity
             return builder =>
             {
                 Debug.WriteLine("* start MiniAuthStartupFilter");
-                builder.UseMiniIdentityAuth();
+                builder.UseMiniAuth();
                 next(builder);
             };
         }

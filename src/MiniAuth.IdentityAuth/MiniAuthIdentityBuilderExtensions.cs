@@ -10,7 +10,7 @@ namespace MiniAuth.Identity
 {
     public static class MiniAuthIdentityBuilderExtensions
     {
-        public static IApplicationBuilder UseMiniIdentityAuth(this IApplicationBuilder builder)
+        public static IApplicationBuilder UseMiniAuth(this IApplicationBuilder builder)
         {
             Debug.WriteLine("* start UseMiniIdentityAuth");
             _ = builder ?? throw new ArgumentNullException(nameof(builder));

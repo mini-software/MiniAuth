@@ -9,6 +9,7 @@ const service = axios.create({
     'Content-Type': 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
   }
+  ,withCredentials: true
 });  
 
 service.interceptors.request.use(  
@@ -42,8 +43,9 @@ service.interceptors.response.use(
     closeLoading();
     const res = error.response; 
     if (error.response.status === 401 ) {
-      localStorage.removeItem('X-MiniAuth-Token');
-      window.location.href = '/miniauth/login.html';
+      alert('Unauthorized');
+      // localStorage.removeItem('X-MiniAuth-Token');
+      // window.location.href = '/miniauth/login.html';
       return;
     }
     alert(res.data.message || error.message || 'Error');

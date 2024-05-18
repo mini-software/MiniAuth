@@ -103,6 +103,8 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
     const xhr = new XMLHttpRequest();
     xhr.open('POST', 'http://localhost:5566/MiniAuth/login');
     xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.withCredentials = true;
+
 
     xhr.onload = function () {
         if (xhr.status === 200) { 
