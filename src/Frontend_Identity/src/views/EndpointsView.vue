@@ -9,10 +9,10 @@
           <th>
             {{ $t("Route") }}
           </th>
-          <th>{{ $t("Redirect") }}</th>
-          <th>{{ $t("Enable") }}</th>
-          <th>{{ $t("Roles") }}</th>
-          <th>{{ $t("Action") }}</th>
+          <!-- <th>{{ $t("Redirect") }}</th> -->
+          <!-- <th>{{ $t("Enable") }}</th> -->
+          <!-- <th>{{ $t("Roles") }}</th> -->
+          <!-- <th>{{ $t("Action") }}</th> -->
         </tr>
       </thead>
       <tbody>
@@ -23,19 +23,19 @@
           <td>
             {{ item.Route }}
           </td>
-          <td>
+          <!-- <td>
             <div class="form-check form-switch">
               <input :disabled="item.Type == 'miniauth'" class="form-check-input" type="checkbox"
                 v-model="item.RedirectToLoginPage">
             </div>
-          </td>
+          </td> -->
 
-          <td>
+          <!-- <td>
             <div class="form-check form-switch">
               <input :disabled="item.Type == 'miniauth'" class="form-check-input" type="checkbox" v-model="item.Enable">
             </div>
-          </td>
-          <td>
+          </td> -->
+          <!-- <td>
             <div class="resizable" >
               <div class=" form-check" v-for="(role, index) in roles" :key="index">
                 <input :disabled="item.Type == 'miniauth' || role.Enable==false" class="role_checkbox form-check-input" type="checkbox" 
@@ -44,8 +44,8 @@
                 <label class="form-check-label" :for="'role_' + index">{{ role.Name }}</label>
               </div>
             </div>
-          </td>
-          <td>
+          </td> -->
+          <!-- <td>
             <button :disabled="item.Type == 'miniauth'" class="btn" @click="saveEndpoint(item)">
               <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g id="System / Save">
@@ -55,7 +55,7 @@
                 </g>
               </svg>
             </button>
-          </td>
+          </td> -->
         </tr>
       </tbody>
     </table>

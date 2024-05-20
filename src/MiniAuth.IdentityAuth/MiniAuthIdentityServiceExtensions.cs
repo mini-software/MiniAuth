@@ -179,14 +179,6 @@ namespace MiniAuth.Identity
         {
             builder.AddCookie(IdentityConstants.ApplicationScheme, o =>
             {
-          
-#if DEBUG 
-                //o.Cookie.SameSite = SameSiteMode.None;
-                //o.Cookie.Path = "/";
-                //o.Cookie.SecurePolicy = CookieSecurePolicy.None;
-                //o.Cookie.SameSite = SameSiteMode.None;
-                //o.Cookie.HttpOnly = false;
-#endif
                 o.LoginPath = new PathString("/Account/Login");
                 o.Events = new CookieAuthenticationEvents
                 {

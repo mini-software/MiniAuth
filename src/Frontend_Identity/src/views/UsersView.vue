@@ -26,40 +26,25 @@
     <table class="table table-hover">
       <thead>
         <tr class="table-dark">
+          <th>{{ $t("Action") }}</th>
           <th>{{ $t("UserName") }}</th>
           <th>{{ $t("Roles") }}</th>
+          <th>{{ $t("Email") }}</th> 
+          <th>{{ $t("PhoneNumber") }}</th> 
           <th>{{ $t("FirstName") }}</th>
           <th>{{ $t("LastName") }}</th>
-          <th hidden>Email</th>
+          <th>{{ $t("Employee_Number") }}</th>
           <th>{{ $t("Enable") }}</th>
-          <th>{{ $t("Action") }}</th>
+          <th>{{ $t("Email Confirmed") }}</th> 
+          <th>{{ $t("PhoneNumber Confirmed") }}</th> 
+          <th>{{ $t("Two Factor Enabled") }}</th> 
+          <th>{{ $t("Lockout Enabled") }}</th> 
+          <th>{{ $t("Lockout End") }}</th> 
+          <th>{{ $t("Access Failed Count") }}</th> 
         </tr>
       </thead>
       <tbody>
         <tr v-for="(item, index) in users" :key="index">
-          <td>
-            <input class="input_no_border" type="text" v-model="item.Username">
-          </td>
-          <td>
-            <div class="resizable" style="height: 25px;scroll-behavior: smooth;overflow-y: auto;">
-              <div class=" form-check" v-for="(role, index) in roles" :key="index">
-                <input :disabled="item.Type == 'miniauth' || role.Enable == false" class="role_checkbox form-check-input"
-                  type="checkbox" :value="role.Id" v-model="item.Roles">
-                <label class="form-check-label" :for="'role_' + index">{{ role.Name }}</label>
-              </div>
-            </div>
-          </td>
-          <td>
-            <input class="input_no_border" type="text" v-model="item.First_name">
-          </td>
-          <td>
-            <input class="input_no_border" type="text" v-model="item.Last_name">
-          </td>
-          <td>
-            <div class="form-check form-switch">
-              <input :disabled="item.Type == 'miniauth'" class="form-check-input" type="checkbox" v-model="item.Enable">
-            </div>
-          </td>
           <td>
             <button class="btn" @click="openEditModal(item)">
               <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -104,6 +89,64 @@
                 <path d="M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5V7H9V5Z" stroke="#000000"
                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
               </svg></button>
+          </td>          
+          <td>
+            <input class="input_no_border" type="text" v-model="item.Username">
+          </td>
+          <td>
+            <div class="resizable" style="height: 25px;scroll-behavior: smooth;overflow-y: auto;">
+              <div class=" form-check" v-for="(role, index) in roles" :key="index">
+                <input :disabled="item.Type == 'miniauth' || role.Enable == false" class="role_checkbox form-check-input"
+                  type="checkbox" :value="role.Id" v-model="item.Roles">
+                <label class="form-check-label" :for="'role_' + index">{{ role.Name }}</label>
+              </div>
+            </div>
+          </td>
+          <td>
+            <input class="input_no_border" type="mail" v-model="item.Mail">
+          </td>
+          <td>
+            <input class="input_no_border" type="text" v-model="item.PhoneNumber">
+          </td>
+          <td>
+            <input class="input_no_border" type="text" v-model="item.First_name">
+          </td>
+          <td>
+            <input class="input_no_border" type="text" v-model="item.Last_name">
+          </td> 
+          <td>
+            <input class="input_no_border" type="text" v-model="item.Emp_no">
+          </td>
+          <td>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" v-model="item.Enable">
+            </div>
+          </td>
+          <td>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" v-model="item.EmailConfirmed">
+            </div>
+          </td>
+          <td>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" v-model="item.PhoneNumberConfirmed">
+            </div>
+          </td>
+          <td>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" v-model="item.TwoFactorEnabled">
+            </div>
+          </td>
+          <td>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" v-model="item.LockoutEnabled">
+            </div>
+          </td>
+          <td>
+            <input class="input_no_border" type="datetime-local" v-model="item.LockoutEnd">
+          </td>
+          <td>
+            <input readonly class="input_no_border" type="text" v-model="item.AccessFailedCount">
           </td>
         </tr>
       </tbody>
@@ -140,8 +183,8 @@
             </div>
             <div class="modal-body">
               <form v-if="isModalOpen">
-                <label for="firstName">{{ $t("UserName") }}:</label>
-                <input class="form-control" type="text" v-model="editedUser.Username" id="firstName" required>
+                <label for="userName">{{ $t("UserName") }}:</label>
+                <input class="form-control" type="text" v-model="editedUser.Username" id="userName" required>
 
                 <label for="roles">{{ $t("Roles") }}:</label>
                 <div style="height: 100px;scroll-behavior: smooth;overflow-y: auto;">
@@ -164,7 +207,7 @@
 
                 <label for="enable">{{ $t("Enable") }}:</label>
                 <div class="form-check form-switch">
-                  <input :disabled="editedUser.Type == 'miniauth'" class="form-check-input" type="checkbox"
+                  <input class="form-check-input" type="checkbox"
                     v-model="editedUser.Enable">
                 </div>
               </form>
@@ -207,10 +250,12 @@
 input[type="mail"] {
   widows: 100%;
   border: 0;
-  border-bottom: 1px solid black;
+  /* border-bottom: 1px solid black; */
   outline: 0;
-  background-color: rgba(226, 226, 226, 0.744);
+  /* background-color: rgba(226, 226, 226, 0.744); */
 }
+/* input type=text or mail */
+
 </style>
 
 <script setup>

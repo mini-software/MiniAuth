@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MiniAuth.IdentityAuth.Helpers;
@@ -119,13 +120,30 @@ namespace MiniAuth.Identity
                     var pageIndex = root.GetProperty<int>("pageIndex");
                     var pageSize = root.GetProperty<int>("pageSize");
                     var offset = pageIndex * pageSize;
-                    var users = _dbContext.Users.Skip(offset).Take(pageSize)
-                        .Select(s => new
-                        {
-                            Id = s.Id,
-                            Username = s.UserName,
-                            Mail = s.Email,
-                            Roles = _dbContext.UserRoles.Where(w => w.UserId == s.Id).Select(s => s.RoleId).ToArray(),
+                    var users = _dbContext.Users.Skip(offset).Take(pageSize).ToArray()
+                        .Select(s => {
+                            var claims = _dbContext.UserClaims.Where(w => w.UserId == s.Id).ToArray();
+                            var result = new
+                            {
+                                Id = s.Id,
+                                Username = s.UserName,
+                                Mail = s.Email,
+                                EmailConfirmed = s.EmailConfirmed,
+                                PhoneNumber = s.PhoneNumber,
+                                PhoneNumberConfirmed = s.PhoneNumberConfirmed,
+                                TwoFactorEnabled = s.TwoFactorEnabled,
+                                LockoutEnd = s.LockoutEnd?.ToString("yyyy-MM-ddTHH:mm"),
+                                LockoutEnabled = s.LockoutEnabled,
+                                AccessFailedCount = s.AccessFailedCount,
+
+                                Roles = _dbContext.UserRoles.Where(w => w.UserId == s.Id).Select(s => s.RoleId).ToArray(),
+                                
+                                First_name = claims.FirstOrDefault(f => f.ClaimType == "First_name")?.ClaimValue,
+                                Last_name = claims.FirstOrDefault(f => f.ClaimType == "Last_name")?.ClaimValue,
+                                Enable = claims.FirstOrDefault(f => f.ClaimType == "Enable")?.ClaimValue == "True",
+                                Emp_no = claims.FirstOrDefault(f => f.ClaimType == "Emp_no")?.ClaimValue,
+                            };
+                            return result;
                         });
                     var totalItems = _dbContext.Users.Count();
                     await OkResult(context, new { users, totalItems }.ToJson());
@@ -145,9 +163,15 @@ namespace MiniAuth.Identity
                     var emp_no = root.GetProperty<string>("Emp_no");
                     var mail = root.GetProperty<string>("Mail");
                     var enable = root.GetProperty<bool>("Enable");
+                    var EmailConfirmed = root.GetProperty<bool>("EmailConfirmed");
+                    var PhoneNumberConfirmed = root.GetProperty<bool>("PhoneNumberConfirmed");
+                    var PhoneNumber = root.GetProperty<string>("PhoneNumber");
+                    var TwoFactorEnabled = root.GetProperty<bool>("TwoFactorEnabled");
+                    var LockoutEnd = root.GetProperty<DateTimeOffset>("LockoutEnd");
+                    var LockoutEnabled = root.GetProperty<bool>("LockoutEnabled");
                     var roles = root.GetProperty<string[]>("Roles");
-                    var type = root.GetProperty<string>("Type");
                     TIdentityUser user = (TIdentityUser)await _dbContext.Users.FindAsync(id);
+
                     var isUserExist = user == null;
                     if (isUserExist)
                     {
@@ -155,6 +179,13 @@ namespace MiniAuth.Identity
                         {
                             UserName = username,
                             Email = mail,
+                            EmailConfirmed= EmailConfirmed,
+                            PhoneNumberConfirmed= PhoneNumberConfirmed,
+                            PhoneNumber= PhoneNumber,
+                            TwoFactorEnabled= TwoFactorEnabled,
+                            LockoutEnd = LockoutEnd,
+                            LockoutEnabled= LockoutEnabled,
+
                         };
                         await _dbContext.Users.AddAsync(user);
                     }
@@ -162,22 +193,67 @@ namespace MiniAuth.Identity
                     {
                         user.UserName = username;
                         user.Email = mail;
+                        user.EmailConfirmed = EmailConfirmed;
+                        user.PhoneNumberConfirmed = PhoneNumberConfirmed;
+                        user.PhoneNumber = PhoneNumber;
+                        user.TwoFactorEnabled = TwoFactorEnabled;
+                        user.LockoutEnd = LockoutEnd;
+                        user.LockoutEnabled = LockoutEnabled;
                     }
-                    await _dbContext.SaveChangesAsync();
+
                     var userRoles = _dbContext.UserRoles.Where(w => w.UserId == user.Id).ToArray();
-                    foreach (var userRole in userRoles)
+                    // remove not in roles, add new roles, keep old roles, update roles
                     {
-                        _dbContext.UserRoles.Remove(userRole);
-                    }
-                    foreach (var role in roles)
-                    {
-                        var userRole = new IdentityUserRole<string>
+                        var roleIds = _dbContext.Roles.Select(s => s.Id).ToArray();
+                        foreach (var item in roles)
                         {
-                            UserId = user.Id,
-                            RoleId = role
-                        };
-                        await _dbContext.UserRoles.AddAsync(userRole);
+                            if (!roleIds.Contains(item))
+                                continue;
+                            var userRole = userRoles.FirstOrDefault(f => f.RoleId == item);
+                            if (userRole == null)
+                            {
+                                userRole = new IdentityUserRole<string>
+                                {
+                                    UserId = user.Id,
+                                    RoleId = item,
+                                };
+                                await _dbContext.UserRoles.AddAsync(userRole);
+                            }
+                        }
+                        foreach (var item in userRoles)
+                        {
+                            if (!roles.Contains(item.RoleId))
+                            {
+                                _dbContext.UserRoles.Remove(item);
+                            }
+                        }
                     }
+
+                    var userClaims = _dbContext.UserClaims.Where(w => w.UserId == user.Id).ToArray();
+                    {
+                        string[] keys = new[] { "First_name", "Last_name", "Emp_no", "Enable" };
+                        foreach (var item in keys)
+                        {
+                            var userClaim = userClaims.FirstOrDefault(f => f.ClaimType == item);
+                            var val = root.GetProperty<object>(item);
+                            if (val == null)
+                                continue;
+                            if (userClaim == null)
+                            {
+                                userClaim = new IdentityUserClaim<string>
+                                {
+                                    UserId = user.Id,
+                                    ClaimType = item,
+                                    ClaimValue = val?.ToString(),
+                                };
+                                await _dbContext.UserClaims.AddAsync(userClaim);
+                            }
+                            else
+                            {
+                                userClaim.ClaimValue = val?.ToString();
+                            }
+                        }
+                    };
 
                     if (isUserExist)
                     {
