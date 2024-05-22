@@ -83,11 +83,13 @@ namespace MiniAuth.Identity
                     {
                         role = new TIdentityRole() { Name= name };
                         role.Id = Guid.NewGuid().ToString();
+                        role.NormalizedName= name.ToUpper();
                         await _dbContext.Roles.AddAsync(role);
                     }
                     else
                     {
                         role.Name = name;
+                        role.NormalizedName = name.ToUpper();
                     }
                     await _dbContext.SaveChangesAsync();
                     await OkResult(context, "".ToJson(code: 200, message: ""));
@@ -167,7 +169,7 @@ namespace MiniAuth.Identity
                     var PhoneNumberConfirmed = root.GetProperty<bool>("PhoneNumberConfirmed");
                     var PhoneNumber = root.GetProperty<string>("PhoneNumber");
                     var TwoFactorEnabled = root.GetProperty<bool>("TwoFactorEnabled");
-                    var LockoutEnd = root.GetProperty<DateTimeOffset>("LockoutEnd");
+                    var LockoutEnd = root.GetProperty<DateTimeOffset?>("LockoutEnd");
                     var LockoutEnabled = root.GetProperty<bool>("LockoutEnabled");
                     var roles = root.GetProperty<string[]>("Roles");
                     TIdentityUser user = (TIdentityUser)await _dbContext.Users.FindAsync(id);
@@ -178,7 +180,9 @@ namespace MiniAuth.Identity
                         user = new TIdentityUser
                         {
                             UserName = username,
+                            NormalizedUserName = username?.ToUpper(),
                             Email = mail,
+                            NormalizedEmail = mail?.ToUpper(),
                             EmailConfirmed= EmailConfirmed,
                             PhoneNumberConfirmed= PhoneNumberConfirmed,
                             PhoneNumber= PhoneNumber,
@@ -192,7 +196,9 @@ namespace MiniAuth.Identity
                     else
                     {
                         user.UserName = username;
+                        user.NormalizedUserName = username?.ToUpper();
                         user.Email = mail;
+                        user.NormalizedEmail = mail?.ToUpper();
                         user.EmailConfirmed = EmailConfirmed;
                         user.PhoneNumberConfirmed = PhoneNumberConfirmed;
                         user.PhoneNumber = PhoneNumber;
@@ -202,9 +208,8 @@ namespace MiniAuth.Identity
                     }
 
                     var userRoles = _dbContext.UserRoles.Where(w => w.UserId == user.Id).ToArray();
-                    // remove not in roles, add new roles, keep old roles, update roles
                     {
-                        var roleIds = _dbContext.Roles.Select(s => s.Id).ToArray();
+                        var roleIds = userRoles.Select(s => s.RoleId).ToArray();
                         foreach (var item in roles)
                         {
                             if (!roleIds.Contains(item))
@@ -258,7 +263,11 @@ namespace MiniAuth.Identity
                     if (isUserExist)
                     {
                         string newPassword = GetNewPassword();
-                        await userManager.AddPasswordAsync(user, newPassword);
+                        if (!await userManager.HasPasswordAsync(user))
+                        {
+                            await _dbContext.SaveChangesAsync();
+                            await userManager.AddPasswordAsync(user, newPassword);
+                        }
                         await _dbContext.SaveChangesAsync();
                         await OkResult(context, new { newPassword }.ToJson(code: 200, message: ""));
                     }

@@ -178,8 +178,9 @@ onMounted(() => {
 /* ---- */
 .resizable {
   height: 25px !important;
+  width:100%;
   scroll-behavior: smooth;
-  overflow-y: auto;
+  /* overflow-y: auto; */
   transition: height 0.3s ease;
   overflow: auto;
 }

@@ -94,7 +94,7 @@
             <input class="input_no_border" type="text" v-model="item.Username">
           </td>
           <td>
-            <div class="resizable" style="height: 25px;scroll-behavior: smooth;overflow-y: auto;">
+            <div class="resizable" >
               <div class=" form-check" v-for="(role, index) in roles" :key="index">
                 <input :disabled="item.Type == 'miniauth' || role.Enable == false" class="role_checkbox form-check-input"
                   type="checkbox" :value="role.Id" v-model="item.Roles">
