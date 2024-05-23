@@ -1,7 +1,7 @@
 <template>
   <div class="scrollable-container">
     <div class="row" style="padding-bottom: 10px; padding-top: 10px">
-      <div class="col-sm-8">
+      <div class="col-sm-12">
         <button :title="$t('add')" @click="insert" class="btn" type="button">
           <svg
             width="40px"
@@ -43,6 +43,15 @@
           </svg>
           <span class="visually-hidden">Insert</span>
         </button>
+          <input
+            style="float: right;height: 40px;  border: 0; border-bottom: 1px solid black; outline: 0; "
+            type="text"
+            placeholder="Search"
+            aria-label="Search"
+            v-model="search"
+            @keyup.enter= "fetchData()"
+          />
+
       </div>
       <div class="col-sm-4"></div>
     </div>
@@ -342,6 +351,7 @@ const roles = ref([])
 const pageSize = ref(10)
 const pageIndex = ref(0)
 const totalItems = ref(0)
+const search = ref('')
 
 const goToPage = (index) => {
   pageIndex.value = index
@@ -353,7 +363,7 @@ const computedPages = computed(() => {
 })
 const fetchData = async () => {
   await service
-    .post('api/getUsers', { pageSize: pageSize.value, pageIndex: pageIndex.value })
+    .post('api/getUsers', { pageSize: pageSize.value, pageIndex: pageIndex.value,search:search.value })
     .then((res) => {
       totalItems.value = res.totalItems
       users.value = res.users
@@ -409,7 +419,7 @@ const save = async (data) => {
       alert(t('new_password', [res.newPassword]))
       navigator.clipboard.writeText(res.newPassword)
     }
-    await fetchData()
+    // await fetchData()
   })
 }
 const resetPassword = async (data) => {

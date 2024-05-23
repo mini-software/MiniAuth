@@ -36,6 +36,7 @@ const messages = {
         "Two Factor Enabled": "Two Factor Enabled",
         "Access Failed Count": "Access Failed Count",
         "Email": "Email",
+        "Remark": "Remark",
     },
     zh_cn: {
         UserName: '用户名',
@@ -72,6 +73,7 @@ const messages = {
         "Two Factor Enabled": "双因素认证已启用",
         "Access Failed Count": "访问失败次数",
         "Email": "电子邮件",
+        "Remark": "备注",
     },
     zh_hant: {
         "UserName": "使用者名稱",
@@ -108,6 +110,7 @@ const messages = {
         "Two Factor Enabled": "雙因素驗證已啟用",
         "Access Failed Count": "訪問失敗次數",
         "Email": "電子郵件",
+        "Remark": "備註",
     },
     es: {
         "UserName": "Nombre de usuario",
@@ -144,6 +147,7 @@ const messages = {
         "Two Factor Enabled": "Autenticación de dos factores habilitada",
         "Access Failed Count": "Recuento de accesos fallidos",
         "Email": "Correo electrónico",
+        "Remark": "Observación",
 
     },
     ko: {
@@ -181,6 +185,7 @@ const messages = {
         "Two Factor Enabled": "이중 인증 활성화",
         "Access Failed Count": "액세스 실패 횟수",
         "Email": "이메일",
+        "Remark": "비고",
     },
     ja: {
         "UserName": "ユーザー名",
@@ -217,6 +222,7 @@ const messages = {
         "Two Factor Enabled": "二要素認証有効",
         "Access Failed Count": "アクセス失敗回数",
         "Email": "メール",
+        "Remark": "備考",
     }, ru: {
         "UserName": "Имя пользователя",
         "Next": "Следующая страница",
@@ -252,6 +258,7 @@ const messages = {
         "Two Factor Enabled": "Двухфакторная аутентификация включена",
         "Access Failed Count": "Количество неудачных попыток доступа",
         "Email": "Электронная почта",
+        "Remark": "Примечание",
     }, fr: {
         "UserName": "Nom d'utilisateur",
         "Next": "Page suivante",
@@ -287,6 +294,7 @@ const messages = {
         "Two Factor Enabled": "Authentification à deux facteurs activée",
         "Access Failed Count": "Nombre d'échecs d'accès",
         "Email": "Email",
+        "Remark": "Remarque",
     }
 };
 export const i18n = createI18n({

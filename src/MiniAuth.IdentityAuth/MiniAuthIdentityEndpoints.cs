@@ -64,7 +64,17 @@ namespace MiniAuth.Identity
                     , TDbContext _dbContext
                 ) =>
                 {
-                    var roles = (_dbContext.Roles.ToArray());
+                    var roles = (_dbContext.Roles.ToArray().Select(s =>
+                    {
+                        var claims = _dbContext.RoleClaims.Where(w => w.RoleId == s.Id).ToArray();
+                        return new
+                        {
+                            s.Id,
+                            s.Name,
+                            Enable = claims.FirstOrDefault(f => f.ClaimType == "Enable")?.ClaimValue == "True",
+                            Remark = claims.FirstOrDefault(f => f.ClaimType == "Remark")?.ClaimValue,
+                        };
+                    }));
                     await OkResult(context, roles.ToJson());
                 }).RequireAuthorization("miniauth-admin");
 
@@ -91,6 +101,35 @@ namespace MiniAuth.Identity
                         role.Name = name;
                         role.NormalizedName = name.ToUpper();
                     }
+                    
+                    // save role claims for enable and remark
+                    var roleClaims = _dbContext.RoleClaims.Where(w => w.RoleId == role.Id).ToArray();
+                    {
+                        string[] keys = new[] { "Enable", "Remark" };
+                        foreach (var item in keys)
+                        {
+                            var roleClaim = roleClaims.FirstOrDefault(f => f.ClaimType == item);
+                            var val = root.GetProperty<object>(item);
+                            if (val == null)
+                                continue;
+                            if (roleClaim == null)
+                            {
+                                roleClaim = new IdentityRoleClaim<string>
+                                {
+                                    RoleId = role.Id,
+                                    ClaimType = item,
+                                    ClaimValue = val?.ToString(),
+                                };
+                                await _dbContext.RoleClaims.AddAsync(roleClaim);
+                            }
+                            else
+                            {
+                                roleClaim.ClaimValue = val?.ToString();
+                            }
+                        }
+                    };
+
+
                     await _dbContext.SaveChangesAsync();
                     await OkResult(context, "".ToJson(code: 200, message: ""));
                 }).RequireAuthorization("miniauth-admin");
@@ -121,8 +160,13 @@ namespace MiniAuth.Identity
                     var root = bodyJson.RootElement;
                     var pageIndex = root.GetProperty<int>("pageIndex");
                     var pageSize = root.GetProperty<int>("pageSize");
+                    //search value filter
+                    var search = root.GetProperty<string>("search");
+                    var users = _dbContext.Users.AsQueryable();
+                    if (!string.IsNullOrEmpty(search))
+                        users = users.Where(w => w.UserName.Contains(search) || w.Email.Contains(search));
                     var offset = pageIndex * pageSize;
-                    var users = _dbContext.Users.Skip(offset).Take(pageSize).ToArray()
+                    var userVo = users.Skip(offset).Take(pageSize).ToArray()
                         .Select(s => {
                             var claims = _dbContext.UserClaims.Where(w => w.UserId == s.Id).ToArray();
                             var result = new
@@ -148,7 +192,7 @@ namespace MiniAuth.Identity
                             return result;
                         });
                     var totalItems = _dbContext.Users.Count();
-                    await OkResult(context, new { users, totalItems }.ToJson());
+                    await OkResult(context, new { users= userVo, totalItems }.ToJson());
                 }).RequireAuthorization("miniauth-admin");
 
                 endpoints.MapPost("/miniauth/api/saveUser", async (HttpContext context
