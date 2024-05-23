@@ -176,10 +176,10 @@ onMounted(() => {
 
 /* ---- */
 .resizable {
-  height: 25px !important;
+  height: 40px !important;
   width:100%;
   scroll-behavior: smooth;
-  /* overflow-y: auto; */
+  overflow-y: auto; 
   transition: height 0.3s ease;
   overflow: auto;
 }
@@ -189,7 +189,26 @@ onMounted(() => {
 }
 
 /* ---- */
+.hover {  
+    position: relative;  
+    display: inline-block;
+    transition: height 0.3s ease;
+    scroll-behavior: smooth;
+}  
+  
+.hover-show {  
+    display: none; 
+}  
+  
+.hover:hover .hover-default {  
+    display: none; 
+}  
+  
+.hover:hover .hover-show {  
+    display: block; 
+}  
 
+/*  */
 .input_no_border {
   widows: 100%;
   border: 0;
