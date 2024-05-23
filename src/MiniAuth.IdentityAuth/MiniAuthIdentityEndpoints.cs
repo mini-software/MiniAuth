@@ -210,17 +210,15 @@ namespace MiniAuth.Identity
                     var userRoles = _dbContext.UserRoles.Where(w => w.UserId == user.Id).ToArray();
                     {
                         var roleIds = userRoles.Select(s => s.RoleId).ToArray();
-                        foreach (var item in roles)
+                        foreach (var role in roles)
                         {
-                            if (!roleIds.Contains(item))
-                                continue;
-                            var userRole = userRoles.FirstOrDefault(f => f.RoleId == item);
+                            var userRole = userRoles.FirstOrDefault(f => f.RoleId == role);
                             if (userRole == null)
                             {
                                 userRole = new IdentityUserRole<string>
                                 {
                                     UserId = user.Id,
-                                    RoleId = item,
+                                    RoleId = role,
                                 };
                                 await _dbContext.UserRoles.AddAsync(userRole);
                             }

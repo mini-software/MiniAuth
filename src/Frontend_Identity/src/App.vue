@@ -98,7 +98,6 @@ onMounted(() => {
 <template>
   <div>
     <div>
-      <SidebarArea />
       <div>
         <div>
           <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
