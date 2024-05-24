@@ -45,7 +45,7 @@ service.interceptors.response.use(
     if (error.response.status === 401 ) {
       alert('Unauthorized');
       // localStorage.removeItem('X-MiniAuth-Token');
-      // window.location.href = '/miniauth/login.html';
+      // window.location.href = 'login.html';
       return;
     }
     alert(res.data.message || error.message || 'Error');

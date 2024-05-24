@@ -36,12 +36,12 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  if (!localStorage.getItem('X-MiniAuth-Token')) {
-    console.log('redirect to login.html page');
-    window.location.href = '/miniauth/login.html';
-    return;
+  // if localStorage has key 'X-MiniAuth-Token' or cookie .AspNetCore.Identity.Application then continue else redirect to login.html page
+  if (localStorage.getItem('X-MiniAuth-Token') ) {
+    next()
+  } else {
+    window.location.href = 'login.html'
   }
-
   next()
 })
 

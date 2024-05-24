@@ -103,16 +103,16 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
     const xhr = new XMLHttpRequest();
     xhr.open('POST', 'login');
     xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.withCredentials = true;
+
 
     xhr.onload = function () {
         if (xhr.status === 200) { 
             const token = JSON.parse(xhr.responseText)['X-MiniAuth-Token'];
-            if (token) { 
+            if (token!=undefined && token!=null )  
                 localStorage.setItem('X-MiniAuth-Token', token); 
-                window.location.href = returnUrl; 
-            } else {  
-                document.getElementById('message').textContent = 'Login successful but token not found.';
-            }
+
+            window.location.href = returnUrl; 
         } else {  
             document.getElementById('message').textContent = 'Login failed. Please check your credentials.'; 
         }

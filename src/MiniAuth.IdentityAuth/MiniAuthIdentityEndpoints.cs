@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MiniAuth.IdentityAuth.Helpers;
 using MiniAuth.IdentityAuth.Models;
 using System.Collections.Concurrent;
@@ -34,6 +35,14 @@ namespace MiniAuth.Identity
                 })
                 .RequireAuthorization("miniauth-admin")
                 ;
+                endpoints.MapGet("/miniauth/logout", async (HttpContext context
+                                       , SignInManager<TIdentityUser> signInManager
+                                       , IOptions<IdentityOptions> identityOptionsAccessor
+                                                      ) =>
+                {
+
+                    await signInManager.SignOutAsync();
+                });
 
                 endpoints.MapPost("/miniauth/login", async (HttpContext context
                     , TDbContext _dbContext
@@ -50,8 +59,8 @@ namespace MiniAuth.Identity
                     {
                         var newToken = Guid.NewGuid().ToString();
                         //context.Response.Cookies.Append("X-MiniAuth-Token", newToken);
-                        //await OkResult(context, $"{{\"X-MiniAuth-Token\":\"{newToken}\"}}");
                         await OkResult(context, $"{{\"X-MiniAuth-Token\":\"{newToken}\"}}");
+                        //await OkResult(context, "".ToJson(code: 200, message: ""));
                         return;
                     }
                     else
