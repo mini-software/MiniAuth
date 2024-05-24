@@ -24,7 +24,7 @@ namespace MiniAuth.Identity
             {
                 options.UseSqlite(connectionString);
             });
-            services.AddMiniIdentityAuth<MiniAuthIdentityDbContext, IdentityUser, IdentityRole>(isAutoUse);
+            services.AddMiniAuth<MiniAuthIdentityDbContext, IdentityUser, IdentityRole>(isAutoUse);
             return services;
         }
         public static IServiceCollection AddMiniAuth(this IServiceCollection services)
@@ -33,7 +33,7 @@ namespace MiniAuth.Identity
             services.AddMiniIdentityAuth(false);  //TODO: auto use issue : https://github.com/mini-software/MiniAuth/issues/151         
             return services;
         }
-        public static IServiceCollection AddMiniIdentityAuth<TDbContext, TIdentityUser, TIdentityRole>(this IServiceCollection services, bool isAutoUse = true)
+        public static IServiceCollection AddMiniAuth<TDbContext, TIdentityUser, TIdentityRole>(this IServiceCollection services, bool isAutoUse = true)
             where TDbContext : IdentityDbContext
             where TIdentityUser : IdentityUser
             where TIdentityRole : IdentityRole
@@ -51,7 +51,7 @@ namespace MiniAuth.Identity
             if (services.All(o => o.ServiceType != typeof(IAuthenticationService)))
             {
                 services
-                    .AddMiniAuthIdentity<TIdentityUser, TIdentityRole>()
+                    .AddMiniAuth<TIdentityUser, TIdentityRole>()
                     .AddDefaultTokenProviders()
                     .AddEntityFrameworkStores<TDbContext>();
             }
@@ -63,7 +63,7 @@ namespace MiniAuth.Identity
 
             return services;
         }
-        public static IdentityBuilder AddMiniAuthIdentity<TUser, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TRole>(
+        public static IdentityBuilder AddMiniAuth<TUser, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TRole>(
             this IServiceCollection services)
             where TUser : class
             where TRole : class

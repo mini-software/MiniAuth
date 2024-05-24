@@ -14,10 +14,10 @@ namespace MiniAuth.Identity
         {
             Debug.WriteLine("* start UseMiniIdentityAuth");
             _ = builder ?? throw new ArgumentNullException(nameof(builder));
-            builder.UseMiniIdentityAuth<MiniAuthIdentityDbContext, IdentityUser, IdentityRole>();
+            builder.UseMiniAuth<MiniAuthIdentityDbContext, IdentityUser, IdentityRole>();
             return builder;
         }
-        public static IApplicationBuilder UseMiniIdentityAuth<TDbContext, TIdentityUser, TIdentityRole>
+        public static IApplicationBuilder UseMiniAuth<TDbContext, TIdentityUser, TIdentityRole>
             (this IApplicationBuilder builder)
             where TDbContext : IdentityDbContext
             where TIdentityUser : IdentityUser,new()

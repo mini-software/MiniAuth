@@ -50,6 +50,7 @@ namespace MiniAuth.Identity
                     {
                         var newToken = Guid.NewGuid().ToString();
                         //context.Response.Cookies.Append("X-MiniAuth-Token", newToken);
+                        //await OkResult(context, $"{{\"X-MiniAuth-Token\":\"{newToken}\"}}");
                         await OkResult(context, $"{{\"X-MiniAuth-Token\":\"{newToken}\"}}");
                         return;
                     }
