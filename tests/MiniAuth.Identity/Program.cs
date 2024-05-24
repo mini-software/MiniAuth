@@ -24,8 +24,8 @@ namespace MiniAuth.Identity
             builder.Services.AddMiniAuth();
             builder.Services.AddControllers();
 #if DEBUG
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            //builder.Services.AddEndpointsApiExplorer();
+            //builder.Services.AddSwaggerGen();
             //builder.Services.AddIdentityApiEndpoints<IdentityUser>();
 #endif
 
@@ -35,11 +35,11 @@ namespace MiniAuth.Identity
             app.MapGet("/", () => "Hello World!");
             //app.MapGroup("/api").MapIdentityApi<IdentityUser>();
             app.MapControllers();
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+            //if (app.Environment.IsDevelopment())
+            //{
+            //    app.UseSwagger();
+            //    app.UseSwaggerUI();
+            //}
             app.UseMiniAuth();
             app.Run();
         }
