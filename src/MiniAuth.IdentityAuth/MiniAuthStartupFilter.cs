@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using System.Diagnostics;
 
 namespace MiniAuth.Identity
@@ -11,7 +12,8 @@ namespace MiniAuth.Identity
             return builder =>
             {
                 Debug.WriteLine("* start MiniAuthStartupFilter");
-                builder.UseMiniAuth();
+                builder.UseMiniAuth<MiniAuthIdentityDbContext, IdentityUser, IdentityRole>();
+                //builder.UseMiniAuth();
                 next(builder);
             };
         }

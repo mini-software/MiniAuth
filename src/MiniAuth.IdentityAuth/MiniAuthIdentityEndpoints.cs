@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -32,7 +33,8 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
             {
                 await OkResult(context, _endpointCache.Values.OrderByDescending<RoleEndpointEntity, string>(o => o.Id).ToJson());
             })
-            .RequireAuthorization("miniauth-admin")
+            //.RequireAuthorization(new AuthorizeAttribute() { Roles= "miniauth-admin" })
+            .RequireAuthorization()
             ;
             endpoints.MapGet("/miniauth/logout", async (HttpContext context
                                    , SignInManager<TIdentityUser> signInManager

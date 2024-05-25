@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 using TestMVCWithCookieIdentity.Data;
 
 namespace TestMVCWithCookieIdentity
@@ -18,6 +19,8 @@ namespace TestMVCWithCookieIdentity
 
             builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
+
             builder.Services.AddControllersWithViews();
 
             builder.Services.AddMiniAuth(autoUse: false);
@@ -38,15 +41,15 @@ namespace TestMVCWithCookieIdentity
 
             app.UseRouting();
 
-            app.UseAuthorization();
+            //app.UseAuthentication();
+            //app.UseAuthorization();
 
-
+            app.UseMiniAuth<ApplicationDbContext, IdentityUser, IdentityRole>();
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
             app.MapRazorPages();
 
-            app.UseMiniAuth<ApplicationDbContext, IdentityUser, IdentityRole>();
             app.Run();
         }
     }

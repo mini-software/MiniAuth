@@ -40,7 +40,7 @@ public static class MiniAuthIdentityServiceExtensions
     {
         _ = services ?? throw new ArgumentNullException(nameof(services));
 
-        services.AddAuthorization(options =>
+;        services.AddAuthorization(options =>
         {
             options.AddPolicy("miniauth-admin", policy =>
             {
@@ -50,10 +50,15 @@ public static class MiniAuthIdentityServiceExtensions
 
         if (services.All(o => o.ServiceType != typeof(IAuthenticationService)))
         {
+            Debug.WriteLine("* Use MiniAuth default AddAuthentication");
             services
                 .AddMiniAuth<TIdentityUser, TIdentityRole>()
                 .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<TDbContext>();
+        }
+        else
+        {
+            Debug.WriteLine("* Use exist Authentication");
         }
 
         if (isAutoUse)
