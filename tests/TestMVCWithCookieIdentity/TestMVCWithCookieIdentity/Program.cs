@@ -20,7 +20,8 @@ namespace TestMVCWithCookieIdentity
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             builder.Services.AddControllersWithViews();
 
-            builder.Services.AddMiniAuth(autoUse:false);
+            builder.Services.AddMiniAuth(autoUse: false);
+
 
             var app = builder.Build();
 
@@ -39,11 +40,13 @@ namespace TestMVCWithCookieIdentity
 
             app.UseAuthorization();
 
+
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
             app.MapRazorPages();
 
+            app.UseMiniAuth<ApplicationDbContext, IdentityUser, IdentityRole>();
             app.Run();
         }
     }
