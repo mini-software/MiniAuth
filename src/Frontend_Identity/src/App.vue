@@ -21,10 +21,10 @@ watch(() => route.name, (newVal) => {
 
 const logout = () => {
   if (!confirm(t('LogoutMessage'))) {
-    localStorage.removeItem('X-MiniAuth-Token')
-    window.location.href = 'logout'
     return;
   }
+  localStorage.removeItem('X-MiniAuth-Token')
+  window.location.href = 'logout'
 }
 
 const switchLang = (lang) => {
