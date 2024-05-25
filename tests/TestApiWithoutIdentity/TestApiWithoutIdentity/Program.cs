@@ -14,12 +14,6 @@ namespace TestApiWithoutIdentity
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
-
-            app.UseAuthorization();
-            app.UseMiniAuth();
-
-
             app.MapControllers();
 
             app.Run();

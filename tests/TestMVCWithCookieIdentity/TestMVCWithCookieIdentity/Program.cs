@@ -20,6 +20,8 @@ namespace TestMVCWithCookieIdentity
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             builder.Services.AddControllersWithViews();
 
+            builder.Services.AddMiniAuth(autoUse:false);
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

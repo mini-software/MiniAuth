@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace MiniAuth.Identity
 {
-    public class MiniAuthStartupFilter : IStartupFilter
+    internal class MiniAuthStartupFilter : IStartupFilter
     {
         public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next)
         {
@@ -16,7 +16,7 @@ namespace MiniAuth.Identity
             };
         }
     }
-    public class EmptyStartupFilter : IStartupFilter
+    internal class EmptyStartupFilter : IStartupFilter
     {
         public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next)
         {

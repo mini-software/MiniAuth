@@ -31,5 +31,14 @@ namespace TestApiWithoutIdentity.Controllers
             })
             .ToArray();
         }
+
+        [HttpGet]
+        [Route("[action]")]
+        [Authorize(Roles =nameof(Test))]
+        public string Test()
+        {
+            return nameof(Test);
+        }
+
     }
 }
