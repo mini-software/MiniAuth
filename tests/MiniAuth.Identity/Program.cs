@@ -40,7 +40,7 @@ namespace MiniAuth.Identity
             //    app.UseSwagger();
             //    app.UseSwaggerUI();
             //}
-            app.UseMiniAuth();
+            //app.UseMiniAuth();
             app.Run();
         }
     }
