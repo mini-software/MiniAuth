@@ -32,11 +32,11 @@
 
 ### 简介
 
-一个简单的 ASP.NET Core Identity Web UI 后台管理插件
+MiniAuth 一个轻量 ASP.NET Core Identity Web 后台管理插件
 
-「一行代码」为「现有新旧项目」 添加 ASP.NET Core Identity 系统跟用户、权限管理 Web UI
+「一行代码」为「新、旧项目」 添加 Identity 系统跟用户、权限管理后台 Web UI
 
-开箱即用，避免需要打掉重写或是严重耦合情况
+开箱即用，避免打掉重写或是严重耦合情况
 
 <table>
     <tr>
@@ -54,16 +54,22 @@
 
 ### 特点
 
-- 简单、拔插设计 : SPA、SSR、API、MVC、Razor Page 开箱即用
+- 兼容 :  Based on JWT, Cookie, Session 只要符合 .NET identity 规格都能使用。
+- 简单 : 拔插设计，API、MVC、Razor Page 等，都能开箱即用
 - 多平台 : 支持 linux, macos
-- 兼容 : 不对现有系统做侵入式修改，能搭配其他权限框架使用
-- 支持多数据库
+- 支持多数据库 : 符合 Identity  EF Core 规格的数据库都能使用
 
 ### 安装
 
 从 [NuGet](https://www.nuget.org/packages/MiniAuth) 安装套件
 
-### 快速开始 - 视频 : 
+```
+dotnet add package MiniAuth
+// or
+NuGet\Install-Package MiniAuth
+```
+
+
 
 #### [视频链接](https://www.bilibili.com/video/BV1ht421n7i9/?share_source=copy_web&vd_source=0f38adeab321d806d9f26c31c53679b7)
 
@@ -94,29 +100,39 @@
 
 ### 已有自己的 identity 情况
 
-把 autoUse 关闭，将 UseMiniAuth 放在自己的 Auth 之后，例子: 
+把 AddMiniAuth autoUse 关闭，将 UseMiniAuth 并在泛型参数换上自己的 IdentityDBContext、用户、权限认证，放在自己的 Auth 之后，例子: 
 ```csharp
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddMiniAuth(autoUse:false); 
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(connectionString));
+            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-            builder.Services.AddControllers();
+            builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+                .AddRoles<IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            builder.Services.AddControllersWithViews();
+
+            builder.Services.AddMiniAuth(autoUse: false); // <= ❗❗❗
+
 
             var app = builder.Build();
 
-            app.UseAuthentication();
-            app.UseMiniAuth(); // 
-
-            app.MapControllers();
-
+            app.UseMiniAuth<ApplicationDbContext, IdentityUser, IdentityRole>();  // <= ❗❗❗ 
+            app.MapControllerRoute(
+                name: "default",
+                pattern: "{controller=Home}/{action=Index}/{id?}");
+            app.MapRazorPages();
 
             app.Run();
         }
 ```
 
-#### 注意1
+#### 注意顺序
 请将 UseMiniAuth 放在路由生成之后，否则系统无法获取路由数据作权限判断，如 :
 
 ```c#
@@ -135,9 +151,8 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 
 ### 更换数据库
 
-#### SQLite
-
-系统预设使用 SQLite，无需做任何设定代码。
+MiniAuth 系统预设使用 SQLite，无需做任何设定代码
+如果需要切换请在 `app.UseMiniAuth` 泛型指定不同的数据库型别。
 
 
 ### 设定、选项
@@ -147,14 +162,14 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 - MiniAuth 预设模式为IT Admin 集中用户管理，用户注册、密码重置等操作需要 Admin 权限账号操作，预设 Role = miniauth-admin
 
 #### 登录、用户验证
+
 非 ApiController 预设登录导向 login.html 页面 (判断方式Headers["X-Requested-With"] == "XMLHttpRequest" 或是 ApiControllerAttribute)
 ApiController 的 Controller 预设不会导向登录页面，而是返回 401 status code
 
 
 ### 分布式系统
 
-- 数据库来源请换成 SQL Server、MySQL、PostgreSQL 等数据库，系统预设使用 SQLite
-- 请确认每个机器上的 `miniauth.pfx`, `miniauthsalt.cer`使用同一份，否则会导致验证失败。
+- 数据库来源请换成 SQL Server、MySQL、PostgreSQL 等数据库
 
 
 ### 更新日志

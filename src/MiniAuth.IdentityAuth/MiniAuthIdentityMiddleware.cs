@@ -7,8 +7,10 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MiniAuth.Identity;
+using System;
 using System.Diagnostics;
 using System.Reflection;
+using System.Threading.Tasks;
 
 
 public partial class MiniAuthIdentityMiddleware

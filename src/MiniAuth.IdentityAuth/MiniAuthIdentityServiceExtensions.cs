@@ -10,10 +10,13 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MiniAuth.Identity;
+using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Resources;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 
 public static class MiniAuthIdentityServiceExtensions
@@ -83,12 +86,20 @@ public static class MiniAuthIdentityServiceExtensions
         return services;
     }
 
-    public static IdentityBuilder AddMiniAuth<TUser, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TRole>(
+    public static IdentityBuilder AddMiniAuth<TUser,
+#if NET8_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] 
+#endif
+    TRole>(
         this IServiceCollection services)
         where TUser : class
         where TRole : class
         => services.AddMiniAuthIdentity<TUser, TRole>(setupAction: null!);
-    public static IdentityBuilder AddMiniAuthIdentity<TUser, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TRole>(
+    public static IdentityBuilder AddMiniAuthIdentity<TUser,
+#if NET8_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] 
+#endif
+    TRole>(
          this IServiceCollection services,
          Action<IdentityOptions> setupAction)
          where TUser : class
@@ -171,7 +182,9 @@ public static class MiniAuthIdentityServiceExtensions
         // No interface for the error describer so we can add errors without rev'ing the interface
         services.TryAddScoped<IdentityErrorDescriber>();
         services.TryAddScoped<ISecurityStampValidator, SecurityStampValidator<TUser>>();
+#if NET8_0_OR_GREATER
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<SecurityStampValidatorOptions>, PostConfigureSecurityStampValidatorOptions>());
+#endif
         services.TryAddScoped<ITwoFactorSecurityStampValidator, TwoFactorSecurityStampValidator<TUser>>();
         services.TryAddScoped<IUserClaimsPrincipalFactory<TUser>, UserClaimsPrincipalFactory<TUser, TRole>>();
         services.TryAddScoped<IUserConfirmation<TUser>, DefaultUserConfirmation<TUser>>();
@@ -208,6 +221,7 @@ public static class MiniAuthIdentityServiceExtensions
         });
         return new OptionsBuilder<CookieAuthenticationOptions>(builder.Services, IdentityConstants.ApplicationScheme);
     }
+#if NET8_0_OR_GREATER
     private sealed class PostConfigureSecurityStampValidatorOptions : IPostConfigureOptions<SecurityStampValidatorOptions>
     {
         public PostConfigureSecurityStampValidatorOptions(TimeProvider timeProvider)
@@ -222,5 +236,6 @@ public static class MiniAuthIdentityServiceExtensions
             options.TimeProvider ??= TimeProvider;
         }
     }
+#endif
 }
 

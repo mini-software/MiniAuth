@@ -4,11 +4,15 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using System;
 using System.Data;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Security.Principal;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 
 public static class MiniAuthIdentityBuilderExtensions
