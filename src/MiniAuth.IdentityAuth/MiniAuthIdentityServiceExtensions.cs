@@ -40,13 +40,13 @@ public static class MiniAuthIdentityServiceExtensions
     {
         _ = services ?? throw new ArgumentNullException(nameof(services));
 
-;        services.AddAuthorization(options =>
-        {
-            options.AddPolicy("miniauth-admin", policy =>
-            {
-                policy.RequireRole("miniauth-admin");
-            });
-        });
+//;        services.AddAuthorization(options =>
+//        {
+//            options.AddPolicy("miniauth-admin", policy =>
+//            {
+//                policy.RequireRole("miniauth-admin");
+//            });
+//        });
 
         if (services.All(o => o.ServiceType != typeof(IAuthenticationService)))
         {
@@ -96,6 +96,7 @@ public static class MiniAuthIdentityServiceExtensions
                     OnRedirectToLogin = ctx =>
                     {
                         var routeEndpoint = ctx.HttpContext.GetEndpoint();
+                        Debug.WriteLine($"* CookieAuthenticationEvents : {routeEndpoint.ToString()}");
                         var isJsonApi = ctx.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
                             routeEndpoint.Metadata?.GetMetadata<Microsoft.AspNetCore.Mvc.ApiControllerAttribute>() != null;
                         if (isJsonApi)

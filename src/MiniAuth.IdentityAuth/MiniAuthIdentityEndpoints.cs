@@ -33,9 +33,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
             {
                 await OkResult(context, _endpointCache.Values.OrderByDescending<RoleEndpointEntity, string>(o => o.Id).ToJson());
             })
-            //.RequireAuthorization(new AuthorizeAttribute() { Roles= "miniauth-admin" })
-            .RequireAuthorization()
-            ;
+                .RequireAuthorization(new AuthorizeAttribute() { Roles= "miniauth-admin" });
             endpoints.MapGet("/miniauth/logout", async (HttpContext context
                                    , SignInManager<TIdentityUser> signInManager
                                    , IOptions<IdentityOptions> identityOptionsAccessor
@@ -43,6 +41,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
             {
 
                 await signInManager.SignOutAsync();
+                context.Response.Redirect("/");
             });
 
             endpoints.MapPost("/miniauth/login", async (HttpContext context
@@ -87,7 +86,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                     };
                 }));
                 await OkResult(context, roles.ToJson());
-            }).RequireAuthorization("miniauth-admin");
+            }).RequireAuthorization(new AuthorizeAttribute() { Roles= "miniauth-admin" });
 
             endpoints.MapPost("/miniauth/api/saveRole", async (HttpContext context
                 , TDbContext _dbContext
@@ -143,7 +142,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
 
                 await _dbContext.SaveChangesAsync();
                 await OkResult(context, "".ToJson(code: 200, message: ""));
-            }).RequireAuthorization("miniauth-admin");
+            }).RequireAuthorization(new AuthorizeAttribute() { Roles= "miniauth-admin" });
 
 
             endpoints.MapPost("/miniauth/api/deleteRole", async (HttpContext context
@@ -160,7 +159,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                     await _dbContext.SaveChangesAsync();
                 }
                 await OkResult(context, "".ToJson(code: 200, message: ""));
-            }).RequireAuthorization("miniauth-admin");
+            }).RequireAuthorization(new AuthorizeAttribute() { Roles= "miniauth-admin" });
 
 
             endpoints.MapPost("/miniauth/api/getUsers", async (HttpContext context
@@ -206,7 +205,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                     });
                 var totalItems = _dbContext.Users.Count();
                 await OkResult(context, new { users = userVo, totalItems }.ToJson());
-            }).RequireAuthorization("miniauth-admin");
+            }).RequireAuthorization(new AuthorizeAttribute() { Roles= "miniauth-admin" });
 
             endpoints.MapPost("/miniauth/api/saveUser", async (HttpContext context
                 , TDbContext _dbContext
@@ -331,7 +330,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                     await _dbContext.SaveChangesAsync();
                     await OkResult(context, "".ToJson(code: 200, message: ""));
                 }
-            }).RequireAuthorization("miniauth-admin");
+            }).RequireAuthorization(new AuthorizeAttribute() { Roles= "miniauth-admin" });
 
             endpoints.MapPost("/miniauth/api/resetPassword", async (HttpContext context
                 , TDbContext _dbContext
@@ -368,7 +367,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                 {
                     await OkResult(context, "".ToJson(code: 404, message: "User not found"));
                 }
-            }).RequireAuthorization("miniauth-admin");
+            }).RequireAuthorization(new AuthorizeAttribute() { Roles= "miniauth-admin" });
 
             endpoints.MapGet("/miniauth/api/getUserInfo", async (HttpContext context
             , TDbContext _dbContext
