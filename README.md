@@ -26,7 +26,7 @@
 
 ### Introduction
 
-"One-line code" adds a JWT account and dynamic routing permission management system to "existing new or old projects."
+"One-line code" adds identity management web for your new/old projects
 
 <table>
     <tr>
@@ -42,159 +42,118 @@
 
 ### Features
 
-- Simple: Out of the box for SPA, SSR, API, MVC, and Razor Page.
-- Multi-platform: Supports Linux and macOS.
-- Dynamic: Runtime dynamic endpoint permission management .
-- Incremental: Configuration based on business needs.
-- Compatible: Doesn't require intrusive modifications to existing systems and can be used with other permission frameworks.
-- Supports multiple databases.
+- Compatibility: Based JWT, Cookie, and Session that follow the .NET Identity standard.
+- Out of the box: Easy integration, MiniAuth works with APIs, MVC, Razor Pages.
+- Multi-platform: Supports Linux, macOS environments.
+- Multiple Database Support: Compatible with any database that follow the Identity EF Core standard.
 
 ### Installation
 
-Install the package from [NuGet](https://www.nuget.org/packages/MiniAuth).
+Install the package from [NuGet](https://www.nuget.org/packages/MiniAuth):
 
-### Quick Start - Video
-
-[Video Link](https://www.youtube.com/watch?v=MBaDJVZI-ik)
+```
+dotnet add package MiniAuth
+// or
+NuGet\Install-Package MiniAuth
+```
 
 ### Quick Start
 
-Add one line of code to Startup and run the project:
+Add a single line of code `services.AddMiniAuth()` in Startup, then run your project. Example:
 
 ```csharp
-app.UseMiniAuth();
-```
-
-The default admin account "miniauth"  and  password "miniauth" `(remember to change the password)`.
-The admin page:  `http(s)://yourhost/miniauth/index.html`.
-
-Note : Please put UseMiniAuth after route creating for system get endpoint data, e.g.
-
-```c#
-app.UseRouting();
-app.UseMiniAuth();
-```
-
-#### Login
-
-Use the API endpoint `Post /MiniAuth/login` and pass the JSON body:
-
-```json
+public class Program
 {
-    "username":"username",
-    "password":"password"
-}
-```
-You can retrieve the JWT Token with the key `X-MiniAuth-Token` from the Headers or Response Body.
-By default, the same domain will automatically add token cookie.
-
-#### Logout
-
-Delete the `X-MiniAuth-Token` cookie to log out of the system.
-You can also use the API endpoint `Get /MiniAuth/logout` to delete the cookie and redirect to the login page.
-
-#### Get Current User Data
-
-Note: Read JWT Token user data from the Request, not from the DB.
-
-```C#
-public class YourController : Controller
-{
-    public ActionResult UserInfo()
+    public static void Main(string[] args)
     {
-    	var user = this.GetMiniAuthUser(); 
-    	//...
+        var builder = WebApplication.CreateBuilder(args);
+
+        builder.Services.AddMiniAuth();
+
+        var app = builder.Build();
+        app.Run();
     }
 }
 ```
 
-### Changing the Database
+The default admin account is `admin@mini-software.github.io` with the password `E7c4f679-f379-42bf-b547-684d456bc37f` (remember to change the password). The admin page can be accessed at `http(s)://yourhost/miniauth/index.html`.
 
-#### SQLite
+Note: If you already have your own identity auth, please follow the instructions below.
 
-SQLite is used by default, no additional configuration required.
+### Existing Identity Setup
 
-#### SQL Server
-
-Currently supports `SQL Server 2012 (version 11.x) and higher`.
-Run the following script based on your environment:
-
-```sql
-create database miniauth; /*Following your env to change sql*/
-
-create table miniauth..users (  
-    id nvarchar(20) not null primary key,  
-    username nvarchar(20) not null unique, 
-    password nvarchar(100) not null, 
-    roles nvarchar(2000),
-    enable int default 1,
-    first_name nvarchar(200),
-    last_name nvarchar(200),
-    mail nvarchar(200),
-    emp_no nvarchar(50) ,
-    type nvarchar(20)  
-);
-
-create table miniauth..roles (  
-    id nvarchar(20) primary key,  
-    name nvarchar(200) not null unique,
-    enable int default (1) not null,
-    type nvarchar(20)  
-);
-
-create table miniauth..endpoints (  
-    id nvarchar(400) primary key,
-    type nvarchar(20) not null,
-    name nvarchar(400) not null,  
-    route nvarchar(400) not null,
-    methods nvarchar(80),
-    enable int default (1) not null,
-    redirecttologinpage int not null,
-    roles nvarchar(2000) 
-);
-
--- hashed password will update on first run time 
-insert into miniauth..roles (id,type,name) values ('13414618672271360','miniauth','miniauth-admin');
-insert into miniauth..users (id,type,username,password,roles) values ('13414618672271350','miniauth','miniauth','','13414618672271360');
-```
-In Startup, add the injection code:
+Turn off autoUse for `AddMiniAuth`, and replace it with your own IdentityDBContext, user, and permission authentication in UseMiniAuth, placing it after your own Auth. Example:
 
 ```csharp
-builder.Services.AddSingleton<IMiniAuthDB>(
-	new MiniAuthDB<System.Data.SqlClient.SqlConnection>("Data Source=(localdb)\\MSSQLLocalDB;Integrated Security=SSPI;Initial Catalog=miniauth;app=MiniAuth")
-);
+public static void Main(string[] args)
+{
+    var builder = WebApplication.CreateBuilder(args);
+
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseSqlServer(connectionString));
+    builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+    builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+        .AddRoles<IdentityRole>()
+        .AddEntityFrameworkStores<ApplicationDbContext>();
+
+    builder.Services.AddControllersWithViews();
+
+    builder.Services.AddMiniAuth(autoUse: false); // <= ❗❗❗
+
+    var app = builder.Build();
+
+    app.UseMiniAuth<ApplicationDbContext, IdentityUser, IdentityRole>();  // <= ❗❗❗ 
+    app.MapControllerRoute(
+        name: "default",
+        pattern: "{controller=Home}/{action=Index}/{id?}");
+    app.MapRazorPages();
+
+    app.Run();
+}
 ```
 
-### Settings and Options
+#### Order Matters
+Please place UseMiniAuth after routing generation; otherwise, the system won't be able to obtain routing data for permission checks, like:
+
+```csharp
+app.UseRouting();
+app.UseMiniAuth();
+```
+
+#### Note: Adding Role Rules
+
+Please add `AddRoles<IdentityRole>()`; otherwise `[Authorize(Roles = "YourRole")]` won't work.
+```C#
+builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddRoles<IdentityRole>() // ❗❗❗ 
+    .AddEntityFrameworkStores<ApplicationDbContext>();
+```
+
+### Changing Databases
+
+MiniAuth system defaults to using SQLite without any code settings required. If you need to switch, specify a different database type in `app.UseMiniAuth`.
+
+### Configuration and Options
 
 #### Default Mode
-- MiniAuth's default mode is centralized user management by IT Admin, requiring an Admin account for operations like user registration and password reset.
-- Initially, all existing endpoints are added to the system's permission management
-- New endpoints are automatically detected and added during system restarts.
-- User passwords reset by the reset button to generate a random password.
-- Remember to reset the password after creating a user.
 
-#### Login and User Authentication
-Non-ApiController defaults to redirecting to the login.html page for login.
-ApiController-based controllers default to returning a 401 status code.
+- MiniAuth operates in a default mode where IT Admin centrally manages user operations like registration and password reset, requiring an Admin privilege account to perform these actions. Default Role = miniauth-admin.
 
-#### Default Expiration Time
-`MiniAuthOptions.ExpirationMinuteTime` has a default expiration time of 7 days. You can change like following code (note the unit is `minutes`):
+#### Login and User Validation
 
-```C#
-services.AddSingleton<MiniAuthOptions>(new MiniAuthOptions { ExpirationMinuteTime = 12 * 24 * 60 });
-```
-
-#### Custom Login - js, css
-Add `app.UseStaticFiles()` before `UseMiniAuth` and create `wwwroot\MiniAuth\login.css` and `wwwroot\MiniAuth\login.js` for customization.
-
-### Security
-#### Encryption and Keys
-The default JWT handling method is `RS256 + X509`. During the first run, new certificates (`miniauth.pfx` and `miniauthsalt.cer`) are generated locally. Please manage these securely.
+For non-ApiController, login redirects to the login.html page (determined by Headers["X-Requested-With"] == "XMLHttpRequest" or ApiControllerAttribute).
+ApiController Controllers do not redirect to the login page by default but return a 401 status code.
 
 ### Distributed Systems
-- For distributed systems, use databases like SQL Server, MySQL, or PostgreSQL instead of the default SQLite.
-- Ensure that `miniauth.pfx` and `miniauthsalt.cer` are the same across all machines; 
+
+- Please switch the database source to SQL Server, MySQL, PostgreSQL, etc.
 
 ### Release Notes
-Please refer to the [Release Notes](releases) for update details.
+
+Refer to the [Release Notes](releases) for updates.
+
+### TODO
+
+Link: [MiniAuth.Identify project](https://github.com/orgs/mini-software/projects/7/views/1)
