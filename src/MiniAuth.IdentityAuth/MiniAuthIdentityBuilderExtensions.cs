@@ -7,6 +7,7 @@ using Microsoft.Extensions.FileProviders;
 using System.Data;
 using System.Diagnostics;
 using System.Reflection;
+using System.Security.Principal;
 using System.Text.Json;
 
 
@@ -84,33 +85,47 @@ public static class MiniAuthIdentityBuilderExtensions
 
         {
             var user = Activator.CreateInstance<TIdentityUser>();
-            await userStore.SetUserNameAsync(user, "miniauth", CancellationToken.None);
+            // private readonly IUserEmailStore<IdentityUser> _emailStore;
+            var emailStore = userStore as IUserEmailStore<TIdentityUser>;
+            var email = "admin@mini-software.github.io";
+            var account = email;
+            var roleName = "miniauth-admin";
+            await userStore.SetUserNameAsync(user, account, CancellationToken.None);
+            await emailStore.SetEmailAsync(user, email, CancellationToken.None);
             await userManager.CreateAsync(user, "E7c4f679-f379-42bf-b547-684d456bc37f");
             // user complete email and phone and two-factor
-            user = await userManager.FindByNameAsync("miniauth");
+            user = await userManager.FindByNameAsync(account);
             user.PhoneNumberConfirmed= true;
             user.EmailConfirmed = true;
-            user.TwoFactorEnabled = true;
+            //user.TwoFactorEnabled = true; // ![image](https://github.com/mini-software/MiniExcel/assets/12729184/9acd3900-f76c-4322-aabf-0d5ec2131fcb)
+            user.Email = email;
+            user.NormalizedEmail = email.ToUpper();
             await userManager.UpdateAsync(user);
-            ctx.Roles.Add(new TIdentityRole {  Name = "miniauth-admin",NormalizedName= "miniauth-admin".ToUpper() });
+            ctx.Roles.Add(new TIdentityRole {  Name = roleName, NormalizedName= roleName.ToUpper() });
             ctx.SaveChanges();
-            var role = ctx.Roles.FirstOrDefault(c => c.Name == "miniauth-admin");
+            var role = ctx.Roles.FirstOrDefault(c => c.Name == roleName);
             ctx.UserRoles.Add(new IdentityUserRole<string> { RoleId = role.Id, UserId = user.Id });
         }
 #if DEBUG
         foreach (var roleKey in new[] { "HR", "IT", "RD" })
         {
             var user = Activator.CreateInstance<TIdentityUser>();
-            await userStore.SetUserNameAsync(user, $"miniauth-{roleKey.ToLower()}", CancellationToken.None);
+            var account = $"{roleKey.ToLower()}@mini-software.github.io";
+            await userStore.SetUserNameAsync(user, account, CancellationToken.None);
             await userManager.CreateAsync(user, "E7c4f679-f379-42bf-b547-684d456bc37f");
+            user = await userManager.FindByNameAsync(account);
+            user.PhoneNumberConfirmed = true;
+            user.EmailConfirmed = true;
+            //user.TwoFactorEnabled = true; // ![image](https://github.com/mini-software/MiniExcel/assets/12729184/9acd3900-f76c-4322-aabf-0d5ec2131fcb)
+            user.Email = account;
+            user.NormalizedEmail = account.ToUpper();
+            await userManager.UpdateAsync(user);
             ctx.Roles.Add(new TIdentityRole {  Name = roleKey, NormalizedName = roleKey.ToUpper() });
             ctx.SaveChanges();
             var role = ctx.Roles.FirstOrDefault(ctx => ctx.Name == roleKey);
             ctx.UserRoles.Add(new IdentityUserRole<string> { RoleId = role.Id, UserId = user.Id });
             ctx.SaveChanges();
-        }
-        
-        
+        } 
 #endif
     }
 
