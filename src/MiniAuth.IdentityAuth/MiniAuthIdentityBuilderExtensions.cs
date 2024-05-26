@@ -45,18 +45,13 @@ public static class MiniAuthIdentityBuilderExtensions
             using (var scope = builder.ApplicationServices.CreateScope())
             {
                 var ctx = scope.ServiceProvider.GetRequiredService<TDbContext>();
-
-                // get IServiceCollection
-
-
-
                 if (ctx.Database.EnsureCreated())
                 {
                     await CreateUserAndRoles<TDbContext,TIdentityUser, TIdentityRole>(ctx,scope);
                 }
                 else
                 {
-                    var miniauthUser = await ctx.Set<TIdentityUser>().FirstOrDefaultAsync(o => o.UserName == "miniauth");
+                    var miniauthUser = await ctx.Set<TIdentityUser>().FirstOrDefaultAsync(o => o.UserName == "admin@mini-software.github.io");
                     if (miniauthUser == null)
                         await CreateUserAndRoles<TDbContext,TIdentityUser, TIdentityRole>(ctx,scope);
                 }

@@ -42,10 +42,10 @@ service.interceptors.response.use(
   error => {  
     closeLoading();
     const res = error.response; 
-    if (error.response.status === 401 ) {
+    if (error.response.status === 401 || error.response.status === 403  ) {
       alert('Unauthorized');
-      // localStorage.removeItem('X-MiniAuth-Token');
-      // window.location.href = 'login.html';
+      localStorage.removeItem('X-MiniAuth-Token');
+      window.location.href = 'login.html';
       return;
     }
     alert(res.data.message || error.message || 'Error');

@@ -207,6 +207,22 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                 await OkResult(context, new { users = userVo, totalItems }.ToJson());
             }).RequireAuthorization(new AuthorizeAttribute() { Roles= "miniauth-admin" });
 
+            endpoints.MapPost("/miniauth/api/deleteUser", async (HttpContext context
+                               , TDbContext _dbContext
+                                          ) =>
+            {
+                JsonDocument bodyJson = await GetBodyJson(context);
+                var root = bodyJson.RootElement;
+                var id = root.GetProperty<string>("Id");
+                var user = await _dbContext.Users.FindAsync(id);
+                if (user != null)
+                {
+                    _dbContext.Users.Remove(user);
+                    await _dbContext.SaveChangesAsync();
+                }
+                await OkResult(context, "".ToJson(code: 200, message: ""));
+            }).RequireAuthorization(new AuthorizeAttribute() { Roles= "miniauth-admin" });
+
             endpoints.MapPost("/miniauth/api/saveUser", async (HttpContext context
                 , TDbContext _dbContext
                 , UserManager<TIdentityUser> userManager
