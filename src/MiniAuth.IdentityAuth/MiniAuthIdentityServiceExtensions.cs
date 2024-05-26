@@ -12,6 +12,8 @@ using Microsoft.Extensions.Options;
 using MiniAuth.Identity;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Resources;
+using System.Text.Json;
 
 
 public static class MiniAuthIdentityServiceExtensions
@@ -40,13 +42,13 @@ public static class MiniAuthIdentityServiceExtensions
     {
         _ = services ?? throw new ArgumentNullException(nameof(services));
 
-//;        services.AddAuthorization(options =>
-//        {
-//            options.AddPolicy("miniauth-admin", policy =>
-//            {
-//                policy.RequireRole("miniauth-admin");
-//            });
-//        });
+        //;        services.AddAuthorization(options =>
+        //        {
+        //            options.AddPolicy("miniauth-admin", policy =>
+        //            {
+        //                policy.RequireRole("miniauth-admin");
+        //            });
+        //        });
 
         if (services.All(o => o.ServiceType != typeof(IAuthenticationService)))
         {
@@ -58,6 +60,18 @@ public static class MiniAuthIdentityServiceExtensions
         }
         else
         {
+            //var roleType = typeof(TIdentityRole);
+            //var userType = typeof(TIdentityUser);
+            //var validatorType = typeof(IRoleValidator<>).MakeGenericType(roleType);
+            //var existIRoleValidator = services.Any(o => o.ServiceType == validatorType);
+            //if (!existIRoleValidator)
+            //{
+            //    services.TryAddScoped<RoleManager<IdentityRole>>();
+            //    services.AddScoped(validatorType, typeof(TIdentityRole));
+            //    services.AddScoped(typeof(IUserClaimsPrincipalFactory<>).MakeGenericType(userType),
+            //        typeof(UserClaimsPrincipalFactory<,>).MakeGenericType(userType, roleType));
+
+            //}
             Debug.WriteLine("* Use exist Authentication");
         }
 
@@ -68,6 +82,7 @@ public static class MiniAuthIdentityServiceExtensions
 
         return services;
     }
+
     public static IdentityBuilder AddMiniAuth<TUser, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TRole>(
         this IServiceCollection services)
         where TUser : class

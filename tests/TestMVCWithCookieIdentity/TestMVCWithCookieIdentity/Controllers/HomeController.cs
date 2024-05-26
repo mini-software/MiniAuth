@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using TestMVCWithCookieIdentity.Models;
@@ -21,6 +22,27 @@ namespace TestMVCWithCookieIdentity.Controllers
         public IActionResult Privacy()
         {
             return View();
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "miniauth-admin")]
+        public IActionResult Test()
+        {
+            return Content(nameof(Test));
+        }
+
+        [HttpGet]
+        [Authorize]
+        public IActionResult Test2()
+        {
+            return Content(nameof(Test2));
+        }
+
+
+        [HttpGet]
+        public IActionResult Test3()
+        {
+            return Content(nameof(Test3));
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

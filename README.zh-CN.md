@@ -124,6 +124,15 @@ app.UseRouting();
 app.UseMiniAuth();
 ```
 
+#### 注意: 请添加 Role 规则
+
+请添加 `AddRoles<IdentityRole>()`，否则 `[Authorize(Roles = "权限")]` 不会生效
+```C#
+builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddRoles<IdentityRole>() // ❗❗❗ 
+    .AddEntityFrameworkStores<ApplicationDbContext>();
+```
+
 ### 更换数据库
 
 #### SQLite
