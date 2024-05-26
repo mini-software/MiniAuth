@@ -1,7 +1,33 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
 	<PropertyGroup>
 		<AssemblyName>MiniAuth</AssemblyName>
+		<Title>MiniAuth</Title>
+		<Version>0.9.0</Version>
+		<Description>"One-line code" adds identity management web for your new/old projects</Description>
+		<Authors>Wei Lin, mini-software</Authors>
+		<PackageTags>MiniAuth</PackageTags>
+		<Copyright>Wei Lin, 2024 onwards</Copyright>
+		<NeutralLanguage>en</NeutralLanguage>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/mini-software/MiniAuth</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/mini-software/MiniAuth</RepositoryUrl>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<PackageIcon>icon.png</PackageIcon>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<IncludeSymbols>true</IncludeSymbols>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<AssemblyOriginatorKeyFile>minisoftware.snk</AssemblyOriginatorKeyFile>
+		<SignAssembly>True</SignAssembly>
+	</PropertyGroup>
+	<ItemGroup>
+		<None Include="icon.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Update="minisoftware.snk">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+	<PropertyGroup>
 		<TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
