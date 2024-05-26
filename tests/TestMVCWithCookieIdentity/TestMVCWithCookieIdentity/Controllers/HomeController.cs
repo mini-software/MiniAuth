@@ -30,6 +30,7 @@ namespace TestMVCWithCookieIdentity.Controllers
         {
             return Content(nameof(Test));
         }
+        [HttpGet]
 
         [HttpGet]
         [Authorize]
@@ -44,7 +45,11 @@ namespace TestMVCWithCookieIdentity.Controllers
         {
             return Content(nameof(Test3));
         }
-
+        [Authorize(Roles = "denied")]
+        public IActionResult Test4()
+        {
+            return Content(nameof(Test));
+        }
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
