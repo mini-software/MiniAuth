@@ -98,7 +98,7 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
     const password = document.getElementById('password').value;
     const remember = document.getElementById('remember').checked;
     const url = new URL(window.location.href);
-    const returnUrl = url.searchParams.get('returnUrl') || '/';
+    const returnUrl = url.searchParams.get('returnUrl') || url.searchParams.get('ReturnUrl') || '/';
 
     const xhr = new XMLHttpRequest();
     xhr.open('POST', 'http://localhost:5566/MiniAuth/login');

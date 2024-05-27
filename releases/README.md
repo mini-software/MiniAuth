@@ -19,6 +19,14 @@
 
 ---
 
+### 0.9.1
+- Support to disable miniauth login and custom login path #184
+
+### 0.9.0
+Plugin Identity Auth System in ONE Line of Code for your project (Like Swagger)
+
+
+---------
 
 ### 0.8.3
 - Bug: Fix transaction issue #133

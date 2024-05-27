@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using MiniAuth;
 using System.Diagnostics;
 using TestMVCWithCookieIdentity.Data;
 
@@ -44,7 +45,8 @@ namespace TestMVCWithCookieIdentity
 
             //app.UseAuthentication();
             //app.UseAuthorization();
-
+            MiniAuthOptions.LoginPath = "/Identity/Account/Login";
+            MiniAuthOptions.DisableMiniAuthLogin = true;
             app.UseMiniAuth<ApplicationDbContext, IdentityUser, IdentityRole>();
             app.MapControllerRoute(
                 name: "default",

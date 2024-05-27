@@ -49,7 +49,7 @@ MiniAuth 一個輕量 ASP.NET Core Identity Web 後台管理插件
 
 - 兼容 :  Based on JWT, Cookie, Session 只要符合 .NET identity 規格都能使用。
 - 簡單 : 拔插設計，API、MVC、Razor Page 等，都能開箱即用
-- 多平台 : 支持 linux, macos
+- 多平台 : 支持 Linux, macOS 
 - 支持多資料庫 : 符合 Identity  EF Core 規格的資料庫都能使用
 
 ### 安裝
@@ -137,6 +137,16 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
     .AddRoles<IdentityRole>() // ❗❗❗ 
     .AddEntityFrameworkStores<ApplicationDbContext>();
 ```
+
+#### 關閉 MiniAuth Login
+如果你只想用自己的登錄邏輯、頁面、API，可以指定登錄路徑，關閉開關
+```C#
+// 放在 service 註冊之前
+MiniAuthOptions.LoginPath = "/Identity/Account/Login";
+MiniAuthOptions.DisableMiniAuthLogin = true;
+```
+
+
 
 ### 更換資料庫
 

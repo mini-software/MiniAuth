@@ -23,6 +23,12 @@
 
 ---
 
+### 0.9.1
+- 支持关闭 miniauth login 自定义 login path #184
+
+### 0.9.0
+打掉重写，定位 MiniAuth 轻量 ASP.NET Core Identity Web 后台管理插件
+
 ### 0.8.3
 - Bug: 修正 transaction issue #133
 - Bug: 添加 Roles property to inserted user object

@@ -1,16 +1,13 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using MiniAuth.Identity;
-using System;
+using MiniAuth;
 using System.Diagnostics;
 using System.Reflection;
-using System.Threading.Tasks;
 
 
 public partial class MiniAuthIdentityMiddleware

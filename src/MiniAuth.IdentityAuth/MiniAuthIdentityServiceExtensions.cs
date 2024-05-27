@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MiniAuth;
 using MiniAuth.Identity;
 using System;
 using System.Diagnostics;
@@ -128,7 +129,9 @@ public static class MiniAuthIdentityServiceExtensions
                         if (isJsonApi)
                         {
                             Debug.WriteLine($"IsXMLHttpRequest Path: {ctx.Request.Path}");
+                            ctx.Response.Headers.Append("ReturnUrl", ctx.RedirectUri);
                             ctx.Response.StatusCode = 401;
+
                         }
                         else
                         {

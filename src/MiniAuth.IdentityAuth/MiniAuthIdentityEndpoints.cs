@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MiniAuth;
 using MiniAuth.IdentityAuth.Helpers;
 using MiniAuth.IdentityAuth.Models;
 using System;
@@ -45,34 +46,39 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
             {
 
                 await signInManager.SignOutAsync();
-                context.Response.Redirect("/");
+                context.Response.Redirect(MiniAuthOptions.LoginPath);
+
             });
 
-            endpoints.MapPost("/miniauth/login", async (HttpContext context
-                , TDbContext _dbContext
-                , SignInManager<TIdentityUser> signInManager
-            ) =>
+            if (!MiniAuthOptions.DisableMiniAuthLogin)
             {
-                JsonDocument bodyJson = await GetBodyJson(context);
-                var root = bodyJson.RootElement;
-                var userName = root.GetProperty<string>("username");
-                var password = root.GetProperty<string>("password");
-                var remember = root.GetProperty<bool>("remember");
-                var result = await signInManager.PasswordSignInAsync(userName, password, remember, lockoutOnFailure: false);
-                if (result.Succeeded)
+                endpoints.MapPost("/miniauth/login", async (HttpContext context
+                    , TDbContext _dbContext
+                    , SignInManager<TIdentityUser> signInManager
+                ) =>
                 {
-                    var newToken = Guid.NewGuid().ToString();
-                    //context.Response.Cookies.Append("X-MiniAuth-Token", newToken);
-                    await OkResult(context, $"{{\"X-MiniAuth-Token\":\"{newToken}\"}}");
-                    //await OkResult(context, "".ToJson(code: 200, message: ""));
-                    return;
-                }
-                else
-                {
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    return;
-                }
-            });
+                    JsonDocument bodyJson = await GetBodyJson(context);
+                    var root = bodyJson.RootElement;
+                    var userName = root.GetProperty<string>("username");
+                    var password = root.GetProperty<string>("password");
+                    var remember = root.GetProperty<bool>("remember");
+                    var result = await signInManager.PasswordSignInAsync(userName, password, remember, lockoutOnFailure: false);
+                    if (result.Succeeded)
+                    {
+                        var newToken = Guid.NewGuid().ToString();
+                        //context.Response.Cookies.Append("X-MiniAuth-Token", newToken);
+                        await OkResult(context, $"{{\"X-MiniAuth-Token\":\"{newToken}\"}}");
+                        //await OkResult(context, "".ToJson(code: 200, message: ""));
+                        return;
+                    }
+                    else
+                    {
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        return;
+                    }
+                });
+            }
+
 
             endpoints.MapGet("/miniauth/api/getRoles", async (HttpContext context
                 , TDbContext _dbContext

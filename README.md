@@ -131,6 +131,14 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
     .AddEntityFrameworkStores<ApplicationDbContext>();
 ```
 
+#### Disable MiniAuth Login
+If you only want to use your own login logic, page, and API, you can custom the login path and turn off the switch.
+```C#
+// before add service
+MiniAuthOptions.LoginPath = "/Identity/Account/Login";
+MiniAuthOptions.DisableMiniAuthLogin = true;
+```
+
 ### Changing Databases
 
 MiniAuth system defaults to using SQLite without any code settings required. If you need to switch, specify a different database type in `app.UseMiniAuth`.

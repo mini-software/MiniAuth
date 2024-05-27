@@ -42,12 +42,32 @@ service.interceptors.response.use(
   error => {  
     closeLoading();
     const res = error.response; 
-    if (error.response.status === 401 || error.response.status === 403  ) {
+    if (error.response.status === 401  ) {
       alert('Unauthorized');
       localStorage.removeItem('X-MiniAuth-Token');
+      const returnUrl = res.headers['RedirectUri'] || res.headers['redirectUri'] ||  res.headers['Location'] || res.headers['location'];
+      if (returnUrl) {
+        // remove returnUrl ReturnUrl url parameter
+        const url = new URL(returnUrl);
+        url.searchParams.delete('ReturnUrl');
+        window
+          .location
+          .replace(url.toString());
+        
+        // window.location.href = returnUrl + '?ReturnUrl=' + window.location.href; // ![image](https://github.com/mini-software/MiniExcel/assets/12729184/96e69955-3e1c-4d9e-b817-d207db8932a7)
+
+        return;
+      }
       window.location.href = 'login.html';
+      // window.location.href = 'login.html' + '?ReturnUrl=' + window.location.href;; //![image](https://github.com/mini-software/MiniExcel/assets/12729184/96e69955-3e1c-4d9e-b817-d207db8932a7)
+
       return;
     }
+    if (error.response.status === 403) {
+      alert('Forbidden');
+      return;
+    }
+      
     alert(res.data.message || error.message || 'Error');
     console.error('Error:', error);   
     return Promise.reject(error);  
