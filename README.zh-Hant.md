@@ -1,8 +1,9 @@
 <div align="center">
 <p><a href="https://www.nuget.org/packages/MiniAuth"><img src="https://img.shields.io/nuget/v/MiniAuth.svg" alt="NuGet"></a>  <a href="https://www.nuget.org/packages/MiniAuth"><img src="https://img.shields.io/nuget/dt/MiniAuth.svg" alt=""></a>  
-<a href="https://gitee.com/shps951023/MiniAuth"><img src="https://gitee.com/shps951023/MiniAuth/badge/star.svg" alt="star"></a> <a href="https://github.com/Mini-Software/MiniAuth" rel="nofollow"><img src="https://img.shields.io/github/stars/Mini-Software/MiniAuth?logo=github" alt="GitHub stars"></a> 
+<a href="https://gitee.com/shps951023/MiniAuth"><img src="https://gitee.com/shps951023/MiniAuth/badge/star.svg" alt="star"></a> <a href="https://github.com/Mini-Software/MiniAuth" rel="nofollow"><img src="https://img.shields.io/github/stars/Mini-Software/MiniAuth?logo=github" alt="GitHub stars"></a> <a href="https://www.nuget.org/packages/MiniAuth"><img src="https://img.shields.io/badge/.NET-%3E%3D%206.0-red.svg" alt="version"></a>
 </p>
 </div>
+
 
 ---
 
@@ -159,6 +160,12 @@ ApiController 的 Controller 預設不會導向登錄頁面，而是返回 401 s
 
 - 資料庫來源請換成 SQL Server、MySQL、PostgreSQL 等資料庫
 
+### 修改UI
+
+### 修改前端
+
+- 管理後台前端在 `/src/Frontend_Identity` 主體使用 Vue3 + Vite，使用 npm run build 後即可更新 miniauth 的 UI
+- 登錄頁面不想使用 miniauth 預設， mvc可以使用 identity 自帶的Scaffolded Login.cshtml ，或是更改 miniauth 前端的 login.html, js, css
 
 ### 更新日誌
 

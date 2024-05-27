@@ -1,6 +1,6 @@
 <div align="center">
 <p><a href="https://www.nuget.org/packages/MiniAuth"><img src="https://img.shields.io/nuget/v/MiniAuth.svg" alt="NuGet"></a>  <a href="https://www.nuget.org/packages/MiniAuth"><img src="https://img.shields.io/nuget/dt/MiniAuth.svg" alt=""></a>  
-<a href="https://gitee.com/shps951023/MiniAuth"><img src="https://gitee.com/shps951023/MiniAuth/badge/star.svg" alt="star"></a> <a href="https://github.com/Mini-Software/MiniAuth" rel="nofollow"><img src="https://img.shields.io/github/stars/Mini-Software/MiniAuth?logo=github" alt="GitHub stars"></a> 
+<a href="https://gitee.com/shps951023/MiniAuth"><img src="https://gitee.com/shps951023/MiniAuth/badge/star.svg" alt="star"></a> <a href="https://github.com/Mini-Software/MiniAuth" rel="nofollow"><img src="https://img.shields.io/github/stars/Mini-Software/MiniAuth?logo=github" alt="GitHub stars"></a> <a href="https://www.nuget.org/packages/MiniAuth"><img src="https://img.shields.io/badge/.NET-%3E%3D%206.0-red.svg" alt="version"></a>
 </p>
 </div>
 
@@ -149,6 +149,11 @@ ApiController Controllers do not redirect to the login page by default but retur
 ### Distributed Systems
 
 - Please switch the database source to SQL Server, MySQL, PostgreSQL, etc.
+
+### Custom Frontend
+
+- The management backend front-end uses Vue3 + Vite at `/src/Frontend_Identity`. You can update the miniauth UI after using `npm run build`.
+- If you do not want to use the miniauth default for the login page, you can use the identity scaffolded Login.cshtml in mvc, or change the login.html, js, css of the miniauth frontend.
 
 ### Release Notes
 
