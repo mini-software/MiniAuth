@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34330.188
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestJWTApi", "TestJWTApi\TestJWTApi.csproj", "{C644AE74-FED9-4C63-9C81-D1CE8DE4CD78}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C644AE74-FED9-4C63-9C81-D1CE8DE4CD78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C644AE74-FED9-4C63-9C81-D1CE8DE4CD78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C644AE74-FED9-4C63-9C81-D1CE8DE4CD78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C644AE74-FED9-4C63-9C81-D1CE8DE4CD78}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F4EF91A3-92FD-45A0-AA57-8FD95B64F34C}
+	EndGlobalSection
+EndGlobal

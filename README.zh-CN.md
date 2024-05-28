@@ -55,10 +55,11 @@ MiniAuth 一个轻量 ASP.NET Core Identity Web 后台管理插件
 
 ### 特点
 
-- 兼容 :  Based on JWT, Cookie, Session 只要符合 .NET identity 规格都能使用。
+- 兼容 :  Based on JWT, Cookie, Session 只要符合 .NET identity 规格都支持。
 - 简单 : 拔插设计，API、MVC、Razor Page 等，都能开箱即用
 - 多平台 : 支持 Linux, macOS 环境
-- 支持多数据库 : 符合 Identity  EF Core 规格的数据库都能使用
+- 支持多数据库 : 符合 Identity  EF Core 规格的数据库都支持
+- 渐进、非侵入式 : 预设不会影响现有数据库结构，如有类似组织、部门需求在渐进添加
 
 
 ### 安装

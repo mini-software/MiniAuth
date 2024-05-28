@@ -52,6 +52,7 @@ MiniAuth 一個輕量 ASP.NET Core Identity Web 後台管理插件
 - 多平台 : 支持 Linux, macOS 
 - 支持多資料庫 : 符合 Identity  EF Core 規格的資料庫都能使用
 
+
 ### 安裝
 
 從 [NuGet](https://www.nuget.org/packages/MiniAuth) 安裝套件
