@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -46,13 +47,17 @@ public static class MiniAuthIdentityServiceExtensions
     {
         _ = services ?? throw new ArgumentNullException(nameof(services));
 
-        //;        services.AddAuthorization(options =>
-        //        {
-        //            options.AddPolicy("miniauth-admin", policy =>
-        //            {
-        //                policy.RequireRole("miniauth-admin");
-        //            });
-        //        });
+        // if not exist AddAuthorization then add default policy
+        var existAuthorization = services.Any(o => o.ServiceType == typeof(IAuthorizationService));
+        if (!existAuthorization)
+        {
+            Debug.WriteLine("* Use MiniAuth default AddAuthorization");
+            services.AddAuthorization();
+        }
+        else
+        {
+            Debug.WriteLine("* Use exist Authorization");
+        }
 
         if (services.All(o => o.ServiceType != typeof(IAuthenticationService)))
         {
