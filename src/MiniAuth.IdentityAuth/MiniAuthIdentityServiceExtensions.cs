@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using MiniAuth;
 using MiniAuth.Identity;
 using System;
@@ -17,6 +18,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Resources;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -62,10 +64,36 @@ public static class MiniAuthIdentityServiceExtensions
         if (services.All(o => o.ServiceType != typeof(IAuthenticationService)))
         {
             Debug.WriteLine("* Use MiniAuth default AddAuthentication");
-            services
-                .AddMiniAuth<TIdentityUser, TIdentityRole>()
-                .AddDefaultTokenProviders()
-                .AddEntityFrameworkStores<TDbContext>();
+            if (MiniAuthOptions.AuthenticationType== MiniAuthOptions.AuthType.Cookie)
+            {
+                services
+                    .AddMiniAuth<TIdentityUser, TIdentityRole>()
+                    .AddDefaultTokenProviders()
+                    .AddEntityFrameworkStores<TDbContext>();
+            }
+            if (MiniAuthOptions.AuthenticationType == MiniAuthOptions.AuthType.Jwt)
+            {
+                throw new NotImplementedException("Jwt is not implemented yet");
+                //services
+                //    .AddAuthentication()
+                //    .AddCookie()
+                //    .AddJwtBearer(options =>
+                //    {
+                //        options.IncludeErrorDetails = true;
+                //        options.TokenValidationParameters = new TokenValidationParameters
+                //        {
+                //            ValidateIssuer = true,
+                //            ValidateAudience = true,
+                //            ValidateLifetime = true,
+                //            ValidateIssuerSigningKey = true,
+                //            ValidIssuer = "practical aspnetcore",
+                //            ValidAudience = "https://localhost:5001/",
+                //            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("this is custom key for practical aspnetcore sample"))
+                //        };
+                //    });
+                    //.AddDefaultTokenProviders()
+                    //.AddEntityFrameworkStores<TDbContext>();
+            }
         }
         else
         {

@@ -19,6 +19,9 @@
 
 ---
 
+### 0.9.2
+- Fix Asp.net core empty startup error #187
+
 ### 0.9.1
 - Support to disable miniauth login and custom login path #184
 

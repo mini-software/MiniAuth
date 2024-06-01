@@ -23,6 +23,9 @@
 
 ---
 
+### 0.9.2
+- Fix  Asp.net core empty startup 错误 #187
+
 ### 0.9.1
 - 支持关闭 miniauth login 自定义 login path #184
 
