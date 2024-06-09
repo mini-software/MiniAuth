@@ -14,4 +14,8 @@
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.6.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\MiniAuth.IdentityAuth\MiniAuth.IdentityAuth.csproj" />
+  </ItemGroup>
+
 </Project>

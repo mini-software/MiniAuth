@@ -10,6 +10,7 @@ namespace IdentityAPIEndpoints
     {
         public static void Main(string[] args)
         {
+            // http://localhost:5135/swagger/index.html
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddAuthorization();
@@ -22,13 +23,17 @@ namespace IdentityAPIEndpoints
             builder.Services.AddSwaggerGen();
             using (var scope = builder.Services.BuildServiceProvider().CreateScope())
             {
-                var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
-                db.Database.Migrate();
+                var ctx = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+                if (ctx.Database.EnsureCreated())
+                {
+
+                }
             }
 
 
             var app = builder.Build();
-            app.MapGet("/", () => "Hello World!");
+            app.MapGet("/", () => "Hello World!").RequireAuthorization()
+                ;
             app.MapGroup("/account").MapIdentityApi<IdentityUser>();
 
             if (app.Environment.IsDevelopment())

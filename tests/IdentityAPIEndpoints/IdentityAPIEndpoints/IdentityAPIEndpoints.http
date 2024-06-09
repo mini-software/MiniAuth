@@ -1,0 +1,34 @@
+﻿@basepath = http://localhost:5135
+
+### Access RequireAuthorization api
+GET {{basepath}}/
+
+### Register a new user
+POST {{basepath}}/account/register
+Content-Type: application/json
+
+{
+  "username": "example@example.com",
+  "password": "ExamplePassword123456!",
+  "email": "example@example.com"
+}
+
+### Login and retrieve tokens and set accesstoken variable
+POST {{basepath}}/account/login
+Content-Type: application/json
+
+{
+  "email": "example@example.com",
+  "password": "ExamplePassword123456!"
+}
+
+### {
+#   "tokenType": "Bearer",
+#   "accessToken": "CfDJ8JQ6UejBIoRIkUpEJR_892d-zbl9LEcgWQiW6uF55wQzMaIo9tELg3ATO_91h3I6CFxA4uC6yNJGx2o3Mk3iSVzPF6iTZetbunzE-Yxf40apjpXEZkc_dEYMQfnpDIq8XJFclh8uWLTLk7Jq7Ne1Rg7LNK-Uh5vzqgP5bS609Viu8dV29kgtK1RfIU2N_7o4lw1X-YoX38jwyc-ArodRrJRkcMsEs0ts2L1pIRKQH8NO3x-fcmQLGJrcutKg9OBTlscx6r-WCc_bJMjGdDQgXrZEYu-XSPbgc4FAB3C3NAZFEqqwXW1NLIb_3Xa3CYqrsX2veomIXNgq3YoomZ0rMdm94gC7Z1R8LjMAWecPU9p2UB1IFIbvLMRLpmgIVHQjTaHKS42-uA0NB5TdJxaF0Gc90czUmd8PG9l5yEPgDPiQLztkk5vBm0y_HR5cgUDQdEwSQt8Av0gsmbME9atzkxeFFFTVezB52YR_SsMzbx5q_lJE-ux6SDdmykzbSwjg4ecJRPd6_G_MNMt72Pc-gTIHZC56zqyrUt_6N3RdsQTSt5_6dl42IGRMO6j6JRrk9BRpWykWLylDcLfNyfGx1QV7cyqbKIPNbOLFT2VKsA_Svz79Gb37VyiaNEppMjO2UI6CWj1DxazYWNMERiQ0Tfj1Q7HIJkFINC9fIbNPI2SjqNurAxCTIAfBqzf0Nox8hl1bcZN7OSun8-u7nhbqdg0",
+#   "expiresIn": 3600,
+#   "refreshToken": "CfDJ8JQ6UejBIoRIkUpEJR_892dg_5gvwNBXBMYLYQj05RIc14gg_31KrsnOjceSSvrowYNz_kXZ2g8jdWl91ctdU3A3yy5krWnD_p-sJAUNF_OT6NTsZrhnajn7bLOtjgGQ3tbaFYq5_qEGYFXkDk9N3leqQQnyXwoa7sfIVijq_-BjK1kcg9EoyUmlQQ17ysdtw4S5AFQ8b-K8CrVCIDuUYopb5cviYcXBMBkoGz2EkY2og67F1yEFpuMbTox8POmTcbbDK7nCFUPZQVI-0k7dKhBo9AojS9ez4HjZDWINBcruqvVXQwhBI5GYWSwsg0C03sm2dCnqmGIslS88E3kQUfkHcSKDPu-Y-9As7oE1xYszvy31DEr3H0ul7slHEsa5VxpYo_GRpbGBKzLFKgPrUG2jEF_JdUcNZiGZcuwRNIgF3QFNZxu6ZeMjS6U1WIbAaiuFPN9V-rPeERy3Q6ilAc5Oi-nA8j1FpuyOLxS62BUSywLVj7tCA7DL7y8DN2iAPoEiDavzdG4dbtU6opkB7btxp19hBfWPyvNzWtVCSVgF4SomxXHtNhaR6w9CeY7ZNYC_mWqAjckSkkDgsct2Vn6_od6SnQgLiDxwzv8DuEgT-N0ZsusbPGRSrRLrLcAkbKyP3iVRo1lp7gmNgi6t3lpOnXMhu_9cx1ZnYLsXwUgEBQYyid9XTsEAoTgyC001tSYJ194vEsaItkxdB5OlCBQ"
+# }
+### GET {{basepath}}/ with header token authroization
+GET {{basepath}}/
+Authorization : Bearer CfDJ8JQ6UejBIoRIkUpEJR_892d-zbl9LEcgWQiW6uF55wQzMaIo9tELg3ATO_91h3I6CFxA4uC6yNJGx2o3Mk3iSVzPF6iTZetbunzE-Yxf40apjpXEZkc_dEYMQfnpDIq8XJFclh8uWLTLk7Jq7Ne1Rg7LNK-Uh5vzqgP5bS609Viu8dV29kgtK1RfIU2N_7o4lw1X-YoX38jwyc-ArodRrJRkcMsEs0ts2L1pIRKQH8NO3x-fcmQLGJrcutKg9OBTlscx6r-WCc_bJMjGdDQgXrZEYu-XSPbgc4FAB3C3NAZFEqqwXW1NLIb_3Xa3CYqrsX2veomIXNgq3YoomZ0rMdm94gC7Z1R8LjMAWecPU9p2UB1IFIbvLMRLpmgIVHQjTaHKS42-uA0NB5TdJxaF0Gc90czUmd8PG9l5yEPgDPiQLztkk5vBm0y_HR5cgUDQdEwSQt8Av0gsmbME9atzkxeFFFTVezB52YR_SsMzbx5q_lJE-ux6SDdmykzbSwjg4ecJRPd6_G_MNMt72Pc-gTIHZC56zqyrUt_6N3RdsQTSt5_6dl42IGRMO6j6JRrk9BRpWykWLylDcLfNyfGx1QV7cyqbKIPNbOLFT2VKsA_Svz79Gb37VyiaNEppMjO2UI6CWj1DxazYWNMERiQ0Tfj1Q7HIJkFINC9fIbNPI2SjqNurAxCTIAfBqzf0Nox8hl1bcZN7OSun8-u7nhbqdg0
+
