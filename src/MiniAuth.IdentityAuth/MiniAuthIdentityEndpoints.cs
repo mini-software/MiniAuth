@@ -3,17 +3,21 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using MiniAuth;
 using MiniAuth.IdentityAuth.Helpers;
 using MiniAuth.IdentityAuth.Models;
 using System;
 using System.Collections.Concurrent;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
@@ -38,7 +42,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
             {
                 await OkResult(context, _endpointCache.Values.OrderByDescending<RoleEndpointEntity, string>(o => o.Id).ToJson());
             })
-                .RequireAuthorization(new AuthorizeAttribute() { Roles= "miniauth-admin" });
+                .RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" });
             endpoints.MapGet("/miniauth/logout", async (HttpContext context
                                    , SignInManager<TIdentityUser> signInManager
                                    , IOptions<IdentityOptions> identityOptionsAccessor
@@ -55,6 +59,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                 endpoints.MapPost("/miniauth/login", async (HttpContext context
                     , TDbContext _dbContext
                     , SignInManager<TIdentityUser> signInManager
+                    , UserManager<TIdentityUser> _userManager
                 ) =>
                 {
                     JsonDocument bodyJson = await GetBodyJson(context);
@@ -62,19 +67,69 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                     var userName = root.GetProperty<string>("username");
                     var password = root.GetProperty<string>("password");
                     var remember = root.GetProperty<bool>("remember");
-                    var result = await signInManager.PasswordSignInAsync(userName, password, remember, lockoutOnFailure: false);
-                    if (result.Succeeded)
+
+                    if (MiniAuth.MiniAuthOptions.AuthenticationType == MiniAuthOptions.AuthType.BearerJwt)
                     {
-                        var newToken = Guid.NewGuid().ToString();
-                        //context.Response.Cookies.Append("X-MiniAuth-Token", newToken);
-                        await OkResult(context, $"{{\"X-MiniAuth-Token\":\"{newToken}\"}}");
-                        //await OkResult(context, "".ToJson(code: 200, message: ""));
+                        var user = await _dbContext.Users.FirstOrDefaultAsync(f => f.UserName == userName);
+                        if (!(user != null && await _userManager.CheckPasswordAsync((TIdentityUser)user, password)))
+                        {
+                            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                            return;
+                        }
+                        var claims = new List<Claim>
+                        {
+                            new Claim(ClaimTypes.Name, user.UserName),
+                            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                        };
+                        var userRoles = _dbContext.UserRoles.Where(w => w.UserId == user.Id).Select(s => s.RoleId).ToArray();
+                        foreach (var userRole in userRoles)
+                        {
+                            claims.Add(new Claim(ClaimTypes.Role, userRole));
+                        }
+                        var jwtToken = new JwtSecurityTokenHandler().WriteToken(CreateToken(claims, MiniAuthOptions.TokenExpiresIn));
+                        var result = new
+                        {
+                            tokenType = "Bearer",
+                            accessToken = jwtToken,
+                            expiresIn = MiniAuthOptions.TokenExpiresIn,
+                            //refreshToken = refreshToken
+                        };
+                        /*
+e.g.
+{
+    "ok": true,
+    "code": 200,
+    "message": null,
+    "data": {
+        "tokenType": "Bearer",
+        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTgxMTkzMzh9.I-tm9436GEXyETgUSzL7KeX5RvyN8X_4rLAKLDMZnZk",
+        "expiresIn": 900
+    }
+}
+                         */
+
+                        await OkResult(context, result.ToJson());
                         return;
                     }
                     else
                     {
-                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                        return;
+                        var result = await signInManager.PasswordSignInAsync(userName, password, remember, lockoutOnFailure: false);
+                        if (result.Succeeded)
+                        {
+                            var newToken = Guid.NewGuid().ToString();
+                            var jsonResult = new
+                            {
+                                token = newToken,
+                                expiration = null as DateTime?
+                            };
+                            await OkResult(context, jsonResult.ToJson());
+                            return;
+                        }
+                        else
+                        {
+                            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                            return;
+                        }
                     }
                 });
             }
@@ -96,7 +151,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                     };
                 }));
                 await OkResult(context, roles.ToJson());
-            }).RequireAuthorization(new AuthorizeAttribute() { Roles= "miniauth-admin" });
+            }).RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" });
 
             endpoints.MapPost("/miniauth/api/saveRole", async (HttpContext context
                 , TDbContext _dbContext
@@ -152,7 +207,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
 
                 await _dbContext.SaveChangesAsync();
                 await OkResult(context, "".ToJson(code: 200, message: ""));
-            }).RequireAuthorization(new AuthorizeAttribute() { Roles= "miniauth-admin" });
+            }).RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" });
 
 
             endpoints.MapPost("/miniauth/api/deleteRole", async (HttpContext context
@@ -169,7 +224,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                     await _dbContext.SaveChangesAsync();
                 }
                 await OkResult(context, "".ToJson(code: 200, message: ""));
-            }).RequireAuthorization(new AuthorizeAttribute() { Roles= "miniauth-admin" });
+            }).RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" });
 
 
             endpoints.MapPost("/miniauth/api/getUsers", async (HttpContext context
@@ -215,7 +270,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                     });
                 var totalItems = _dbContext.Users.Count();
                 await OkResult(context, new { users = userVo, totalItems }.ToJson());
-            }).RequireAuthorization(new AuthorizeAttribute() { Roles= "miniauth-admin" });
+            }).RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" });
 
             endpoints.MapPost("/miniauth/api/deleteUser", async (HttpContext context
                                , TDbContext _dbContext
@@ -231,7 +286,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                     await _dbContext.SaveChangesAsync();
                 }
                 await OkResult(context, "".ToJson(code: 200, message: ""));
-            }).RequireAuthorization(new AuthorizeAttribute() { Roles= "miniauth-admin" });
+            }).RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" });
 
             endpoints.MapPost("/miniauth/api/saveUser", async (HttpContext context
                 , TDbContext _dbContext
@@ -356,7 +411,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                     await _dbContext.SaveChangesAsync();
                     await OkResult(context, "".ToJson(code: 200, message: ""));
                 }
-            }).RequireAuthorization(new AuthorizeAttribute() { Roles= "miniauth-admin" });
+            }).RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" });
 
             endpoints.MapPost("/miniauth/api/resetPassword", async (HttpContext context
                 , TDbContext _dbContext
@@ -393,7 +448,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                 {
                     await OkResult(context, "".ToJson(code: 404, message: "User not found"));
                 }
-            }).RequireAuthorization(new AuthorizeAttribute() { Roles= "miniauth-admin" });
+            }).RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" });
 
             endpoints.MapGet("/miniauth/api/getUserInfo", async (HttpContext context
             , TDbContext _dbContext
@@ -437,7 +492,17 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
             }
         }
     }
+    private JwtSecurityToken CreateToken(List<Claim> claims,int expires)
+    {
+        var secretkey = MiniAuthOptions.IssuerSigningKey;
+        var credentials = new SigningCredentials(secretkey, SecurityAlgorithms.HmacSha256);
+        var token = new JwtSecurityToken(
+            expires: DateTime.Now.AddSeconds(expires),
+            signingCredentials: credentials
+        );
 
+        return token;
+    }
     private static string GetNewPassword()
     {
         return $"{Guid.NewGuid().ToString().Substring(0, 10).ToUpper()}@{Guid.NewGuid().ToString().Substring(0, 5)}";
@@ -456,6 +521,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
         context.Response.StatusCode = StatusCodes.Status200OK;
         context.Response.ContentType = contentType;
         context.Response.ContentLength = result != null ? Encoding.UTF8.GetByteCount(result) : 0;
+        
         await context.Response.WriteAsync(result).ConfigureAwait(false);
     }
 }

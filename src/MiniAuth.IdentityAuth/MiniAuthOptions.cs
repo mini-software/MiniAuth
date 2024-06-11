@@ -1,4 +1,8 @@
-﻿namespace MiniAuth
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
+namespace MiniAuth
 {
     public class MiniAuthOptions
     {
@@ -8,8 +12,13 @@
         public enum AuthType
         {
             Cookie,
-            Jwt
+            BearerJwt
         }
         public static AuthType AuthenticationType = AuthType.Cookie;
+        public static SecurityKey IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("this is miniauth key for demo"));
+        /// <summary>
+        /// Seconds
+        /// </summary>
+        public static int TokenExpiresIn = 15*60;
     }
 }

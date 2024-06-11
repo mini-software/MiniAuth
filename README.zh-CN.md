@@ -33,7 +33,7 @@
 
 ### 简介
 
-MiniAuth 一个轻量 ASP.NET Core Identity Web 后台管理插件
+MiniAuth 一个轻量 ASP.NET Core Identity Web 后台管理中间插件
 
 「一行代码」为「新、旧项目」 添加 Identity 系统跟用户、权限管理后台 Web UI
 
@@ -55,21 +55,19 @@ MiniAuth 一个轻量 ASP.NET Core Identity Web 后台管理插件
 
 ### 特点
 
-- 兼容 :  Based on JWT, Cookie, Session 只要符合 .NET identity 规格都支持。
-- 简单 : 拔插设计，API、MVC、Razor Page 等，都能开箱即用
+- 兼容 : 支持 .NET identity Based on JWT, Cookie, Session 等 
+- 简单 : 拔插设计，API、MVC、Razor Page 等开箱即用
+- 支持多数据库 : 支持符合 Oracle, SQL Server, MySQL etc.
+- 渐进、非侵入式 : 不影响现有数据库、项目结构
 - 多平台 : 支持 Linux, macOS 环境
-- 支持多数据库 : 符合 Identity  EF Core 规格的数据库都支持
-- 渐进、非侵入式 : 预设不会影响现有数据库结构，如有类似组织、部门需求在渐进添加
 
 
 ### 安装
 
 从 [NuGet](https://www.nuget.org/packages/MiniAuth) 安装套件
 
-```
+```cmd
 dotnet add package MiniAuth
-// or
-NuGet\Install-Package MiniAuth
 ```
 
 
@@ -84,7 +82,7 @@ NuGet\Install-Package MiniAuth
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddMiniAuth();
+            builder.Services.AddMiniAuth(); // <= ❗❗❗
 
             var app = builder.Build();
             app.Run();

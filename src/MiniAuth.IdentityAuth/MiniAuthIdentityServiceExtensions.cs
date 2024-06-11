@@ -1,11 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -71,28 +74,36 @@ public static class MiniAuthIdentityServiceExtensions
                     .AddDefaultTokenProviders()
                     .AddEntityFrameworkStores<TDbContext>();
             }
-            if (MiniAuthOptions.AuthenticationType == MiniAuthOptions.AuthType.Jwt)
+            if (MiniAuthOptions.AuthenticationType == MiniAuthOptions.AuthType.BearerJwt)
             {
-                throw new NotImplementedException("Jwt is not implemented yet");
-                //services
-                //    .AddAuthentication()
-                //    .AddCookie()
-                //    .AddJwtBearer(options =>
-                //    {
-                //        options.IncludeErrorDetails = true;
-                //        options.TokenValidationParameters = new TokenValidationParameters
-                //        {
-                //            ValidateIssuer = true,
-                //            ValidateAudience = true,
-                //            ValidateLifetime = true,
-                //            ValidateIssuerSigningKey = true,
-                //            ValidIssuer = "practical aspnetcore",
-                //            ValidAudience = "https://localhost:5001/",
-                //            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("this is custom key for practical aspnetcore sample"))
-                //        };
-                //    });
-                    //.AddDefaultTokenProviders()
-                    //.AddEntityFrameworkStores<TDbContext>();
+
+                services.AddIdentity<TIdentityUser, TIdentityRole>()
+                    .AddEntityFrameworkStores<TDbContext>()
+                    .AddDefaultTokenProviders();
+
+                services.AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+
+                })
+                    .AddJwtBearer(options =>
+                    {
+                        options.IncludeErrorDetails = true; 
+
+                        options.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            NameClaimType = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier",
+                            RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role",
+                            ValidateIssuer = true,
+                            ValidIssuer = "User",
+                            ValidateAudience = false,
+                            ValidateLifetime = true,
+                            ValidateIssuerSigningKey = false,
+                            IssuerSigningKey =MiniAuth.MiniAuthOptions.IssuerSigningKey
+                        };
+                    });
             }
         }
         else
