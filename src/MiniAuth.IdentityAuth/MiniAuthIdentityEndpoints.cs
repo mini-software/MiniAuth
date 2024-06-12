@@ -17,6 +17,7 @@ using MiniAuth.IdentityAuth.Helpers;
 using MiniAuth.IdentityAuth.Models;
 using System;
 using System.Collections.Concurrent;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
@@ -76,37 +77,43 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                             return;
                         }
+                        // Payload issuer
+
+
+
                         var claims = new List<Claim>
                         {
-                            new Claim(ClaimTypes.Name, user.UserName),
-                            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                            new Claim(ClaimTypes.NameIdentifier, user.Id),
+                            new Claim(ClaimTypes.Name, user.UserName)
                         };
+                        //var userRoles = _dbContext.UserRoles.Where(w => w.UserId == user.Id).Select(s => s.RoleId).ToArray();
+                        // get userRoles Name
                         var userRoles = _dbContext.UserRoles.Where(w => w.UserId == user.Id).Select(s => s.RoleId).ToArray();
-                        foreach (var userRole in userRoles)
+                        var rolesName = _dbContext.Roles.Where(w => userRoles.Contains(w.Id)).Select(s => s.Name).ToArray();
+                        foreach (var item in rolesName)
+                            claims.Add(new Claim(ClaimTypes.Role, item));
+                        claims.Add(new Claim("sub", user.UserName));
+
+
+                        var secretkey = MiniAuthOptions.IssuerSigningKey;
+                        var credentials = new SigningCredentials(secretkey, SecurityAlgorithms.HmacSha256);
+                        var tokenDescriptor = new SecurityTokenDescriptor()
                         {
-                            claims.Add(new Claim(ClaimTypes.Role, userRole));
-                        }
-                        var jwtToken = new JwtSecurityTokenHandler().WriteToken(CreateToken(claims, MiniAuthOptions.TokenExpiresIn));
+                            Subject = new ClaimsIdentity(claims),
+                            Expires = DateTime.UtcNow.AddSeconds(MiniAuthOptions.TokenExpiresIn),
+                            Issuer = MiniAuthOptions.Issuer,
+                            SigningCredentials = credentials
+
+                        };
+                        var tokenHandler = new JwtSecurityTokenHandler();
+                        var tokenJwt =  tokenHandler.CreateToken(tokenDescriptor);
+                        var token = tokenHandler.WriteToken(tokenJwt);
                         var result = new
                         {
                             tokenType = "Bearer",
-                            accessToken = jwtToken,
+                            accessToken = token,
                             expiresIn = MiniAuthOptions.TokenExpiresIn,
-                            //refreshToken = refreshToken
                         };
-                        /*
-e.g.
-{
-    "ok": true,
-    "code": 200,
-    "message": null,
-    "data": {
-        "tokenType": "Bearer",
-        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTgxMTkzMzh9.I-tm9436GEXyETgUSzL7KeX5RvyN8X_4rLAKLDMZnZk",
-        "expiresIn": 900
-    }
-}
-                         */
 
                         await OkResult(context, result.ToJson());
                         return;
@@ -491,17 +498,6 @@ e.g.
                 MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRole>._endpointCache.TryAdd(id, roleEndpoint);
             }
         }
-    }
-    private JwtSecurityToken CreateToken(List<Claim> claims,int expires)
-    {
-        var secretkey = MiniAuthOptions.IssuerSigningKey;
-        var credentials = new SigningCredentials(secretkey, SecurityAlgorithms.HmacSha256);
-        var token = new JwtSecurityToken(
-            expires: DateTime.Now.AddSeconds(expires),
-            signingCredentials: credentials
-        );
-
-        return token;
     }
     private static string GetNewPassword()
     {

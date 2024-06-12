@@ -15,7 +15,8 @@ const service = axios.create({
 service.interceptors.request.use(  
   config => {  
     if (localStorage.getItem('X-MiniAuth-Token')) {  
-      config.headers['X-MiniAuth-Token'] = localStorage.getItem('X-MiniAuth-Token');  
+      // authorization header token = localStorage.getItem('X-MiniAuth-Token')  
+      config.headers['Authorization'] = 'Bearer ' + localStorage.getItem('X-MiniAuth-Token');
     }  
     showLoading();
     return config;  

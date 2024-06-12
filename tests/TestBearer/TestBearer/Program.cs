@@ -11,6 +11,7 @@ namespace TestBearer
             var builder = WebApplication.CreateBuilder(args);
 
             MiniAuthOptions.AuthenticationType = MiniAuthOptions.AuthType.BearerJwt;
+            MiniAuthOptions.TokenExpiresIn = 30;
             builder.Services.AddMiniAuth();
 
             var app = builder.Build();

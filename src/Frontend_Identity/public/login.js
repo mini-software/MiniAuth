@@ -108,11 +108,18 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
 
     xhr.onload = function () {
         if (xhr.status === 200) { 
-            const token = JSON.parse(xhr.responseText)['X-MiniAuth-Token'];
-            if (token!=undefined && token!=null )  
-                localStorage.setItem('X-MiniAuth-Token', token); 
-
-            window.location.href = returnUrl; 
+            const data = JSON.parse(xhr.responseText);
+            if (data.ok === false) {
+                document.getElementById('message').textContent = 'Login failed. Please check your credentials.'; 
+                return;
+            }
+            if (data.data.accessToken!=undefined && data.data.accessToken!=null) {
+                localStorage.setItem('X-MiniAuth-Token', data.data.accessToken);
+            }
+            // after 1 second then redirect to returnUrl
+            setTimeout(function () {
+                window.location.href = returnUrl;
+            }, 1000);
         } else {  
             document.getElementById('message').textContent = 'Login failed. Please check your credentials.'; 
         }

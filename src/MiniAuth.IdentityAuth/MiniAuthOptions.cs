@@ -20,5 +20,6 @@ namespace MiniAuth
         /// Seconds
         /// </summary>
         public static int TokenExpiresIn = 15*60;
+        public static string Issuer = "MiniAuth";
     }
 }

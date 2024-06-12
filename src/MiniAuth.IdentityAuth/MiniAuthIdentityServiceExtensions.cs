@@ -88,22 +88,22 @@ public static class MiniAuthIdentityServiceExtensions
                     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 
                 })
+                    //.AddJwtBearer()
                     .AddJwtBearer(options =>
                     {
-                        options.IncludeErrorDetails = true; 
+                        options.IncludeErrorDetails = true;
 
                         options.TokenValidationParameters = new TokenValidationParameters
                         {
-                            NameClaimType = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier",
-                            RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role",
                             ValidateIssuer = true,
-                            ValidIssuer = "User",
+                            ValidIssuer = MiniAuthOptions.Issuer,
                             ValidateAudience = false,
                             ValidateLifetime = true,
                             ValidateIssuerSigningKey = false,
-                            IssuerSigningKey =MiniAuth.MiniAuthOptions.IssuerSigningKey
+                            IssuerSigningKey = MiniAuth.MiniAuthOptions.IssuerSigningKey
                         };
-                    });
+                    })
+                    ;
             }
         }
         else
