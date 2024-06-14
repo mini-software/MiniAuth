@@ -2,13 +2,11 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -16,14 +14,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MiniAuth;
 using MiniAuth.Identity;
-using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Resources;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 
 public static class MiniAuthIdentityServiceExtensions
@@ -67,7 +59,7 @@ public static class MiniAuthIdentityServiceExtensions
         if (services.All(o => o.ServiceType != typeof(IAuthenticationService)))
         {
             Debug.WriteLine("* Use MiniAuth default AddAuthentication");
-            if (MiniAuthOptions.AuthenticationType== MiniAuthOptions.AuthType.Cookie)
+            if (MiniAuthOptions.AuthenticationType == MiniAuthOptions.AuthType.Cookie)
             {
                 services
                     .AddMiniAuth<TIdentityUser, TIdentityRole>()
@@ -92,15 +84,14 @@ public static class MiniAuthIdentityServiceExtensions
                     .AddJwtBearer(options =>
                     {
                         options.IncludeErrorDetails = true;
-
                         options.TokenValidationParameters = new TokenValidationParameters
                         {
                             ValidateIssuer = true,
                             ValidIssuer = MiniAuthOptions.Issuer,
                             ValidateAudience = false,
                             ValidateLifetime = true,
-                            ValidateIssuerSigningKey = false,
-                            IssuerSigningKey = MiniAuth.MiniAuthOptions.IssuerSigningKey
+                            ValidateIssuerSigningKey = true,
+                            IssuerSigningKey = MiniAuth.MiniAuthOptions.JWTKey
                         };
                     })
                     ;
@@ -161,7 +152,7 @@ public static class MiniAuthIdentityServiceExtensions
         {
             o.ApplicationCookie.Configure(o =>
             {
-                o.LoginPath = "/miniauth/login.html";
+                o.LoginPath = $"/{MiniAuthOptions.RoutePrefix}/login.html";
                 o.Events = new CookieAuthenticationEvents
                 {
                     OnRedirectToLogin = ctx =>

@@ -6,8 +6,8 @@ namespace MiniAuth
 {
     public class MiniAuthOptions
     {
-        public string RoutePrefix { get; set; } = "MiniAuth";
-        public static string LoginPath = "/miniauth/login.html";
+        public static string RoutePrefix = "MiniAuth";
+        public static string LoginPath = $"/{RoutePrefix}/login.html";
         public static bool DisableMiniAuthLogin = false;
         public enum AuthType
         {
@@ -15,11 +15,11 @@ namespace MiniAuth
             BearerJwt
         }
         public static AuthType AuthenticationType = AuthType.Cookie;
-        public static SecurityKey IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("this is miniauth key for demo"));
+        public static SecurityKey JWTKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("this is miniauth key for demo"));
         /// <summary>
         /// Seconds
         /// </summary>
-        public static int TokenExpiresIn = 15*60;
-        public static string Issuer = "MiniAuth";
+        public static int TokenExpiresIn = 30*60;
+        public static string Issuer = $"{RoutePrefix}";
     }
 }

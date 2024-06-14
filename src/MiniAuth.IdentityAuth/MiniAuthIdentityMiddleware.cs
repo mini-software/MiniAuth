@@ -43,7 +43,7 @@ public partial class MiniAuthIdentityMiddleware
     {
         var staticFileOptions = new StaticFileOptions
         {
-            RequestPath = string.IsNullOrEmpty(_options.RoutePrefix) ? string.Empty : $"/{_options.RoutePrefix}",
+            RequestPath = string.IsNullOrEmpty(MiniAuthOptions.RoutePrefix) ? string.Empty : $"/{MiniAuthOptions.RoutePrefix}",
             FileProvider = new EmbeddedFileProvider(typeof(MiniAuthIdentityMiddleware).GetTypeInfo().Assembly, "MiniAuth.Identity.wwwroot"),
         };
 

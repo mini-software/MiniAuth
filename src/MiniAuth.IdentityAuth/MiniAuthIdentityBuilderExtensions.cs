@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using MiniAuth;
 using System;
 using System.Data;
 using System.Diagnostics;
@@ -65,7 +66,7 @@ public static class MiniAuthIdentityBuilderExtensions
 
         var option = new StaticFileOptions
         {
-            RequestPath = string.IsNullOrEmpty("MiniAuth") ? string.Empty : $"/MiniAuth",
+            RequestPath = string.IsNullOrEmpty("MiniAuth") ? string.Empty : $"/{MiniAuthOptions.RoutePrefix}",
             FileProvider = new EmbeddedFileProvider(typeof(MiniAuthIdentityServiceExtensions).GetTypeInfo().Assembly, "MiniAuth.IdentityAuth.wwwroot"),
         };
         builder.UseStaticFiles(option);
