@@ -21,5 +21,6 @@ namespace MiniAuth
         /// </summary>
         public static int TokenExpiresIn = 30*60;
         public static string Issuer = $"{RoutePrefix}";
+        public static string SqliteConnectionString = "Data Source=miniauth_identity.db";
     }
 }

@@ -23,7 +23,7 @@ public static class MiniAuthIdentityServiceExtensions
     private static IServiceCollection AddMiniIdentityAuth(this IServiceCollection services, bool isAutoUse)
     {
         _ = services ?? throw new ArgumentNullException(nameof(services));
-        var connectionString = "Data Source=miniauth_identity.db";
+        var connectionString = MiniAuthOptions.SqliteConnectionString;
         services.AddDbContext<MiniAuthIdentityDbContext>(options =>
         {
             options.UseSqlite(connectionString);
