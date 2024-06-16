@@ -57,22 +57,20 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
 
             if (!MiniAuthOptions.DisableMiniAuthLogin)
             {
-                endpoints.MapPost($"/{MiniAuthOptions.RoutePrefix}/login", async (HttpContext context
-                    , TDbContext _dbContext
-                    , SignInManager<TIdentityUser> signInManager
-                    , UserManager<TIdentityUser> _userManager
+                endpoints.MapPost($"/{MiniAuthOptions.RoutePrefix}/login", async (
+                   [FromBody] LoginRequest login
+                    , [FromServices] IServiceProvider sp
+                    , HttpContext context
                 ) =>
                 {
-                    JsonDocument bodyJson = await GetBodyJson(context);
-                    var root = bodyJson.RootElement;
-                    var userName = root.GetProperty<string>("username");
-                    var password = root.GetProperty<string>("password");
-                    var remember = root.GetProperty<bool>("remember");
+                    UserManager<TIdentityUser> _userManager = sp.GetRequiredService<UserManager<TIdentityUser>>();
+                    TDbContext _dbContext = sp.GetRequiredService<TDbContext>();
+                    SignInManager<TIdentityUser> signInManager = sp.GetRequiredService<SignInManager<TIdentityUser>>();
 
                     if (MiniAuth.MiniAuthOptions.AuthenticationType == MiniAuthOptions.AuthType.BearerJwt)
                     {
-                        var user = await _dbContext.Users.FirstOrDefaultAsync(f => f.UserName == userName);
-                        if (!(user != null && await _userManager.CheckPasswordAsync((TIdentityUser)user, password)))
+                        var user = await _dbContext.Users.FirstOrDefaultAsync(f => f.UserName == login.username);
+                        if (!(user != null && await _userManager.CheckPasswordAsync((TIdentityUser)user, login.password)))
                         {
                             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                             return;
@@ -88,7 +86,6 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                         foreach (var item in rolesName)
                             claims.Add(new Claim(ClaimTypes.Role, item));
                         claims.Add(new Claim("sub", user.UserName));
-
 
                         var secretkey = MiniAuthOptions.JWTKey;
                         var credentials = new SigningCredentials(secretkey, SecurityAlgorithms.HmacSha256);
@@ -115,7 +112,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                     }
                     else
                     {
-                        var result = await signInManager.PasswordSignInAsync(userName, password, remember, lockoutOnFailure: false);
+                        var result = await signInManager.PasswordSignInAsync(login.username, login.password, login.remember, lockoutOnFailure: false);
                         if (result.Succeeded)
                         {
                             var newToken = Guid.NewGuid().ToString();
