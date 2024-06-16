@@ -57,6 +57,28 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
 
             if (!MiniAuthOptions.DisableMiniAuthLogin)
             {
+                endpoints.MapPost($"/{MiniAuthOptions.RoutePrefix}/refreshToken", async (
+                    [FromBody] RefreshRequest refreshRequest,
+                    [FromServices] IServiceProvider sp
+                    , HttpContext context
+                ) =>
+                {
+                    if (MiniAuth.MiniAuthOptions.AuthenticationType != MiniAuthOptions.AuthType.BearerJwt)
+                    {
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        return;
+                    }
+                    var tokenHandler = new JwtSecurityTokenHandler();
+                    var jwtToken = tokenHandler.ReadJwtToken(refreshRequest.refreshToken);
+                    var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
+                    UserManager<TIdentityUser> _userManager = sp.GetRequiredService<UserManager<TIdentityUser>>();
+                    TDbContext _dbContext = sp.GetRequiredService<TDbContext>();
+                    var user = await _dbContext.Users.FindAsync(userId);
+                    SignInManager<TIdentityUser> signInManager = sp.GetRequiredService<SignInManager<TIdentityUser>>();
+                    await JwtLoginImpl(_userManager, _dbContext, signInManager, context, (TIdentityUser)user);
+                }).RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" }); 
+
+
                 endpoints.MapPost($"/{MiniAuthOptions.RoutePrefix}/login", async (
                    [FromBody] LoginRequest login
                     , [FromServices] IServiceProvider sp
@@ -75,39 +97,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                             return;
                         }
-                        // Payload issuer
-                        var claims = new List<Claim>
-                        {
-                            new Claim(ClaimTypes.NameIdentifier, user.Id),
-                            new Claim(ClaimTypes.Name, user.UserName)
-                        };
-                        var userRoles = _dbContext.UserRoles.Where(w => w.UserId == user.Id).Select(s => s.RoleId).ToArray();
-                        var rolesName = _dbContext.Roles.Where(w => userRoles.Contains(w.Id)).Select(s => s.Name).ToArray();
-                        foreach (var item in rolesName)
-                            claims.Add(new Claim(ClaimTypes.Role, item));
-                        claims.Add(new Claim("sub", user.UserName));
-
-                        var secretkey = MiniAuthOptions.JWTKey;
-                        var credentials = new SigningCredentials(secretkey, SecurityAlgorithms.HmacSha256);
-                        var tokenDescriptor = new SecurityTokenDescriptor()
-                        {
-                            Subject = new ClaimsIdentity(claims),
-                            Expires = DateTime.UtcNow.AddSeconds(MiniAuthOptions.TokenExpiresIn),
-                            Issuer = MiniAuthOptions.Issuer,
-                            SigningCredentials = credentials
-
-                        };
-                        var tokenHandler = new JwtSecurityTokenHandler();
-                        var tokenJwt =  tokenHandler.CreateToken(tokenDescriptor);
-                        var token = tokenHandler.WriteToken(tokenJwt);
-                        var result = new
-                        {
-                            tokenType = "Bearer",
-                            accessToken = token,
-                            expiresIn = MiniAuthOptions.TokenExpiresIn,
-                        };
-
-                        await OkResult(context, result.ToJson());
+                        await JwtLoginImpl(_userManager, _dbContext, signInManager, context, (TIdentityUser)user);
                         return;
                     }
                     else
@@ -491,6 +481,68 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
             }
         }
     }
+
+    private async Task JwtLoginImpl(UserManager<TIdentityUser> _userManager, TDbContext _dbContext, SignInManager<TIdentityUser> signInManager, HttpContext context, TIdentityUser user)
+    {
+
+        // Payload issuer
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, user.UserName)
+        };
+        var userRoles = _dbContext.UserRoles.Where(w => w.UserId == user.Id).Select(s => s.RoleId).ToArray();
+        var rolesName = _dbContext.Roles.Where(w => userRoles.Contains(w.Id)).Select(s => s.Name).ToArray();
+        foreach (var item in rolesName)
+            claims.Add(new Claim(ClaimTypes.Role, item));
+        claims.Add(new Claim("sub", user.Id));
+
+        var token = string.Empty;
+        var TokenExpiresIn = (MiniAuthOptions.TokenExpiresIn);
+        {
+            var secretkey = MiniAuthOptions.JWTKey;
+            var credentials = new SigningCredentials(secretkey, SecurityAlgorithms.HmacSha256);
+            var tokenDescriptor = new SecurityTokenDescriptor()
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddSeconds(TokenExpiresIn),
+                Issuer = MiniAuthOptions.Issuer,
+                SigningCredentials = credentials
+
+            };
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenJwt = tokenHandler.CreateToken(tokenDescriptor);
+            token = tokenHandler.WriteToken(tokenJwt);
+        }
+        var refreshToekn = string.Empty;
+        {
+            var refreshTokenExpiresIn = (MiniAuthOptions.TokenExpiresIn) / 2;
+            var secretkey = MiniAuthOptions.JWTKey;
+            var credentials = new SigningCredentials(secretkey, SecurityAlgorithms.HmacSha256);
+            var tokenDescriptor = new SecurityTokenDescriptor()
+            {
+                Expires = DateTime.UtcNow.AddSeconds(refreshTokenExpiresIn),
+                Issuer = MiniAuthOptions.Issuer,
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+                                    new Claim("sub", user.Id),
+                }),
+                SigningCredentials = credentials
+            };
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenJwt = tokenHandler.CreateToken(tokenDescriptor);
+            refreshToekn = tokenHandler.WriteToken(tokenJwt);
+        }
+
+        var result = new
+        {
+            tokenType = "Bearer",
+            accessToken = token,
+            expiresIn = MiniAuthOptions.TokenExpiresIn,
+            refreshToken = refreshToekn
+        };
+
+        await OkResult(context, result.ToJson());
+    }
     private static string GetNewPassword()
     {
         return $"{Guid.NewGuid().ToString().Substring(0, 10).ToUpper()}@{Guid.NewGuid().ToString().Substring(0, 5)}";
@@ -509,7 +561,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
         context.Response.StatusCode = StatusCodes.Status200OK;
         context.Response.ContentType = contentType;
         context.Response.ContentLength = result != null ? Encoding.UTF8.GetByteCount(result) : 0;
-        
+
         await context.Response.WriteAsync(result).ConfigureAwait(false);
     }
 }

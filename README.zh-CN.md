@@ -96,7 +96,7 @@ MiniAuth 一个轻量 ASP.NET Core Identity Web 后台管理中间插件
 
 注意: 如有自己的 identity auth 请看以下注意点
 
-### 使用在现有的 identity 项目
+### 应用在现有的 identity 项目，自定义逻辑
 
 把 AddMiniAuth autoUse 关闭，将 UseMiniAuth 并在泛型参数换上自己的 IdentityDBContext、用户、权限认证，放在自己的 Auth 之后，例子: 
 ```csharp
@@ -129,6 +129,10 @@ MiniAuth 一个轻量 ASP.NET Core Identity Web 后台管理中间插件
             app.Run();
         }
 ```
+
+能切换使用自己的用户、角色、DB、Identity 逻辑。
+
+
 
 
 
@@ -212,6 +216,24 @@ xhr.send();
 
 
 
+#### 刷新 Refresh Token API (JWT)
+
+API : `/MiniAuth/refreshToken`
+Body:
+
+```json
+{
+   "refreshToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxZTIxOGY4My1iZjE3LTRhY2YtODhmOS1iOTQ3NjhjOWUwMGMiLCJuYmYiOjE3MTg1MjIxOTEsImV4cCI6MTcxODUyMzk5MSwiaWF0IjoxNzE4NTIyMTkxLCJpc3MiOiJNaW5pQXV0aCJ9.HYBWrM2suDiM4OG0FSlXhNgktZIG9l3ufmIAnwZiIoU"
+}
+```
+Header:
+```
+Authorization:Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiYWRtaW5AbWluaS1zb2Z0d2FyZS5naXRodWIuaW8iLCJyb2xlIjoibWluaWF1dGgtYWRtaW4iLCJzdWIiOiIxZTIxOGY4My1iZjE3LTRhY2YtODhmOS1iOTQ3NjhjOWUwMGMiLCJuYmYiOjE3MTg1MjIxOTEsImV4cCI6MTcxODUyNTc5MSwiaWF0IjoxNzE4NTIyMTkxLCJpc3MiOiJNaW5pQXV0aCJ9.rgAgsziAdLqOC9NYra-M9WQl8BJ99sRdfzRKNkMz9dk
+```
+过期时间为 `MiniAuthOptions.TokenExpiresIn / 2`，预设30分钟
+
+
+
 
 ### 设定、选项、自定义
 
@@ -229,21 +251,25 @@ MiniAuthOptions.LoginPath = "/Identity/Account/Login";
 MiniAuthOptions.DisableMiniAuthLogin = true;
 ```
 
+#### 自定义预设的 SQLite Connection String
+
+```C#
+MiniAuthOptions.SqliteConnectionString = "Data Source=miniauth_identity.db";
+```
 
 
 
-
-#### 更换数据库
+### 更换数据库
 
 MiniAuth 系统预设使用 SQLite，无需做任何设定代码
 如果需要切换请在 `app.UseMiniAuth` 泛型指定不同的数据库型别。
 
-#### 登录、用户验证
+### 登录、用户验证
 
 非 ApiController 预设登录导向 login.html 页面 (判断方式Headers["X-Requested-With"] == "XMLHttpRequest" 或是 ApiControllerAttribute)
 ApiController 的 Controller 预设不会导向登录页面，而是返回 401 status code
 
-#### 自定义前端
+### 自定义前端
 
 - 管理后台前端在 `/src/Frontend_Identity` 主体使用 Vue3 + Vite，使用 npm run build 后即可更新 miniauth 的 UI
 - 登录页面不想使用 miniauth 预设， mvc可以使用 identity 自带的Scaffolded Login.cshtml ，或是更改 miniauth 前端的 login.html, js, css
@@ -255,6 +281,52 @@ MiniAuthOptions.RoutePrefix = "YourName";
 ```
 
 预设为 `MiniAuth`
+
+
+
+### 登录API (JWT)
+
+API: `/MiniAuth/login`
+
+Body:
+
+```json
+{
+   "username":"admin@mini-software.github.io",
+   "password":"E7c4f679-f379-42bf-b547-684d456bc37f",
+   "remember":false
+}
+```
+
+Response: 
+
+```json
+{
+    "ok": true,
+    "code": 200,
+    "message": null,
+    "data": {
+        "tokenType": "Bearer",
+        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiYWRtaW5AbWluaS1zb2Z0d2FyZS5naXRodWIuaW8iLCJyb2xlIjoibWluaWF1dGgtYWRtaW4iLCJzdWIiOiIxZTIxOGY4My1iZjE3LTRhY2YtODhmOS1iOTQ3NjhjOWUwMGMiLCJuYmYiOjE3MTg1MjIxOTEsImV4cCI6MTcxODUyNTc5MSwiaWF0IjoxNzE4NTIyMTkxLCJpc3MiOiJNaW5pQXV0aCJ9.rgAgsziAdLqOC9NYra-M9WQl8BJ99sRdfzRKNkMz9dk",
+        "expiresIn": 3600,
+        "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxZTIxOGY4My1iZjE3LTRhY2YtODhmOS1iOTQ3NjhjOWUwMGMiLCJuYmYiOjE3MTg1MjIxOTEsImV4cCI6MTcxODUyMzk5MSwiaWF0IjoxNzE4NTIyMTkxLCJpc3MiOiJNaW5pQXV0aCJ9.HYBWrM2suDiM4OG0FSlXhNgktZIG9l3ufmIAnwZiIoU"
+    }
+}
+```
+
+
+
+### 注册
+
+TODO
+
+### 忘记密码
+
+TODO
+
+### 获取用户信息
+
+TODO
 
 
 

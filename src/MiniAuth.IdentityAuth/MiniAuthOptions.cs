@@ -17,9 +17,9 @@ namespace MiniAuth
         public static AuthType AuthenticationType = AuthType.Cookie;
         public static SecurityKey JWTKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("this is miniauth key for demo"));
         /// <summary>
-        /// Seconds
+        /// Token expires in seconds, default is 1 hour
         /// </summary>
-        public static int TokenExpiresIn = 30*60;
+        public static int TokenExpiresIn = 60*60;
         public static string Issuer = $"{RoutePrefix}";
         public static string SqliteConnectionString = "Data Source=miniauth_identity.db";
     }
