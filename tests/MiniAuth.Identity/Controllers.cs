@@ -1,15 +1,20 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace MiniAuth.Identity
 {
+    
     public class HomeController : Controller
     {
+        [HttpGet]
         [Route("/")]
         public ActionResult Home() => Content("This's homepage");
         [HttpGet]
         [Route("/About")]
         public ActionResult About() => Content("This's About");
+        [HttpGet]
         [Route("/UserInfo")]
+        [Authorize()]
         public ActionResult UserInfo()
         {
             var user = this.User;
@@ -17,6 +22,7 @@ namespace MiniAuth.Identity
         }
     }
 
+    [Authorize(Roles = "Order")]
     [ApiController]
     [Route("api/[controller]")]
     public class OrderController : ControllerBase
@@ -86,7 +92,7 @@ namespace MiniAuth.Identity
     }
 
 
-
+    [Authorize(Roles = "Product")]
     [ApiController]
     [Route("api/[controller]")]
     public class ProductController : ControllerBase
@@ -155,6 +161,7 @@ namespace MiniAuth.Identity
         }
     }
 
+    [Authorize(Roles = "ProductStock")]
     [ApiController]
     [Route("api/[controller]")]
     public class ProductStockController : ControllerBase

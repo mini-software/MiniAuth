@@ -35,7 +35,7 @@
 
 MiniAuth 一个轻量 ASP.NET Core Identity Web 后台管理中间插件
 
-「一行代码」为「新、旧项目」 添加 Identity 系统跟用户、权限管理后台 Web UI
+「一行代码」为「新、旧项目」 添加 Identity 系统跟用户、权限管理网页后台系统
 
 开箱即用，避免打掉重写或是严重耦合情况
 
@@ -318,15 +318,19 @@ Response:
 
 ### 注册
 
-TODO
+请使用 ASP.NET Core Identity 自带的注册API跟页面
 
 ### 忘记密码
 
-TODO
+请使用 ASP.NET Core Identity 自带的注册API跟页面
 
 ### 获取用户信息
 
-TODO
+请使用 ASP.NET Core Identity 自带的注册API跟页面
+
+
+
+### 重导URI
 
 
 
@@ -351,10 +355,24 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
     .AddEntityFrameworkStores<ApplicationDbContext>();
 ```
 
+### 请自行设定好 CORS 
+
+
+
+
+
+
+
 #### 分布式系统
 
 - 数据库来源请换成 SQL Server、MySQL、PostgreSQL 等数据库
 - 建议更换 JWT 等 auth 方式
+
+
+
+
+
+
 
 ### 更新日志
 
