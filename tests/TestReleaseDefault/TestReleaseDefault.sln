@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.34928.147
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestReleaseDefault", "TestReleaseDefault\TestReleaseDefault.csproj", "{3FC0B998-76D1-4011-A21A-09F46EA06838}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MiniAuth.IdentityAuth", "..\..\src\MiniAuth.IdentityAuth\MiniAuth.IdentityAuth.csproj", "{7DE6C96F-6897-4BA0-B01E-37C97510FF85}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3FC0B998-76D1-4011-A21A-09F46EA06838}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FC0B998-76D1-4011-A21A-09F46EA06838}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FC0B998-76D1-4011-A21A-09F46EA06838}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FC0B998-76D1-4011-A21A-09F46EA06838}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7DE6C96F-6897-4BA0-B01E-37C97510FF85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7DE6C96F-6897-4BA0-B01E-37C97510FF85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7DE6C96F-6897-4BA0-B01E-37C97510FF85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7DE6C96F-6897-4BA0-B01E-37C97510FF85}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FEAEDCBA-79D1-4012-AF26-4F7986BFCD70}
+	EndGlobalSection
+EndGlobal

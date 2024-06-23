@@ -105,6 +105,7 @@ public static class MiniAuthIdentityBuilderExtensions
             ctx.SaveChanges();
             var role = ctx.Roles.FirstOrDefault(c => c.Name == roleName);
             ctx.UserRoles.Add(new IdentityUserRole<string> { RoleId = role.Id, UserId = user.Id });
+            ctx.SaveChanges();
         }
 #if DEBUG
         foreach (var roleKey in new[] { "HR", "IT", "RD" })
