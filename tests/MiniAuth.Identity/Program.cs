@@ -9,9 +9,7 @@ namespace MiniAuth.Identity
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            MiniAuthOptions.AuthenticationType = MiniAuthOptions.AuthType.BearerJwt;
-            var key = builder.Configuration["JWTKey"];
-            MiniAuthOptions.JWTKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+            
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll",
@@ -25,7 +23,12 @@ namespace MiniAuth.Identity
                         ;
                     });
             });
-            builder.Services.AddMiniAuth();
+            builder.Services.AddMiniAuth(options:options =>
+            {
+                options.AuthenticationType = AuthType.BearerJwt;
+                var key = builder.Configuration["JWTKey"];
+                options.JWTKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+            });
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();

@@ -177,7 +177,7 @@ xhr.send();
 #### 设定过期时间
 
 ```c#
- MiniAuthOptions.TokenExpiresIn = 30 * 60; 
+ options.TokenExpiresIn = 30 * 60; 
 ```
 
 单位为秒，预设30分钟，另外注意 .NET JWT ClockSkew JwtBearerOptions 预设要额外加上5分钟 [原因](https://stackoverflow.com/questions/43045035/jwt-token-authentication-expired-tokens-still-working-net-core-web-api)
@@ -315,10 +315,6 @@ Response:
 
 
 
-### 重导URI
-
-
-
 ### 注意事项
 
 #### 注意顺序
@@ -339,9 +335,6 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
     .AddRoles<IdentityRole>() // ❗❗❗ 
     .AddEntityFrameworkStores<ApplicationDbContext>();
 ```
-
-### 
-
 
 
 ### 应用在现有的 identity 项目，自定义逻辑
