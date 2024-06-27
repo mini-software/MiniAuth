@@ -58,7 +58,7 @@ MiniAuth 一个轻量 ASP.NET Core Identity Web 后台管理中间插件
 - 兼容 : 支持 .NET identity Based on JWT, Cookie, Session 等 
 - 简单 : 拔插设计，API、MVC、Razor Page 等开箱即用
 - 支持多数据库 : 支持 Oracle, SQL Server, MySQL 等 EF Core
-- 渐进、非侵入式 : 不影响现有数据库、项目结构
+- 非侵入式 : 不影响现有数据库、项目结构
 - 多平台 : 支持 Linux, macOS 环境
 
 
@@ -72,84 +72,52 @@ MiniAuth 一个轻量 ASP.NET Core Identity Web 后台管理中间插件
 在 Startup 添加一行代码 `services.AddMiniAuth()` 并运行项目，例子: 
 
 ```csharp
-    public class Program
+public class Program
+{
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
-        {
-            var builder = WebApplication.CreateBuilder(args);
+        var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddMiniAuth(); // <= ❗❗❗
+        builder.Services.AddMiniAuth(); // <= ❗❗❗
 
-            var app = builder.Build();
-            app.Run();
-        }
+        var app = builder.Build();
+        app.Run();
     }
+}
 ```
 
 
 
-接着访问管理网页，链接为 `http(s)://yourhost/miniauth/index.html`，预设 admin 管理账号为 `admin@mini-software.github.io` 密码为 `E7c4f679-f379-42bf-b547-684d456bc37f` (请记得修改密码)，即可管理你的 Identity 用户、角色、端点。
+接着访问管理网页，Link 为 `http(s)://yourhost/miniauth/index.html`，预设 admin 管理账号为 `admin@mini-software.github.io` 密码为 `E7c4f679-f379-42bf-b547-684d456bc37f` (请记得修改密码)，即可管理你的 Identity 用户、角色、端点。
 
-其他跟 asp.net core identity 使用方式一样，在需要权限管理的类别或方法上加上 `[Authorize]` 或是角色管控 `[Authorize(Roles = "角色")]`，假设没登入返回 401 状态, 没权限返回 403 状态。
+在需要权限管理的类别或方法上加上 `[Authorize]` 或是角色管控 `[Authorize(Roles = "角色")]`，假设没登入返回 401 状态, 没权限返回 403 状态。
 
+### MiniAuth  Cookie Identity
 
-
-注意: 如有自己的 identity auth 请看以下注意点
-
-### 应用在现有的 identity 项目，自定义逻辑
-
-把 AddMiniAuth autoUse 关闭，将 UseMiniAuth 并在泛型参数换上自己的 IdentityDBContext、用户、权限认证，放在自己的 Auth 之后，例子: 
-```csharp
-        public static void Main(string[] args)
-        {
-            var builder = WebApplication.CreateBuilder(args);
-
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(connectionString));
-            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
-            builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-                .AddRoles<IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>();
-
-            builder.Services.AddControllersWithViews();
-
-            builder.Services.AddMiniAuth(autoUse: false); // <= ❗❗❗
-
-
-            var app = builder.Build();
-
-            app.UseMiniAuth<ApplicationDbContext, IdentityUser, IdentityRole>();  // <= ❗❗❗ 
-            app.MapControllerRoute(
-                name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
-            app.MapRazorPages();
-
-            app.Run();
-        }
-```
-
-能切换使用自己的用户、角色、DB、Identity 逻辑。
+MiniAuth 预设为单体 Coookie Based identity，如前后端分离项目请更换 JWT 等 Auth。
 
 
 
-
-
-### 使用 MiniAuth  JWT  Identity
+### MiniAuth  JWT  Identity
 
 指定 AuthenticationType 为 BearerJwt
 
 ```C#
-MiniAuthOptions.AuthenticationType = MiniAuthOptions.AuthType.BearerJwt;
-builder.Services.AddMiniAuth();
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddMiniAuth(options:(options) =>
+{
+    options.AuthenticationType = MiniAuthOptions.AuthType.BearerJwt;
+});
 ```
 
 请记得自定义 JWT Security Key，如:
 
 ```C#
-MiniAuthOptions.JWTKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("6ee3edbf-488e-4484-9c2c-e3ffa6dcbc09"));
-builder.Services.AddMiniAuth();
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddMiniAuth(options: (options) =>
+{
+    options.JWTKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("6ee3edbf-488e-4484-9c2c-e3ffa6dcbc09"));
+});
 ```
 
 #### 获取用户 token 方式
@@ -235,6 +203,8 @@ Authorization:Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiYWRtaW5AbW
 
 
 
+
+
 ### 设定、选项、自定义
 
 #### 预设模式
@@ -247,22 +217,34 @@ Authorization:Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiYWRtaW5AbW
 
 ```C#
 // 放在 service 注册之前
-MiniAuthOptions.LoginPath = "/Identity/Account/Login";
-MiniAuthOptions.DisableMiniAuthLogin = true;
+builder.Services.AddMiniAuth(options: (options) =>
+{
+    options.LoginPath = "/Identity/Account/Login";
+    options.DisableMiniAuthLogin = true;
+});
 ```
 
 #### 自定义预设的 SQLite Connection String
 
 ```C#
-MiniAuthOptions.SqliteConnectionString = "Data Source=miniauth_identity.db";
+builder.Services.AddMiniAuth(options: (options) =>
+{
+    options.SqliteConnectionString = "Data Source=miniauth_identity.db";
+});
 ```
 
 
 
-### 更换数据库
+### 自定义数据库、用户、角色
 
-MiniAuth 系统预设使用 SQLite，无需做任何设定代码
-如果需要切换请在 `app.UseMiniAuth` 泛型指定不同的数据库型别。
+MiniAuth 系统预设使用 SQLite EF Core、IdentityUser、IdentityRole开箱即用
+如果需要切换请在 `app.UseMiniAuth` 泛型指定不同的数据库、自己的用户、角色类别。
+
+```C#
+app.UseMiniAuth<YourDbContext, YourIdentityUser, YourIdentityRole>();
+```
+
+
 
 ### 登录、用户验证
 
@@ -277,10 +259,13 @@ ApiController 的 Controller 预设不会导向登录页面，而是返回 401 s
 ### 自定路由前缀
 
 ```
-MiniAuthOptions.RoutePrefix = "YourName";
+builder.Services.AddMiniAuth(options: (options) =>
+{
+    options.RoutePrefix = "YourName";
+});
 ```
 
-预设为 `MiniAuth`
+预设 RoutePrefix 为 `MiniAuth`。
 
 
 
@@ -355,11 +340,46 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
     .AddEntityFrameworkStores<ApplicationDbContext>();
 ```
 
-### 请自行设定好 CORS 
+### 
 
 
 
+### 应用在现有的 identity 项目，自定义逻辑
 
+把 AddMiniAuth autoUse 关闭，将 UseMiniAuth 并在泛型参数换上自己的 IdentityDBContext、用户、权限认证，放在自己的 Auth 之后，例子: 
+
+```csharp
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
+
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(connectionString));
+            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+            builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+                .AddRoles<IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            builder.Services.AddControllersWithViews();
+
+            builder.Services.AddMiniAuth(autoUse: false); // <= ❗❗❗
+
+
+            var app = builder.Build();
+
+            app.UseMiniAuth<ApplicationDbContext, IdentityUser, IdentityRole>();  // <= ❗❗❗ 
+            app.MapControllerRoute(
+                name: "default",
+                pattern: "{controller=Home}/{action=Index}/{id?}");
+            app.MapRazorPages();
+
+            app.Run();
+        }
+```
+
+能切换使用自己的用户、角色、DB、Identity 逻辑。
 
 
 

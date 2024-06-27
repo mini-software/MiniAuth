@@ -66,7 +66,7 @@ public static class MiniAuthIdentityBuilderExtensions
 
         var option = new StaticFileOptions
         {
-            RequestPath = string.IsNullOrEmpty("MiniAuth") ? string.Empty : $"/{MiniAuthOptions.RoutePrefix}",
+            RequestPath = string.IsNullOrEmpty("MiniAuth") ? string.Empty : $"/{MiniAuthOption.RoutePrefix}",
             FileProvider = new EmbeddedFileProvider(typeof(MiniAuthIdentityServiceExtensions).GetTypeInfo().Assembly, "MiniAuth.IdentityAuth.wwwroot"),
         };
         builder.UseStaticFiles(option);

@@ -37,33 +37,47 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
     {
         builder.UseEndpoints(endpoints =>
         {
-            endpoints.MapGet($"/{MiniAuthOptions.RoutePrefix}/api/getAllEndpoints", async (HttpContext context,
+            // setting config api
+            endpoints.MapPost($"/{MiniAuthOption.RoutePrefix}/api/getConfig", async (HttpContext context
+                , TDbContext _dbContext
+            ) =>
+            {
+                var config = _dbContext.RoleClaims.Where(w => w.RoleId == "system").ToArray();
+                var result = config.Select(s => new
+                {
+                    s.ClaimType,
+                    s.ClaimValue
+                });
+                await OkResult(context, result.ToJson());
+            }).RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" });
+
+            endpoints.MapGet($"/{MiniAuthOption.RoutePrefix}/api/getAllEndpoints", async (HttpContext context,
                 TDbContext _dbContext
             ) =>
             {
                 await OkResult(context, _endpointCache.Values.OrderByDescending<RoleEndpointEntity, string>(o => o.Id).ToJson());
             })
                 .RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" });
-            endpoints.MapGet($"/{MiniAuthOptions.RoutePrefix}/logout", async (HttpContext context
+            endpoints.MapGet($"/{MiniAuthOption.RoutePrefix}/logout", async (HttpContext context
                                    , SignInManager<TIdentityUser> signInManager
                                    , IOptions<IdentityOptions> identityOptionsAccessor
                                                   ) =>
             {
 
                 await signInManager.SignOutAsync();
-                context.Response.Redirect(MiniAuthOptions.LoginPath);
+                context.Response.Redirect(MiniAuthOption.LoginPath);
 
             });
 
-            if (!MiniAuthOptions.DisableMiniAuthLogin)
+            if (!MiniAuthOption.DisableMiniAuthLogin)
             {
-                endpoints.MapPost($"/{MiniAuthOptions.RoutePrefix}/refreshToken", async (
+                endpoints.MapPost($"/{MiniAuthOption.RoutePrefix}/refreshToken", async (
                     [FromBody] RefreshRequest refreshRequest,
                     [FromServices] IServiceProvider sp
                     , HttpContext context
                 ) =>
                 {
-                    if (MiniAuth.MiniAuthOptions.AuthenticationType != MiniAuthOptions.AuthType.BearerJwt)
+                    if (MiniAuth.MiniAuthOption.AuthenticationType != AuthType.BearerJwt)
                     {
                         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                         return;
@@ -79,7 +93,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                 }).RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" }); 
 
 
-                endpoints.MapPost($"/{MiniAuthOptions.RoutePrefix}/login", async (
+                endpoints.MapPost($"/{MiniAuthOption.RoutePrefix}/login", async (
                    [FromBody] LoginRequest login
                     , [FromServices] IServiceProvider sp
                     , HttpContext context
@@ -89,7 +103,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                     TDbContext _dbContext = sp.GetRequiredService<TDbContext>();
                     SignInManager<TIdentityUser> signInManager = sp.GetRequiredService<SignInManager<TIdentityUser>>();
 
-                    if (MiniAuth.MiniAuthOptions.AuthenticationType == MiniAuthOptions.AuthType.BearerJwt)
+                    if (MiniAuth.MiniAuthOption.AuthenticationType == AuthType.BearerJwt)
                     {
                         var user = await _dbContext.Users.FirstOrDefaultAsync(f => f.UserName == login.username);
                         if (!(user != null && await _userManager.CheckPasswordAsync((TIdentityUser)user, login.password)))
@@ -124,7 +138,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
             }
 
 
-            endpoints.MapGet($"/{MiniAuthOptions.RoutePrefix}/api/getRoles", async (HttpContext context
+            endpoints.MapGet($"/{MiniAuthOption.RoutePrefix}/api/getRoles", async (HttpContext context
                 , TDbContext _dbContext
             ) =>
             {
@@ -142,7 +156,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                 await OkResult(context, roles.ToJson());
             }).RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" });
 
-            endpoints.MapPost($"/{MiniAuthOptions.RoutePrefix}/api/saveRole", async (HttpContext context
+            endpoints.MapPost($"/{MiniAuthOption.RoutePrefix}/api/saveRole", async (HttpContext context
                 , TDbContext _dbContext
             ) =>
             {
@@ -199,7 +213,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
             }).RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" });
 
 
-            endpoints.MapPost($"/{MiniAuthOptions.RoutePrefix}/api/deleteRole", async (HttpContext context
+            endpoints.MapPost($"/{MiniAuthOption.RoutePrefix}/api/deleteRole", async (HttpContext context
                 , TDbContext _dbContext
             ) =>
             {
@@ -216,7 +230,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
             }).RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" });
 
 
-            endpoints.MapPost($"/{MiniAuthOptions.RoutePrefix}/api/getUsers", async (HttpContext context
+            endpoints.MapPost($"/{MiniAuthOption.RoutePrefix}/api/getUsers", async (HttpContext context
                 , TDbContext _dbContext
             ) =>
             {
@@ -261,7 +275,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                 await OkResult(context, new { users = userVo, totalItems }.ToJson());
             }).RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" });
 
-            endpoints.MapPost($"/{MiniAuthOptions.RoutePrefix}/api/deleteUser", async (HttpContext context
+            endpoints.MapPost($"/{MiniAuthOption.RoutePrefix}/api/deleteUser", async (HttpContext context
                                , TDbContext _dbContext
                                           ) =>
             {
@@ -277,7 +291,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                 await OkResult(context, "".ToJson(code: 200, message: ""));
             }).RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" });
 
-            endpoints.MapPost($"/{MiniAuthOptions.RoutePrefix}/api/saveUser", async (HttpContext context
+            endpoints.MapPost($"/{MiniAuthOption.RoutePrefix}/api/saveUser", async (HttpContext context
                 , TDbContext _dbContext
                 , UserManager<TIdentityUser> userManager
             ) =>
@@ -402,7 +416,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                 }
             }).RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" });
 
-            endpoints.MapPost($"/{MiniAuthOptions.RoutePrefix}/api/resetPassword", async (HttpContext context
+            endpoints.MapPost($"/{MiniAuthOption.RoutePrefix}/api/resetPassword", async (HttpContext context
                 , TDbContext _dbContext
                 , UserManager<TIdentityUser> userManager
             ) =>
@@ -439,7 +453,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                 }
             }).RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" });
 
-            endpoints.MapGet($"/{MiniAuthOptions.RoutePrefix}/api/getUserInfo", async (HttpContext context
+            endpoints.MapGet($"/{MiniAuthOption.RoutePrefix}/api/getUserInfo", async (HttpContext context
             , TDbContext _dbContext
             ) =>
             {
@@ -497,15 +511,15 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
         claims.Add(new Claim("sub", user.Id));
 
         var token = string.Empty;
-        var TokenExpiresIn = (MiniAuthOptions.TokenExpiresIn);
+        var TokenExpiresIn = (MiniAuthOption.TokenExpiresIn);
         {
-            var secretkey = MiniAuthOptions.JWTKey;
+            var secretkey = MiniAuthOption.JWTKey;
             var credentials = new SigningCredentials(secretkey, SecurityAlgorithms.HmacSha256);
             var tokenDescriptor = new SecurityTokenDescriptor()
             {
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddSeconds(TokenExpiresIn),
-                Issuer = MiniAuthOptions.Issuer,
+                Issuer = MiniAuthOption.Issuer,
                 SigningCredentials = credentials
 
             };
@@ -515,13 +529,13 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
         }
         var refreshToekn = string.Empty;
         {
-            var refreshTokenExpiresIn = (MiniAuthOptions.TokenExpiresIn) / 2;
-            var secretkey = MiniAuthOptions.JWTKey;
+            var refreshTokenExpiresIn = (MiniAuthOption.TokenExpiresIn) / 2;
+            var secretkey = MiniAuthOption.JWTKey;
             var credentials = new SigningCredentials(secretkey, SecurityAlgorithms.HmacSha256);
             var tokenDescriptor = new SecurityTokenDescriptor()
             {
                 Expires = DateTime.UtcNow.AddSeconds(refreshTokenExpiresIn),
-                Issuer = MiniAuthOptions.Issuer,
+                Issuer = MiniAuthOption.Issuer,
                 Subject = new ClaimsIdentity(new Claim[]
                 {
                                     new Claim("sub", user.Id),
@@ -537,7 +551,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
         {
             tokenType = "Bearer",
             accessToken = token,
-            expiresIn = MiniAuthOptions.TokenExpiresIn,
+            expiresIn = MiniAuthOption.TokenExpiresIn,
             refreshToken = refreshToekn
         };
 

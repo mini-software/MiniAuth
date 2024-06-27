@@ -18,22 +18,16 @@ public partial class MiniAuthIdentityMiddleware
     private const string EmbeddedFileNamespace = "MiniAuth.IdentityAuth.wwwroot";
     private readonly RequestDelegate _next;
     private readonly ILogger<MiniAuthIdentityMiddleware> _logger;
-    private readonly MiniAuthOptions _options;
     private readonly StaticFileMiddleware _staticFileMiddleware;
     private static bool FirstRun = true;
     public MiniAuthIdentityMiddleware(RequestDelegate next,
         ILogger<MiniAuthIdentityMiddleware> logger,
         ILoggerFactory loggerFactory,
-        IWebHostEnvironment hostingEnv,
-        MiniAuthOptions options = null
+        IWebHostEnvironment hostingEnv
     )
     {
         this._logger = logger;
         this._next = next;
-        if (options == null)
-            _options = new MiniAuthOptions();
-        else
-            _options = options;
         this._staticFileMiddleware = CreateStaticFileMiddleware(next, loggerFactory, hostingEnv); ;
     }
     public async Task Invoke(HttpContext context)
@@ -57,7 +51,7 @@ public partial class MiniAuthIdentityMiddleware
     {
         var staticFileOptions = new StaticFileOptions
         {
-            RequestPath = string.IsNullOrEmpty(MiniAuthOptions.RoutePrefix) ? string.Empty : $"/{MiniAuthOptions.RoutePrefix}",
+            RequestPath = string.IsNullOrEmpty(MiniAuthOption.RoutePrefix) ? string.Empty : $"/{MiniAuthOption.RoutePrefix}",
             FileProvider = new EmbeddedFileProvider(typeof(MiniAuthIdentityMiddleware).GetTypeInfo().Assembly, "MiniAuth.Identity.wwwroot"),
         };
 

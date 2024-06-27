@@ -20,29 +20,33 @@ using System.Diagnostics.CodeAnalysis;
 
 public static class MiniAuthIdentityServiceExtensions
 {
-    private static IServiceCollection AddMiniIdentityAuth(this IServiceCollection services, bool isAutoUse)
+    private static IServiceCollection AddMiniIdentityAuth(this IServiceCollection services, bool isAutoUse, Action<MiniAuthOptions> options = null)
     {
         _ = services ?? throw new ArgumentNullException(nameof(services));
-        var connectionString = MiniAuthOptions.SqliteConnectionString;
+        var connectionString = MiniAuthOption.SqliteConnectionString;
         services.AddDbContext<MiniAuthIdentityDbContext>(options =>
         {
             options.UseSqlite(connectionString);
         });
-        services.AddMiniAuth<MiniAuthIdentityDbContext, IdentityUser, IdentityRole>(isAutoUse);
+        services.AddMiniAuth<MiniAuthIdentityDbContext, IdentityUser, IdentityRole>(isAutoUse, options: options);
         return services;
     }
-    public static IServiceCollection AddMiniAuth(this IServiceCollection services, bool autoUse = true)
+    public static IServiceCollection AddMiniAuth(this IServiceCollection services, bool autoUse = true, Action<MiniAuthOptions> options = null)
     {
         _ = services ?? throw new ArgumentNullException(nameof(services));
-        services.AddMiniIdentityAuth(autoUse);  //TODO: auto use issue : https://github.com/mini-software/MiniAuth/issues/151         
+        services.AddMiniIdentityAuth(autoUse, options: options);  //TODO: auto use issue : https://github.com/mini-software/MiniAuth/issues/151         
         return services;
     }
-    public static IServiceCollection AddMiniAuth<TDbContext, TIdentityUser, TIdentityRole>(this IServiceCollection services, bool isAutoUse = true)
+    public static IServiceCollection AddMiniAuth<TDbContext, TIdentityUser, TIdentityRole>(this IServiceCollection services, bool isAutoUse = true, Action<MiniAuthOptions> options = null)
         where TDbContext : IdentityDbContext
         where TIdentityUser : IdentityUser
         where TIdentityRole : IdentityRole
     {
         _ = services ?? throw new ArgumentNullException(nameof(services));
+        if (options != null)
+        {
+            options(new MiniAuthOptions());
+        }
 
         // if not exist AddAuthorization then add default policy
         var existAuthorization = services.Any(o => o.ServiceType == typeof(IAuthorizationService));
@@ -56,17 +60,21 @@ public static class MiniAuthIdentityServiceExtensions
             Debug.WriteLine("* Use exist Authorization");
         }
 
+        // service add MiniAuthOptions 
+        services.TryAddSingleton<MiniAuthOptions>();
+
+
         if (services.All(o => o.ServiceType != typeof(IAuthenticationService)))
         {
             Debug.WriteLine("* Use MiniAuth default AddAuthentication");
-            if (MiniAuthOptions.AuthenticationType == MiniAuthOptions.AuthType.Cookie)
+            if (MiniAuthOption.AuthenticationType == AuthType.Cookie)
             {
                 services
                     .AddMiniAuth<TIdentityUser, TIdentityRole>()
                     .AddDefaultTokenProviders()
                     .AddEntityFrameworkStores<TDbContext>();
             }
-            if (MiniAuthOptions.AuthenticationType == MiniAuthOptions.AuthType.BearerJwt)
+            if (MiniAuthOption.AuthenticationType == AuthType.BearerJwt)
             {
 
                 services.AddIdentity<TIdentityUser, TIdentityRole>()
@@ -87,11 +95,11 @@ public static class MiniAuthIdentityServiceExtensions
                         options.TokenValidationParameters = new TokenValidationParameters
                         {
                             ValidateIssuer = true,
-                            ValidIssuer = MiniAuthOptions.Issuer,
+                            ValidIssuer = MiniAuthOption.Issuer,
                             ValidateAudience = false,
                             ValidateLifetime = true,
                             ValidateIssuerSigningKey = true,
-                            IssuerSigningKey = MiniAuth.MiniAuthOptions.JWTKey
+                            IssuerSigningKey = MiniAuth.MiniAuthOption.JWTKey
                         };
                     })
                     ;
@@ -152,7 +160,7 @@ public static class MiniAuthIdentityServiceExtensions
         {
             o.ApplicationCookie.Configure(o =>
             {
-                o.LoginPath = $"/{MiniAuthOptions.RoutePrefix}/login.html";
+                o.LoginPath = $"/{MiniAuthOption.RoutePrefix}/login.html";
                 o.Events = new CookieAuthenticationEvents
                 {
                     OnRedirectToLogin = ctx =>
