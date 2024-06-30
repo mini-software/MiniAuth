@@ -44,7 +44,7 @@
 ### Features
 
 - Compatibility: Supports .NET identity Based on JWT, Cookie, Session, etc.
-- Simple: Plug-and-play design, API, MVC, Razor Page, etc.
+- Simple: Plug-and-play design, API, SPA, MVC, Razor Page, etc.
 - Supports multiple databases: Supports Oracle, SQL Server, MySQL, etc. EF Core
 - Non-intrusive: Does not affect existing databases or project structures
 - Multi-platform: Supports Linux, macOS environments
@@ -54,10 +54,6 @@
 ### Installation
 
 Install the package from NuGet
-
-```
-
-```
 
 ### Quick Start
 
@@ -95,7 +91,6 @@ MiniAuth is preset as a single Coookie Based identity, please change to JWT, etc
 Setting AuthenticationType = BearerJwt
 
 ```C#
-var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMiniAuth(options:(options) =>
 {
     options.AuthenticationType = MiniAuthOptions.AuthType.BearerJwt;
@@ -105,7 +100,6 @@ builder.Services.AddMiniAuth(options:(options) =>
 Please remember to set new JWT Security Key, e.g.
 
 ```C#
-var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMiniAuth(options: (options) =>
 {
     options.JWTKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("6ee3edbf-488e-4484-9c2c-e3ffa6dcbc09"));

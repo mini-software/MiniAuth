@@ -55,12 +55,11 @@ service.interceptors.response.use(
           .location
           .replace(url.toString());
         
-        // window.location.href = returnUrl + '?ReturnUrl=' + window.location.href; // ![image](https://github.com/mini-software/MiniExcel/assets/12729184/96e69955-3e1c-4d9e-b817-d207db8932a7)
+        window.location.href = returnUrl + '?ReturnUrl=%2Fminiauth%2Findex.html'; // ![image](https://github.com/mini-software/MiniExcel/assets/12729184/96e69955-3e1c-4d9e-b817-d207db8932a7)
 
         return;
       }
-      window.location.href = 'login.html';
-      // window.location.href = 'login.html' + '?ReturnUrl=' + window.location.href;; //![image](https://github.com/mini-software/MiniExcel/assets/12729184/96e69955-3e1c-4d9e-b817-d207db8932a7)
+      window.location.href = 'login.html' + '?ReturnUrl=%2Fminiauth%2Findex.html'; //![image](https://github.com/mini-software/MiniExcel/assets/12729184/96e69955-3e1c-4d9e-b817-d207db8932a7)
 
       return;
     }

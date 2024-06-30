@@ -6,25 +6,18 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MiniAuth;
 using MiniAuth.IdentityAuth.Helpers;
 using MiniAuth.IdentityAuth.Models;
-using System;
 using System.Collections.Concurrent;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
-using System.IO;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 
 internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRole>
@@ -58,6 +51,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                 await OkResult(context, _endpointCache.Values.OrderByDescending<RoleEndpointEntity, string>(o => o.Id).ToJson());
             })
                 .RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" });
+
             endpoints.MapGet($"/{MiniAuthOption.RoutePrefix}/logout", async (HttpContext context
                                    , SignInManager<TIdentityUser> signInManager
                                    , IOptions<IdentityOptions> identityOptionsAccessor
@@ -67,6 +61,13 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                 await signInManager.SignOutAsync();
                 context.Response.Redirect(MiniAuthOption.LoginPath);
 
+            });
+
+            endpoints.MapGet($"/{MiniAuthOption.RoutePrefix}/AccessDenied", async (HttpContext context
+            ) =>
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                await context.Response.WriteAsync("Access Denied");
             });
 
             if (!MiniAuthOption.DisableMiniAuthLogin)
@@ -90,7 +91,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                     var user = await _dbContext.Users.FindAsync(userId);
                     SignInManager<TIdentityUser> signInManager = sp.GetRequiredService<SignInManager<TIdentityUser>>();
                     await JwtLoginImpl(_userManager, _dbContext, signInManager, context, (TIdentityUser)user);
-                }).RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" }); 
+                }).RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" });
 
 
                 endpoints.MapPost($"/{MiniAuthOption.RoutePrefix}/login", async (

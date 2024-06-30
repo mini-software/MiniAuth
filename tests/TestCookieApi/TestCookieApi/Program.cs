@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TestCookieApi
 {
@@ -12,8 +13,13 @@ namespace TestCookieApi
             var app = builder.Build();
 
 
-            app.MapGet("/", () => "Hello World!");
-
+            app.MapGet("/", () => "Hello World!")
+                .RequireAuthorization()
+            ;
+            app.MapGet("/test/admin", () => "Is miniauth-admin!")
+            .RequireAuthorization(
+                new AuthorizeAttribute() { Roles = "miniauth-admin" })
+            ;
             app.Run();
         }
     }

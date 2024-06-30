@@ -20,7 +20,7 @@ using System.Diagnostics.CodeAnalysis;
 
 public static class MiniAuthIdentityServiceExtensions
 {
-    private static IServiceCollection AddMiniIdentityAuth(this IServiceCollection services, bool isAutoUse, Action<MiniAuthOptions> options = null)
+    private static IServiceCollection AddMiniIdentityAuth(this IServiceCollection services, Action<MiniAuthOptions> options = null, bool autoUse = true)
     {
         _ = services ?? throw new ArgumentNullException(nameof(services));
         var connectionString = MiniAuthOption.SqliteConnectionString;
@@ -28,16 +28,16 @@ public static class MiniAuthIdentityServiceExtensions
         {
             options.UseSqlite(connectionString);
         });
-        services.AddMiniAuth<MiniAuthIdentityDbContext, IdentityUser, IdentityRole>(isAutoUse, options: options);
+        services.AddMiniAuth<MiniAuthIdentityDbContext, IdentityUser, IdentityRole>(options: options, autoUse: autoUse);
         return services;
     }
-    public static IServiceCollection AddMiniAuth(this IServiceCollection services, bool autoUse = true, Action<MiniAuthOptions> options = null)
+    public static IServiceCollection AddMiniAuth(this IServiceCollection services, Action<MiniAuthOptions> options = null, bool autoUse = true)
     {
         _ = services ?? throw new ArgumentNullException(nameof(services));
-        services.AddMiniIdentityAuth(autoUse, options: options);  //TODO: auto use issue : https://github.com/mini-software/MiniAuth/issues/151         
+        services.AddMiniIdentityAuth(options: options, autoUse: autoUse);  //TODO: auto use issue : https://github.com/mini-software/MiniAuth/issues/151         
         return services;
     }
-    public static IServiceCollection AddMiniAuth<TDbContext, TIdentityUser, TIdentityRole>(this IServiceCollection services, bool isAutoUse = true, Action<MiniAuthOptions> options = null)
+    public static IServiceCollection AddMiniAuth<TDbContext, TIdentityUser, TIdentityRole>(this IServiceCollection services, Action<MiniAuthOptions> options = null, bool autoUse = true)
         where TDbContext : IdentityDbContext
         where TIdentityUser : IdentityUser
         where TIdentityRole : IdentityRole
@@ -73,6 +73,17 @@ public static class MiniAuthIdentityServiceExtensions
                     .AddMiniAuth<TIdentityUser, TIdentityRole>()
                     .AddDefaultTokenProviders()
                     .AddEntityFrameworkStores<TDbContext>();
+                //services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                //    .AddCookie(options =>
+                //    {
+                //        options.LoginPath = $"/{MiniAuthOption.RoutePrefix}/login.html"; 
+                //        options.LogoutPath = $"/{MiniAuthOption.RoutePrefix}/logout"; 
+                //        options.AccessDeniedPath = $"/{MiniAuthOption.RoutePrefix}/AccessDenied"; 
+                //    });
+                //// add identity
+                //services.AddIdentity<TIdentityUser, TIdentityRole>()
+                //    .AddEntityFrameworkStores<TDbContext>()
+                //    .AddDefaultTokenProviders();
             }
             if (MiniAuthOption.AuthenticationType == AuthType.BearerJwt)
             {
@@ -107,22 +118,10 @@ public static class MiniAuthIdentityServiceExtensions
         }
         else
         {
-            //var roleType = typeof(TIdentityRole);
-            //var userType = typeof(TIdentityUser);
-            //var validatorType = typeof(IRoleValidator<>).MakeGenericType(roleType);
-            //var existIRoleValidator = services.Any(o => o.ServiceType == validatorType);
-            //if (!existIRoleValidator)
-            //{
-            //    services.TryAddScoped<RoleManager<IdentityRole>>();
-            //    services.AddScoped(validatorType, typeof(TIdentityRole));
-            //    services.AddScoped(typeof(IUserClaimsPrincipalFactory<>).MakeGenericType(userType),
-            //        typeof(UserClaimsPrincipalFactory<,>).MakeGenericType(userType, roleType));
-
-            //}
             Debug.WriteLine("* Use exist Authentication");
         }
 
-        if (isAutoUse)
+        if (autoUse)
             services.AddTransient<IStartupFilter, MiniAuthStartupFilter>();
         else
             services.AddTransient<IStartupFilter, EmptyStartupFilter>();
@@ -132,16 +131,16 @@ public static class MiniAuthIdentityServiceExtensions
 
     public static IdentityBuilder AddMiniAuth<TUser,
 #if NET8_0_OR_GREATER
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] 
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
 #endif
     TRole>(
         this IServiceCollection services)
         where TUser : class
         where TRole : class
-        => services.AddMiniAuthIdentity<TUser, TRole>(setupAction: null!);
-    public static IdentityBuilder AddMiniAuthIdentity<TUser,
+        => services.AddMiniAuth<TUser, TRole>(setupAction: null!);
+    public static IdentityBuilder AddMiniAuth<TUser,
 #if NET8_0_OR_GREATER
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] 
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
 #endif
     TRole>(
          this IServiceCollection services,
@@ -167,14 +166,24 @@ public static class MiniAuthIdentityServiceExtensions
                     {
                         var routeEndpoint = ctx.HttpContext.GetEndpoint();
                         Debug.WriteLine($"* CookieAuthenticationEvents : {routeEndpoint.ToString()}");
+
                         var isJsonApi = ctx.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
                             routeEndpoint.Metadata?.GetMetadata<Microsoft.AspNetCore.Mvc.ApiControllerAttribute>() != null;
                         if (isJsonApi)
                         {
                             Debug.WriteLine($"IsXMLHttpRequest Path: {ctx.Request.Path}");
-                            ctx.Response.Headers.Append("ReturnUrl", ctx.RedirectUri);
-                            ctx.Response.StatusCode = 401;
-
+                            if (ctx.Request.Path.StartsWithSegments($"/{MiniAuthOption.RoutePrefix}/api"))
+                            {
+                                ctx.Response.Headers.Append("ReturnUrl", $"/{MiniAuthOption.RoutePrefix}/index.html");
+                                ctx.RedirectUri = $"/{MiniAuthOption.RoutePrefix}/index.html";
+                                ctx.Response.StatusCode = 401;
+                            }
+                            else
+                            {
+                                ctx.Response.Headers.Append("ReturnUrl", ctx.RedirectUri);
+                                ctx.RedirectUri = "";
+                                ctx.Response.StatusCode = 401;
+                            }
                         }
                         else
                         {

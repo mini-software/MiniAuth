@@ -26,10 +26,11 @@ public static class MiniAuthIdentityBuilderExtensions
         where TIdentityRole : IdentityRole, new()
     {
         _ = builder ?? throw new ArgumentNullException(nameof(builder));
-
+#if DEBUG
         builder.UseMiddleware<MiniAuthIdentityMiddleware>();
+#endif
 
-         if (!builder.Properties.TryGetValue("__UseRouting", out var _))
+        if (!builder.Properties.TryGetValue("__UseRouting", out var _))
             builder.UseRouting();
         if (!builder.Properties.TryGetValue("__AuthenticationMiddlewareSet", out var _))
             builder.UseAuthentication();

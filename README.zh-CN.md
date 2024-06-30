@@ -56,7 +56,7 @@ MiniAuth 一个轻量 ASP.NET Core Identity Web 后台管理中间插件
 ### 特点
 
 - 兼容 : 支持 .NET identity Based on JWT, Cookie, Session 等 
-- 简单 : 拔插设计，API、MVC、Razor Page 等开箱即用
+- 简单 : 拔插设计，API、SPA、MVC、Razor Page 等开箱即用
 - 支持多数据库 : 支持 Oracle, SQL Server, MySQL 等 EF Core
 - 非侵入式 : 不影响现有数据库、项目结构
 - 多平台 : 支持 Linux, macOS 环境
@@ -100,10 +100,9 @@ MiniAuth 预设为单体 Coookie Based identity，如前后端分离项目请更
 
 ### MiniAuth  JWT  Identity
 
-指定 AuthenticationType 为 BearerJwt
+只需要简单指定 AuthenticationType 为 BearerJwt
 
 ```C#
-var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMiniAuth(options:(options) =>
 {
     options.AuthenticationType = MiniAuthOptions.AuthType.BearerJwt;
@@ -113,7 +112,6 @@ builder.Services.AddMiniAuth(options:(options) =>
 请记得自定义 JWT Security Key，如:
 
 ```C#
-var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMiniAuth(options: (options) =>
 {
     options.JWTKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("6ee3edbf-488e-4484-9c2c-e3ffa6dcbc09"));
@@ -326,7 +324,7 @@ app.UseRouting();
 app.UseMiniAuth();
 ```
 
-#### 注意: 请添加 Role 规则
+#### 请添加 Role 规则
 
 请添加 `AddRoles<IdentityRole>()`，否则 `[Authorize(Roles = "权限")]` 不会生效
 
@@ -380,10 +378,6 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 
 - 数据库来源请换成 SQL Server、MySQL、PostgreSQL 等数据库
 - 建议更换 JWT 等 auth 方式
-
-
-
-
 
 
 
