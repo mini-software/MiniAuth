@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Logging;
 using MiniAuth;
 using System;
 using System.Data;
@@ -26,9 +28,7 @@ public static class MiniAuthIdentityBuilderExtensions
         where TIdentityRole : IdentityRole, new()
     {
         _ = builder ?? throw new ArgumentNullException(nameof(builder));
-#if DEBUG
         builder.UseMiddleware<MiniAuthIdentityMiddleware>();
-#endif
 
         if (!builder.Properties.TryGetValue("__UseRouting", out var _))
             builder.UseRouting();
