@@ -2,7 +2,7 @@
 	<PropertyGroup>
 		<AssemblyName>MiniAuth</AssemblyName>
 		<Title>MiniAuth</Title>
-		<Version>0.10.0</Version>
+		<Version>0.10.1</Version>
 		<Description>"One-line code" adds identity management web for your new/old projects</Description>
 		<Authors>Wei Lin, mini-software</Authors>
 		<PackageTags>MiniAuth</PackageTags>

@@ -11,14 +11,12 @@ namespace TestCookieApi
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddMiniAuth();
             var app = builder.Build();
-
-
-            app.MapGet("/", () => "Hello World!")
-                .RequireAuthorization()
-            ;
-            app.MapGet("/test/admin", () => "Is miniauth-admin!")
-            .RequireAuthorization(
-                new AuthorizeAttribute() { Roles = "miniauth-admin" })
+            app.MapGet("/", () =>
+            {
+                return Results.Redirect("/miniauth/index.html");
+            });
+            app.MapGet("/admin", () => "Is miniauth-admin!")
+            .RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" })
             ;
             app.Run();
         }

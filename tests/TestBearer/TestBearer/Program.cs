@@ -11,10 +11,10 @@ namespace TestBearer
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
-            MiniAuthOptions.AuthenticationType = MiniAuthOptions.AuthType.BearerJwt;
-            MiniAuthOptions.JWTKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("6ee3edbf-488e-4484-9c2c-e3ffa6dcbc09"));
-            builder.Services.AddMiniAuth();
+            builder.Services.AddMiniAuth(options:(options)=> {
+                options.AuthenticationType = AuthType.BearerJwt;
+                options.JWTKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("6ee3edbf-488e-4484-9c2c-e3ffa6dcbc09"));
+            });
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
