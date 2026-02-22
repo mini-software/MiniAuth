@@ -269,6 +269,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                             // enable null = true
                             Enable = claims.FirstOrDefault(f => f.ClaimType == "Enable")?.ClaimValue != "False",
                             Emp_no = claims.FirstOrDefault(f => f.ClaimType == "Emp_no")?.ClaimValue,
+                            Tags = claims.FirstOrDefault(f => f.ClaimType == "Tags")?.ClaimValue,
                         };
                         return result;
                     });
@@ -375,7 +376,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
 
                 var userClaims = _dbContext.UserClaims.Where(w => w.UserId == user.Id).ToArray();
                 {
-                    string[] keys = new[] { "First_name", "Last_name", "Emp_no", "Enable" };
+                    string[] keys = new[] { "First_name", "Last_name", "Emp_no", "Enable", "Tags" };
                     foreach (var item in keys)
                     {
                         var userClaim = userClaims.FirstOrDefault(f => f.ClaimType == item);

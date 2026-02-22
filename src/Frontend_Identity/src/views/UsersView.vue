@@ -66,6 +66,7 @@
           <th>{{ $t('FirstName') }}</th>
           <th>{{ $t('LastName') }}</th>
           <th>{{ $t('Employee_Number') }}</th>
+          <th>{{ $t('Tags') }}</th>
           <th>{{ $t('Enable') }}</th>
           <th>{{ $t('Email Confirmed') }}</th>
           <th>{{ $t('PhoneNumber Confirmed') }}</th>
@@ -131,6 +132,9 @@
           </td>
           <td>
             <input class="input_no_border" type="text" v-model="item.Emp_no" />
+          </td>
+          <td>
+            <input class="input_no_border" type="text" v-model="item.Tags" />
           </td>
           <td>
             <div class="form-check form-switch">
@@ -286,6 +290,14 @@
                   v-model="editedUser.Emp_no"
                   id="empNo"
                   required
+                />
+
+                <label for="tags">{{ $t('Tags') }}:</label>
+                <input
+                  class="form-control"
+                  type="text"
+                  v-model="editedUser.Tags"
+                  id="tags"
                 />
 
                 <label for="enable">{{ $t('Enable') }}:</label>
