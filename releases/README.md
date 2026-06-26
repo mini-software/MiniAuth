@@ -19,6 +19,12 @@
 
 ---
 
+### 0.10.2
+- Replace the embedded admin dashboard with pure HTML, CSS, and JavaScript.
+- Remove the Vue/Vite frontend build path from the package release flow.
+- Standardize the default management route prefix to `/miniauth`.
+- Fix embedded static file routing and new-user save handling.
+
 ### 0.9.2
 - Fix Asp.net core empty startup error #187
 

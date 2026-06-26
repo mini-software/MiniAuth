@@ -1,0 +1,103 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      publish_nuget:
+        description: Publish packages to NuGet.org
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  pack:
+    name: Pack and publish
+    runs-on: ubuntu-latest
+    env:
+      CONFIGURATION: Release
+      PACKAGE_PROJECT: src/MiniAuth.IdentityAuth/MiniAuth.IdentityAuth.csproj
+      PACKAGE_OUTPUT: artifacts/nuget
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            6.0.x
+            7.0.x
+            8.0.x
+
+      - name: Restore
+        run: dotnet restore Build.csproj
+
+      - name: Build
+        run: dotnet build Build.csproj -c $CONFIGURATION --no-restore /p:CI=true
+
+      - name: Validate release tag
+        if: github.event_name == 'release'
+        shell: bash
+        run: |
+          package_version=$(dotnet msbuild "$PACKAGE_PROJECT" -getProperty:Version)
+          release_tag="${GITHUB_REF_NAME#v}"
+          if [ "$package_version" != "$release_tag" ]; then
+            echo "Release tag $GITHUB_REF_NAME does not match package version $package_version."
+            exit 1
+          fi
+
+      - name: Test
+        run: dotnet test Build.csproj -c $CONFIGURATION --no-build --logger trx --results-directory ./test-results/ /p:CI=true
+        env:
+          EnableTestLogging: true
+
+      - name: Pack
+        run: dotnet pack $PACKAGE_PROJECT -c $CONFIGURATION --no-build -o $PACKAGE_OUTPUT /p:CI=true
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: |
+            ${{ env.PACKAGE_OUTPUT }}/*.nupkg
+            ${{ env.PACKAGE_OUTPUT }}/*.snupkg
+
+      - name: Upload packages to GitHub Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ env.PACKAGE_OUTPUT }}/*.nupkg
+            ${{ env.PACKAGE_OUTPUT }}/*.snupkg
+
+      - name: NuGet login
+        if: github.event_name == 'release' || github.event.inputs.publish_nuget == 'true'
+        uses: NuGet/login@v1
+        id: nuget-login
+        with:
+          user: ITWeiHan
+
+      - name: Publish package to NuGet.org
+        if: github.event_name == 'release' || github.event.inputs.publish_nuget == 'true'
+        shell: bash
+        run: |
+          for package in "$PACKAGE_OUTPUT"/*.nupkg; do
+            dotnet nuget push "$package" --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          done
+
+      - name: Publish symbols to NuGet.org
+        if: github.event_name == 'release' || github.event.inputs.publish_nuget == 'true'
+        shell: bash
+        run: |
+          for package in "$PACKAGE_OUTPUT"/*.snupkg; do
+            dotnet nuget push "$package" --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          done
