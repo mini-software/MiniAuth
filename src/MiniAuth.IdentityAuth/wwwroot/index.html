@@ -1,16 +1,130 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <link rel="icon" href="/miniauth/assets/favicon-nEFMWCT0.ico">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MiniAuth</title>
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-    <script src="js/bootstrap.bundle.min.js"></script>
-    <script type="module" crossorigin src="/miniauth/assets/index-wa5Wqz5d.js"></script>
-    <link rel="stylesheet" crossorigin href="/miniauth/assets/index-kE1HrYkG.css">
-  </head>
-  <body>
-    <div id="app"></div>
-  </body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>MiniAuth</title>
+  <link rel="icon" href="favicon.ico">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar" aria-label="MiniAuth navigation">
+      <div class="brand">
+        <span class="brand-mark">M</span>
+        <div>
+          <strong>MiniAuth</strong>
+          <span>Identity Admin</span>
+        </div>
+      </div>
+      <nav class="nav-list" aria-label="Sections">
+        <button class="nav-item active" type="button" data-view="users">Users</button>
+        <button class="nav-item" type="button" data-view="roles">Roles</button>
+        <button class="nav-item" type="button" data-view="endpoints">Endpoints</button>
+      </nav>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Plugin Identity Auth</p>
+          <h1 id="view-title">Users</h1>
+        </div>
+        <div class="topbar-actions">
+          <span id="status" class="status" role="status" aria-live="polite"></span>
+          <button id="refresh-button" class="secondary" type="button">Refresh</button>
+          <button id="logout-button" class="secondary" type="button">Logout</button>
+        </div>
+      </header>
+
+      <section id="users-view" class="view active" aria-labelledby="users-heading">
+        <div class="toolbar">
+          <h2 id="users-heading">Users</h2>
+          <div class="toolbar-actions">
+            <input id="user-search" type="search" placeholder="Search users" autocomplete="off">
+            <button id="add-user-button" type="button">Add User</button>
+          </div>
+        </div>
+        <div class="table-frame">
+          <table>
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Roles</th>
+                <th>Contact</th>
+                <th>Profile</th>
+                <th>Security</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-body"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <button id="prev-users" class="secondary" type="button">Previous</button>
+          <span id="users-page"></span>
+          <button id="next-users" class="secondary" type="button">Next</button>
+        </div>
+      </section>
+
+      <section id="roles-view" class="view" aria-labelledby="roles-heading">
+        <div class="toolbar">
+          <h2 id="roles-heading">Roles</h2>
+          <div class="toolbar-actions">
+            <button id="add-role-button" type="button">Add Role</button>
+          </div>
+        </div>
+        <div class="table-frame">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Enabled</th>
+                <th>Remark</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="roles-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="endpoints-view" class="view" aria-labelledby="endpoints-heading">
+        <div class="toolbar">
+          <h2 id="endpoints-heading">Endpoints</h2>
+          <div class="toolbar-actions">
+            <input id="endpoint-search" type="search" placeholder="Search endpoints" autocomplete="off">
+          </div>
+        </div>
+        <div class="table-frame">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Route</th>
+                <th>Methods</th>
+                <th>Redirect</th>
+              </tr>
+            </thead>
+            <tbody id="endpoints-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="password-dialog">
+    <form method="dialog" class="dialog-body">
+      <h2>Generated Password</h2>
+      <input id="generated-password" readonly>
+      <div class="dialog-actions">
+        <button id="copy-password" class="secondary" value="copy" type="button">Copy</button>
+        <button value="close">Close</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js" defer></script>
+</body>
 </html>

@@ -272,7 +272,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                         };
                         return result;
                     });
-                var totalItems = _dbContext.Users.Count();
+                var totalItems = users.Count();
                 await OkResult(context, new { users = userVo, totalItems }.ToJson());
             }).RequireAuthorization(new AuthorizeAttribute() { Roles = "miniauth-admin" });
 
@@ -312,11 +312,13 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                 var TwoFactorEnabled = root.GetProperty<bool>("TwoFactorEnabled");
                 var LockoutEnd = root.GetProperty<DateTimeOffset?>("LockoutEnd");
                 var LockoutEnabled = root.GetProperty<bool>("LockoutEnabled");
-                var roles = root.GetProperty<string[]>("Roles");
-                TIdentityUser user = (TIdentityUser)await _dbContext.Users.FindAsync(id);
+                var roles = root.GetProperty<string[]>("Roles") ?? Array.Empty<string>();
+                TIdentityUser user = string.IsNullOrWhiteSpace(id)
+                    ? null
+                    : (TIdentityUser)await _dbContext.Users.FindAsync(id);
 
-                var isUserExist = user == null;
-                if (isUserExist)
+                var isNewUser = user == null;
+                if (isNewUser)
                 {
                     user = new TIdentityUser
                     {
@@ -399,7 +401,7 @@ internal class MiniAuthIdentityEndpoints<TDbContext, TIdentityUser, TIdentityRol
                     }
                 };
 
-                if (isUserExist)
+                if (isNewUser)
                 {
                     string newPassword = GetNewPassword();
                     if (!await userManager.HasPasswordAsync(user))

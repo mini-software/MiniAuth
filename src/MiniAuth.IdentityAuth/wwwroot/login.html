@@ -1,27 +1,38 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>MiniAuth Login</title>
+    <link rel="icon" href="favicon.ico">
     <link rel="stylesheet" href="login.css">
 </head>
 <body>
-    <div class="login-container">
-        <h2 id="title">Login</h2>
-        <form id="loginForm">
-            <input type="text" id="username" placeholder="Username" required>
-            <input type="password" id="password" placeholder="Password" required>
-            <input type="hidden" id="returnUrl" value="">
-            <button type="submit">Login</button>
-            <div class="remember">
-                
-                <input type="checkbox" id="remember" name="remember">
-                <label id="rememberCheckbox" for="remember">Remember me</label>
+    <main class="login-shell">
+        <section class="login-panel" aria-labelledby="title">
+            <div class="brand">
+                <span class="brand-mark">M</span>
+                <div>
+                    <strong>MiniAuth</strong>
+                    <span>Identity Admin</span>
+                </div>
             </div>
-        </form>
-        <div id="message"></div>
-    </div>
-    <script src="login.js"></script>
+            <h1 id="title">Login</h1>
+            <form id="login-form" autocomplete="on">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" autocomplete="username" required autofocus>
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" autocomplete="current-password" required>
+                <label class="check-row" for="remember">
+                    <input type="checkbox" id="remember" name="remember">
+                    <span id="remember-label">Remember me</span>
+                </label>
+                <button id="login-button" type="submit">Login</button>
+            </form>
+            <p id="message" class="message" role="alert" aria-live="polite"></p>
+        </section>
+    </main>
+    <script src="login.js" defer></script>
 </body>
 </html>

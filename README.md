@@ -172,7 +172,7 @@ The unit is in seconds, with a default setting of 30 minutes. Additionally, note
 
 #### Refresh Token API (JWT)
 
-API : `/MiniAuth/refreshToken`
+API : `/miniauth/refreshToken`
 Body:
 
 ```json
@@ -235,8 +235,8 @@ Controllers marked as ApiController do not redirect to a login page by default; 
 
 ### Custom Frontend
 
-- The admin dashboard frontend is located in `/src/Frontend_Identity` and primarily uses Vue3 + Vite. Running `npm run build` will update the miniauth UI.
-- If you don't want to use the default miniauth login page, MVC allows you to use the scaffolded Login.cshtml provided by identity, or you can modify the login.html, js, and css files in the miniauth frontend.
+- The admin dashboard UI is embedded from `/src/MiniAuth.IdentityAuth/wwwroot` as plain HTML, CSS, and JavaScript. The package does not require a frontend build step.
+- If you don't want to use the default miniauth login page, MVC allows you to use the scaffolded Login.cshtml provided by identity, or you can replace the embedded login.html, login.js, and login.css files.
 
 ### Custom Route Prefix
 
@@ -247,13 +247,13 @@ builder.Services.AddMiniAuth(options: (options) =>
 });
 ```
 
-The default RoutePrefix is `MiniAuth`.
+The default RoutePrefix is `miniauth`.
 
 
 
 ### Login API (JWT)
 
-API: `/MiniAuth/login`
+API: `/miniauth/login`
 
 Body:
 

@@ -1,133 +1,73 @@
 ﻿
-window.onload = function () {
-    var userLang = navigator.language || navigator.userLanguage;
-    var translations = {
-        'fr': {
-            username: 'Nom d\'utilisateur',
-            password: 'Mot de passe',
-            login: 'S\'identifier',
-            remember: 'Se souvenir de moi'
-        },
-        'zh-CN': {
-            username: '用户名',
-            password: '密码',
-            login: '登录',
-            remember: '记住我'
-        },
-        'zh-TW': {
-            username: '帳號',
-            password: '密碼',
-            login: '登入',
-            remember: '記住我'
-        },
-        'zh-HK': {
-            username: '帳號',
-            password: '密碼',
-            login: '登入',
-            remember: '記住我'
-        },
-        'ko': {
-            username: '사용자 이름',
-            password: '암호',
-            login: '로그인',
-            remember: '자동 로그인'
-        },
-        'ja': {
-            username: 'ユーザー名',
-            password: 'パスワード',
-            login: 'ログイン',
-            remember: 'ログインを保持'
-        },
-        'de': {
-            username: 'Benutzername',
-            password: 'Passwort',
-            login: 'Anmeldung',
-            remember: 'Anmeldung bleiben'
-        },
-        'it': {
-            username: 'Nome utente',
-            password: 'Parola d\'ordine',
-            login: 'Accesso',
-            remember: 'Ricordami'
-        },
-        'pt': {
-            username: 'Nome de usuário',
-            password: 'Senha',
-            login: 'Entrar',
-            remember: 'Lembre-se de mim'
-        },
-        'ru': {
-            username: 'Имя пользователя',
-            password: 'Пароль',
-            login: 'Авторизоваться',
-            remember: 'Запомнить меня'
-        },
-        'es': {
-            username: 'Nombre de usuario',
-            password: 'Contraseña',
-            login: 'Iniciar sesión',
-            remember: 'Recordarme'
-        },
-        'default': {
-            username: 'Username',
-            password: 'Password',
-            login: 'Login',
-            remember: 'Remember me'
-        }
-    };
+const form = document.getElementById('login-form');
+const message = document.getElementById('message');
+const loginButton = document.getElementById('login-button');
+const rootPath = getRootPath();
 
-    var langSpecific = translations[userLang] || translations['default'];
+form.addEventListener('submit', async event => {
+    event.preventDefault();
+    setMessage('');
+    loginButton.disabled = true;
 
-    var loginForm = document.getElementById('loginForm');
-    var title = document.getElementById('title');
-    var usernameInput = document.getElementById('username');
-    var passwordInput = document.getElementById('password');
-    var loginButton = loginForm.querySelector('button');
-    var rememberCheckbox = document.getElementById('rememberCheckbox');
-
-    usernameInput.placeholder = langSpecific.username;
-    passwordInput.placeholder = langSpecific.password;
-    loginButton.textContent = langSpecific.login;
-    title.textContent = langSpecific.login;
-    rememberCheckbox.textContent = langSpecific.remember;
-};
-document.getElementById('loginForm').addEventListener('submit', function (event) {
-    event.preventDefault(); 
-
-    const username = document.getElementById('username').value;
+    const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
     const remember = document.getElementById('remember').checked;
-    const url = new URL(window.location.href);
-    const returnUrl = url.searchParams.get('returnUrl') || url.searchParams.get('ReturnUrl') || '/';
 
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', 'login');
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.withCredentials = true;
+    try {
+        const response = await fetch(`${rootPath}login`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ username, password, remember })
+        });
 
-
-    xhr.onload = function () {
-        if (xhr.status === 200) { 
-            const data = JSON.parse(xhr.responseText);
-            if (data.ok === false) {
-                document.getElementById('message').textContent = 'Login failed. Please check your credentials.'; 
-                return;
-            }
-            if (data.data.accessToken!=undefined && data.data.accessToken!=null) {
-                localStorage.setItem('X-MiniAuth-Token', data.data.accessToken);
-            }
-            // after 1 second then redirect to returnUrl
-            setTimeout(function () {
-                window.location.href = returnUrl;
-            }, 1000);
-        } else {  
-            document.getElementById('message').textContent = 'Login failed. Please check your credentials.'; 
+        const payload = await readJson(response);
+        if (!response.ok || payload.ok === false || payload.code >= 400) {
+            throw new Error(payload.message || 'Login failed.');
         }
-    };
 
-    xhr.onerror = function () { 
-        document.getElementById('message').textContent = 'An error occurred while trying to log in.'; // You might want to change this message to something more user-friendly  
-    };
-    
-    xhr.send(JSON.stringify({ username: username, password: password,remember:remember }));
+        const data = payload.data || payload;
+        if (data.accessToken) {
+            localStorage.setItem('X-MiniAuth-Token', data.accessToken);
+        }
+
+        window.location.href = getReturnUrl();
+    } catch (error) {
+        setMessage(error.message || 'Login failed.');
+    } finally {
+        loginButton.disabled = false;
+    }
 });
+
+function getRootPath() {
+    const path = window.location.pathname;
+    const lastSlash = path.lastIndexOf('/');
+    return lastSlash >= 0 ? path.slice(0, lastSlash + 1) : '/';
+}
+
+function getReturnUrl() {
+    const url = new URL(window.location.href);
+    return url.searchParams.get('returnUrl')
+        || url.searchParams.get('ReturnUrl')
+        || `${rootPath}index.html`;
+}
+
+async function readJson(response) {
+    const text = await response.text();
+    if (!text) {
+        return {};
+    }
+
+    try {
+        return JSON.parse(text);
+    } catch {
+        return { message: text };
+    }
+}
+
+function setMessage(value) {
+    message.textContent = value;
+}

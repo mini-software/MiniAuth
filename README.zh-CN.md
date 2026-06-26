@@ -184,7 +184,7 @@ xhr.send();
 
 #### 刷新 Refresh Token API (JWT)
 
-API : `/MiniAuth/refreshToken`
+API : `/miniauth/refreshToken`
 Body:
 
 ```json
@@ -251,8 +251,8 @@ ApiController 的 Controller 预设不会导向登录页面，而是返回 401 s
 
 ### 自定义前端
 
-- 管理后台前端在 `/src/Frontend_Identity` 主体使用 Vue3 + Vite，使用 npm run build 后即可更新 miniauth 的 UI
-- 登录页面不想使用 miniauth 预设， mvc可以使用 identity 自带的Scaffolded Login.cshtml ，或是更改 miniauth 前端的 login.html, js, css
+- 管理后台 UI 直接以内嵌静态文件放在 `/src/MiniAuth.IdentityAuth/wwwroot`，使用纯 HTML、CSS、JavaScript，不需要前端 build 步骤
+- 登录页面不想使用 miniauth 预设，mvc 可以使用 identity 自带的 Scaffolded Login.cshtml，或是替换内嵌的 login.html, login.js, login.css
 
 ### 自定路由前缀
 
@@ -263,13 +263,13 @@ builder.Services.AddMiniAuth(options: (options) =>
 });
 ```
 
-预设 RoutePrefix 为 `MiniAuth`。
+预设 RoutePrefix 为 `miniauth`。
 
 
 
 ### 登录API (JWT)
 
-API: `/MiniAuth/login`
+API: `/miniauth/login`
 
 Body:
 

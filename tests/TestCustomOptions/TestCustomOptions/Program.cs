@@ -19,14 +19,14 @@ namespace TestCustomOptions
 
             builder.Services.AddMiniAuth(options: (options) =>
             {
-                options.RoutePrefix = "MiniAuth";
+                options.RoutePrefix = "miniauth";
                 options.LoginPath = $"/{options.RoutePrefix}/login.html";
                 options.DisableMiniAuthLogin = false;
                 options.AuthenticationType = AuthType.BearerJwt;
                 options.JWTKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("This is a secret key"));
                 options.TokenExpiresIn = 3600;
                 options.Issuer = "MiniAuth";
-                options.SqliteConnectionString = "Data Source=MiniAuth.db";
+                options.SqliteConnectionString = "Data Source=miniauth.db";
             });
 
             var app = builder.Build();

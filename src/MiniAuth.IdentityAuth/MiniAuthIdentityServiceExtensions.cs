@@ -165,10 +165,10 @@ public static class MiniAuthIdentityServiceExtensions
                     OnRedirectToLogin = ctx =>
                     {
                         var routeEndpoint = ctx.HttpContext.GetEndpoint();
-                        Debug.WriteLine($"* CookieAuthenticationEvents : {routeEndpoint.ToString()}");
+                        Debug.WriteLine($"* CookieAuthenticationEvents : {routeEndpoint?.ToString()}");
 
                         var isJsonApi = ctx.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
-                            routeEndpoint.Metadata?.GetMetadata<Microsoft.AspNetCore.Mvc.ApiControllerAttribute>() != null;
+                            routeEndpoint?.Metadata?.GetMetadata<Microsoft.AspNetCore.Mvc.ApiControllerAttribute>() != null;
                         if (isJsonApi)
                         {
                             Debug.WriteLine($"IsXMLHttpRequest Path: {ctx.Request.Path}");

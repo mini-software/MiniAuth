@@ -59,7 +59,7 @@ namespace MiniAuth
     internal class MiniAuthOption
 
     {
-        public static string RoutePrefix = "MiniAuth";
+        public static string RoutePrefix = "miniauth";
         public static string LoginPath = $"/{RoutePrefix}/login.html";
         public static bool DisableMiniAuthLogin = false;
 
