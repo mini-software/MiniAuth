@@ -93,11 +93,3 @@ jobs:
           for package in "$PACKAGE_OUTPUT"/*.nupkg; do
             dotnet nuget push "$package" --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
           done
-
-      - name: Publish symbols to NuGet.org
-        if: github.event_name == 'release' || github.event.inputs.publish_nuget == 'true'
-        shell: bash
-        run: |
-          for package in "$PACKAGE_OUTPUT"/*.snupkg; do
-            dotnet nuget push "$package" --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
-          done
